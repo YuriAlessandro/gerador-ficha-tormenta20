@@ -94,10 +94,10 @@ Este repositório é público e MIT, mas o projeto tem duas partes privadas:
 | `src/premium-stub` | **público** | Substituto inerte de `src/premium` |
 
 **Você não precisa de acesso aos submódulos para contribuir.** Ao clonar sem
-eles, um plugin no `vite.config.ts` redireciona todo import de `src/premium`
-para `src/premium-stub/`, e o app sobe normalmente com o gerador, o wizard, o
-PDF, o gerador de ameaças e a enciclopédia funcionando. As funcionalidades pagas
-simplesmente não aparecem.
+eles, o plugin compartilhado por `vite.config.ts` e `vitest.config.ts`
+redireciona os imports de `src/premium` para `src/premium-stub/`, que contém
+implementações inertes. Isso permite desenvolver o frontend público, mas não
+reproduz as funcionalidades privadas nem valida o produto completo.
 
 Detalhes, limitações conhecidas e como regenerar o stub estão no
 [CONTRIBUTING.md](CONTRIBUTING.md#rodando-sem-o-módulo-premium).
@@ -111,11 +111,11 @@ Detalhes, limitações conhecidas e como regenerar o stub estão no
 - Git
 
 ```bash
-# Clone (os submódulos privados são pulados automaticamente se você não tiver acesso)
+# Clone sem inicializar os submódulos privados (não use --recurse-submodules)
 git clone https://github.com/YuriAlessandro/gerador-ficha-tormenta20.git
 cd gerador-ficha-tormenta20
 
-npm install
+npm ci --legacy-peer-deps
 npm start
 
 # Acesse http://localhost:5173
@@ -131,8 +131,11 @@ npx eslint src/                   # Lint
 npx prettier --write src/         # Formatação
 ```
 
-> Sem o submódulo `src/premium`, o `tsc --noEmit` e os testes que importam o
-> premium falham — o app roda, mas essas verificações não. Veja o
+> Sem `src/premium`, o Vitest usa o stub e exclui condicionalmente as suítes
+> listadas em `PREMIUM_DEPENDENT_TESTS`. Outras ainda podem falhar por depender
+> de lógica ausente no stub; não há garantia de que todos os testes passem.
+> O `tsc --noEmit` não usa esse redirecionamento e pode acusar imports privados
+> não resolvidos. Testes públicos e build não validam o produto completo. Veja o
 > [CONTRIBUTING.md](CONTRIBUTING.md#rodando-sem-o-módulo-premium).
 
 ## 🤝 Como contribuir

@@ -6,6 +6,9 @@
  * um símbolo sagrado desse deus (inclusive fornecendo o bônus de +1 em testes
  * de resistência)", e só vale vestido ou empunhado. Como é o MESMO bônus do
  * Símbolo sagrado, os dois não acumulam.
+ *
+ * As fichas daqui são devotas: o +1 só vale para "um deus do qual é devoto"
+ * (JdA, p. 157). O caso do não devoto está em `holySymbolDevotion.spec.ts`.
  */
 import { describe, it, expect } from 'vitest';
 import _ from 'lodash';
@@ -21,6 +24,7 @@ import { dataRegistry } from '../../data/registry';
 import { Armaduras } from '../../data/systems/tormenta20/equipamentos';
 import { equipamentoAventureiro } from '../../data/systems/tormenta20/equipamentos-gerais';
 import { applyItemEnhancements } from '../../functions/itemEnhancements/applyEnhancements';
+import KHALMYR from '../../data/systems/tormenta20/divindades/khalmyr';
 
 const RESISTENCIAS = [Skill.FORTITUDE, Skill.REFLEXOS, Skill.VONTADE];
 
@@ -96,6 +100,7 @@ const buildSheet = ({
     steps: [],
     equipStateMigrated: true,
     wornArmorId: armor ? eq.Armadura[0].id : undefined,
+    devoto: { divindade: KHALMYR, poderes: [] },
   } as unknown as CharacterSheet;
 };
 

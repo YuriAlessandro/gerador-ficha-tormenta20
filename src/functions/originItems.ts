@@ -11,6 +11,7 @@ import {
   Escudos,
 } from '../data/systems/tormenta20/equipamentos';
 import { esotericItems } from '../data/systems/tormenta20/equipamentos-gerais';
+import { buildCatalogIndex, stampCatalogData } from './bagCatalogRefresh';
 import {
   applyModification,
   applySpecialMaterial,
@@ -51,15 +52,25 @@ export function convertOriginItemsToBagEquipments(
     'Item Geral': [],
   };
 
+  let catalog: Map<string, Equipment> | undefined;
+
   items?.forEach((equip) => {
     const descricao = buildOriginItemDescription(equip, originName);
 
     if (typeof equip.equipment === 'string') {
-      equipments['Item Geral']?.push({
+      const item: Equipment = {
         nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
         group: 'Item Geral',
         descricao,
-      });
+      };
+      // Item em texto ("Mochila de aventureiro") nasce com o dado estático do
+      // catálogo — os mesmos `sheetBonuses` que `refreshBagItemsFromCatalog`
+      // carimbaria ao reabrir. Sem isso a ficha nova mostrava uma carga e,
+      // depois de salvar e abrir, outra.
+      if (!catalog) catalog = buildCatalogIndex();
+      const catalogItem = catalog.get(equip.equipment);
+      if (catalogItem) stampCatalogData(item, catalogItem);
+      equipments['Item Geral']?.push(item);
     } else if (equip.equipment) {
       // Clona: os objetos vêm dos catálogos, que são singletons compartilhados
       // e cacheados. Colocá-los na mochila por referência faz `ensureIds`

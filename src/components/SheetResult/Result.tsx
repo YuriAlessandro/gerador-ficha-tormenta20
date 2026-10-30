@@ -50,6 +50,13 @@ import {
 } from '@/functions/spells/derivedSpells';
 import { buildUsurparCastCheck } from '@/functions/spells/usurpar';
 import { getPoderCapturadoDefinition } from '@/functions/powers/poderCapturadoEffects';
+import {
+  getManeuverBonus,
+  getManeuverWeaponOptions,
+  MANEUVERS,
+  resolveManeuverWeapon,
+} from '@/functions/maneuvers';
+import type { ManeuverRowData } from '@/components/ManeuverRow';
 import { ignoresEncumbrance } from '@/functions/encumbrance';
 import {
   applyManualLevelUp,
@@ -64,9 +71,11 @@ import {
   isMulticlass,
   getMulticlassDisplayName,
   getClassLevelsMap,
-  getClassLevel,
 } from '@/functions/multiclass';
-import { getCompanionLevels } from '@/functions/companionLevels';
+import {
+  getCompanionLevels,
+  hasBestFriendAbility,
+} from '@/functions/companionLevels';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { CastAugment, EngenhocaData, Spell } from '@/interfaces/Spells';
 import { CompanionSheet } from '@/interfaces/Companion';
@@ -152,11 +161,14 @@ import {
   updatePowerAcrossSheet,
   PowerUserPatch,
 } from '@/functions/powers/updatePowerAcrossSheet';
+import { usesCharismaForDefense } from '@/functions/learnedClassAbility';
 import PoderCapturadoEditDrawer from './EditDrawers/PoderCapturadoEditDrawer';
 import PoderCapturadoAction from './PoderCapturadoAction';
 import LevelUpWizardModal from '../LevelUpWizard/LevelUpWizardModal';
 import CharacterSheet, {
   DamageReduction,
+  EnabledManeuver,
+  ManeuverId,
 } from '../../interfaces/CharacterSheet';
 import Weapons from '../Weapons';
 import DefenseEquipments from '../DefenseEquipments';
@@ -192,12 +204,20 @@ import {
 import SheetInfoEditDrawer from './EditDrawers/SheetInfoEditDrawer';
 import SkillsEditDrawer from './EditDrawers/SkillsEditDrawer';
 import { BackpackModal } from './BackpackModal';
-import { commitWielding, WieldingSlot } from './BackpackModal/wielding';
+import {
+  commitWielding,
+  getDisabledWieldingSlots,
+  getWieldedItemIds,
+  isItemWielded,
+  sheetHasFourArms,
+  WieldingSlot,
+} from './BackpackModal/wielding';
 import { getOrderedItemsByGroup } from './BackpackModal/bagOrdering';
 import { findConsumableAmmoStack } from './BackpackModal/ammo';
 import PowersEditorModal from './EditDrawers/PowersEditor';
 import SpellsEditDrawer from './EditDrawers/SpellsEditDrawer';
 import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
+import ManeuversDrawer from './EditDrawers/ManeuversDrawer';
 import ProficiencyEditDrawer from './EditDrawers/ProficiencyEditDrawer';
 import SizeDisplacementEditDrawer from './EditDrawers/SizeDisplacementEditDrawer';
 import StatEditDrawer from './EditDrawers/StatEditDrawer';
@@ -315,6 +335,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const [complicationDrawerOpen, setComplicationDrawerOpen] = useState(false);
   const [spellsDrawerOpen, setSpellsDrawerOpen] = useState(false);
   const [defenseDrawerOpen, setDefenseDrawerOpen] = useState(false);
+  const [maneuversDrawerOpen, setManeuversDrawerOpen] = useState(false);
   const [proficiencyDrawerOpen, setProficiencyDrawerOpen] = useState(false);
   const [sizeDisplacementDrawerOpen, setSizeDisplacementDrawerOpen] =
     useState(false);
@@ -1690,6 +1711,8 @@ const Result: React.FC<ResultProps> = (props) => {
         state: {
           mainHandItemId: currentSheet.mainHandItemId,
           offHandItemId: currentSheet.offHandItemId,
+          extraHand1ItemId: currentSheet.extraHand1ItemId,
+          extraHand2ItemId: currentSheet.extraHand2ItemId,
         },
         itemId,
         slot,
@@ -1699,6 +1722,8 @@ const Result: React.FC<ResultProps> = (props) => {
         ...currentSheet,
         mainHandItemId: next.mainHandItemId,
         offHandItemId: next.offHandItemId,
+        extraHand1ItemId: next.extraHand1ItemId,
+        extraHand2ItemId: next.extraHand2ItemId,
       };
       // Só reconstrói a Bag quando a pilha foi dividida/refundida — trocar de
       // mão não deve invalidar a referência da mochila à toa.
@@ -1787,63 +1812,29 @@ const Result: React.FC<ResultProps> = (props) => {
   // Shared by Ataques and Defesa: blocks slots when a hand is already
   // occupied by a 2H weapon or a shield. The wielded item itself is exempt.
   const computeWieldingDisabled = useMemo(() => {
-    const wieldingTwoHanded =
-      currentSheet.mainHandItemId !== undefined &&
-      currentSheet.mainHandItemId === currentSheet.offHandItemId;
     const handCandidates: Equipment[] = [
       ...bagEquipments.Arma,
       ...bagEquipments.Escudo,
       ...bagEquipments.Alquimía,
       ...bagEquipments['Item Geral'],
     ];
-    const twoHandedItem = wieldingTwoHanded
-      ? handCandidates.find((it) => it.id === currentSheet.mainHandItemId)
-      : undefined;
-    const mainHandItemForDisable = currentSheet.mainHandItemId
-      ? handCandidates.find((it) => it.id === currentSheet.mainHandItemId)
-      : undefined;
-    const offHandItemForDisable = currentSheet.offHandItemId
-      ? handCandidates.find((it) => it.id === currentSheet.offHandItemId)
-      : undefined;
-    return (
-      itemId: string | undefined
-    ): Partial<Record<'main' | 'off', { reason: string }>> | undefined => {
-      if (wieldingTwoHanded && twoHandedItem && itemId !== twoHandedItem.id) {
-        const reason = `Mão ocupada por ${
-          twoHandedItem.customDisplayName || twoHandedItem.nome
-        } (duas mãos). Solte primeiro.`;
-        return { main: { reason }, off: { reason } };
-      }
-      const disabled: Partial<Record<'main' | 'off', { reason: string }>> = {};
-      if (
-        mainHandItemForDisable &&
-        mainHandItemForDisable.group === 'Escudo' &&
-        itemId !== mainHandItemForDisable.id
-      ) {
-        disabled.main = {
-          reason: `Mão ocupada por ${
-            mainHandItemForDisable.customDisplayName ||
-            mainHandItemForDisable.nome
-          } (escudo). Solte primeiro.`,
-        };
-      }
-      if (
-        offHandItemForDisable &&
-        offHandItemForDisable.group === 'Escudo' &&
-        itemId !== offHandItemForDisable.id
-      ) {
-        disabled.off = {
-          reason: `Mão ocupada por ${
-            offHandItemForDisable.customDisplayName ||
-            offHandItemForDisable.nome
-          } (escudo). Solte primeiro.`,
-        };
-      }
-      return Object.keys(disabled).length > 0 ? disabled : undefined;
+    const state = {
+      mainHandItemId: currentSheet.mainHandItemId,
+      offHandItemId: currentSheet.offHandItemId,
+      extraHand1ItemId: currentSheet.extraHand1ItemId,
+      extraHand2ItemId: currentSheet.extraHand2ItemId,
     };
+    return (itemId: string | undefined) =>
+      getDisabledWieldingSlots(
+        state,
+        (handItemId) => handCandidates.find((it) => it.id === handItemId),
+        itemId
+      );
   }, [
     currentSheet.mainHandItemId,
     currentSheet.offHandItemId,
+    currentSheet.extraHand1ItemId,
+    currentSheet.extraHand2ItemId,
     bagEquipments.Arma,
     bagEquipments.Escudo,
     bagEquipments.Alquimía,
@@ -1863,25 +1854,107 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet]
   );
 
+  // Armas naturais da Forma Selvagem vêm primeiro e são virtuais: não estão na
+  // mochila, então somem sozinhas quando o druida reverte.
+  const attackWeapons = useMemo(
+    () => [
+      ...getWildShapeNaturalWeapons(currentSheet),
+      ...getOrderedItemsByGroup(bag, (it) => it.group === 'Arma' && !it.isAmmo),
+    ],
+    [bag, currentSheet]
+  );
+
+  // Calculadas para todas as manobras: a lista de ataques mostra as ativadas, e
+  // o drawer de configuração, o bônus de cada uma antes de ativar.
+  const maneuverRows = useMemo<ManeuverRowData[]>(
+    () =>
+      MANEUVERS.map(({ id: maneuverId }) => {
+        const options = getManeuverWeaponOptions(maneuverId, attackWeapons);
+        const weapon = resolveManeuverWeapon(
+          currentSheet.enabledManeuvers?.find(
+            (entry) => entry.id === maneuverId
+          ) ?? { id: maneuverId },
+          options,
+          currentSheet.mainHandItemId,
+          currentSheet.offHandItemId,
+          currentSheet.extraHand1ItemId,
+          currentSheet.extraHand2ItemId
+        );
+        return {
+          id: maneuverId,
+          options,
+          weapon,
+          bonus: getManeuverBonus(maneuverId, weapon, {
+            sheet: currentSheet,
+            completeSkills,
+            atributos: atributosEfetivos,
+            classLevels,
+            proficiencias: effectiveProficiencias,
+          }),
+        };
+      }),
+    [
+      attackWeapons,
+      atributosEfetivos,
+      classLevels,
+      completeSkills,
+      currentSheet,
+      effectiveProficiencias,
+    ]
+  );
+
+  const enabledManeuverRows = useMemo(
+    () =>
+      maneuverRows.filter((row) =>
+        currentSheet.enabledManeuvers?.some((entry) => entry.id === row.id)
+      ),
+    [currentSheet.enabledManeuvers, maneuverRows]
+  );
+
+  const saveEnabledManeuvers = useCallback(
+    (next: EnabledManeuver[]) => {
+      const updatedSheet = {
+        ...currentSheet,
+        enabledManeuvers: next.length > 0 ? next : undefined,
+      };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) onSheetUpdate(updatedSheet);
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handleManeuverToggle = useCallback(
+    (maneuverId: ManeuverId) => {
+      const current = currentSheet.enabledManeuvers ?? [];
+      saveEnabledManeuvers(
+        current.some((entry) => entry.id === maneuverId)
+          ? current.filter((entry) => entry.id !== maneuverId)
+          : [...current, { id: maneuverId }]
+      );
+    },
+    [currentSheet.enabledManeuvers, saveEnabledManeuvers]
+  );
+
+  const handleManeuverWeaponChange = useCallback(
+    (maneuverId: ManeuverId, weaponId: string) => {
+      saveEnabledManeuvers(
+        (currentSheet.enabledManeuvers ?? []).map((entry) =>
+          entry.id === maneuverId ? { id: maneuverId, weaponId } : entry
+        )
+      );
+    },
+    [currentSheet.enabledManeuvers, saveEnabledManeuvers]
+  );
+
   const weaponsDiv = useMemo(() => {
-    const wieldingTrackingActive =
-      currentSheet.mainHandItemId !== undefined ||
-      currentSheet.offHandItemId !== undefined;
+    const wieldingTrackingActive = getWieldedItemIds(currentSheet).length > 0;
     const hasArremessador = (currentSheet.raca?.abilities ?? []).some(
       (ability) => ability.name === 'Arremessador'
     );
     return (
       <Weapons
         getKey={getKey}
-        // Armas naturais da Forma Selvagem vêm primeiro e são virtuais: não
-        // estão na mochila, então somem sozinhas quando o druida reverte.
-        weapons={[
-          ...getWildShapeNaturalWeapons(currentSheet),
-          ...getOrderedItemsByGroup(
-            bag,
-            (it) => it.group === 'Arma' && !it.isAmmo
-          ),
-        ]}
+        weapons={attackWeapons}
         completeSkills={completeSkills}
         atributos={atributosEfetivos}
         nivel={currentSheet.nivel}
@@ -1893,6 +1966,9 @@ const Result: React.FC<ResultProps> = (props) => {
         sheetBonuses={currentSheet.sheetBonuses}
         mainHandItemId={currentSheet.mainHandItemId}
         offHandItemId={currentSheet.offHandItemId}
+        extraHand1ItemId={currentSheet.extraHand1ItemId}
+        extraHand2ItemId={currentSheet.extraHand2ItemId}
+        wieldingExtraHands={sheetHasFourArms(currentSheet)}
         onWieldingChange={onSheetUpdate ? handleQuickWieldChange : undefined}
         getWieldingDisabledSlots={computeWieldingDisabled}
         wieldingTrackingActive={wieldingTrackingActive}
@@ -1904,10 +1980,16 @@ const Result: React.FC<ResultProps> = (props) => {
           onSheetUpdate ? handleWeaponSemanticsChange : undefined
         }
         getWeaponWarning={getFundamentalistWeaponWarning}
+        maneuvers={enabledManeuverRows}
+        onManeuverWeaponChange={
+          onSheetUpdate ? handleManeuverWeaponChange : undefined
+        }
       />
     );
   }, [
-    bag,
+    attackWeapons,
+    enabledManeuverRows,
+    handleManeuverWeaponChange,
     bagEquipments,
     completeSkills,
     atributosEfetivos,
@@ -1919,6 +2001,8 @@ const Result: React.FC<ResultProps> = (props) => {
     currentSheet.sheetBonuses,
     currentSheet.mainHandItemId,
     currentSheet.offHandItemId,
+    currentSheet.extraHand1ItemId,
+    currentSheet.extraHand2ItemId,
     currentSheet.raca,
     currentSheet.activeEffects,
     currentSheet.weaponOverrides,
@@ -1959,11 +2043,7 @@ const Result: React.FC<ResultProps> = (props) => {
       components.push(`${activeArmor.defenseBonus} (${activeArmor.nome})`);
     }
     (bagEquipments.Escudo ?? []).forEach((shield) => {
-      const inHand =
-        shield.id !== undefined &&
-        (shield.id === currentSheet.mainHandItemId ||
-          shield.id === currentSheet.offHandItemId);
-      if (inHand && shield.defenseBonus > 0) {
+      if (isItemWielded(shield.id, currentSheet) && shield.defenseBonus > 0) {
         components.push(`${shield.defenseBonus} (${shield.nome})`);
       }
     });
@@ -1974,8 +2054,9 @@ const Result: React.FC<ResultProps> = (props) => {
     // Attribute modifier
     const useAttr = currentSheet.useDefenseAttribute ?? true;
     if (useAttr && !hasHeavyArmor) {
-      const defaultAttr =
-        classe.name === 'Nobre' ? Atributo.CARISMA : Atributo.DESTREZA;
+      const defaultAttr = usesCharismaForDefense(currentSheet)
+        ? Atributo.CARISMA
+        : Atributo.DESTREZA;
       const attrToUse = currentSheet.customDefenseAttribute || defaultAttr;
       // Efetivo, para o detalhamento casar com a Defesa que o motor calculou.
       const attrValue = atributosEfetivos[attrToUse]?.value || 0;
@@ -2636,10 +2717,22 @@ const Result: React.FC<ResultProps> = (props) => {
       iconKey: 'mui:Colorize',
       withTitle: false,
       available: true,
-      actions: editAction('edit-weapons', 'Editar armas', () => {
-        setBackpackInitialFilter(['Arma']);
-        setBackpackOpen(true);
-      }),
+      actions: [
+        ...(onSheetUpdate
+          ? [
+              {
+                key: 'maneuver-settings',
+                icon: <SettingsIcon />,
+                tooltip: 'Manobras de combate',
+                onClick: () => setManeuversDrawerOpen(true),
+              },
+            ]
+          : []),
+        ...editAction('edit-weapons', 'Editar armas', () => {
+          setBackpackInitialFilter(['Arma']);
+          setBackpackOpen(true);
+        }),
+      ],
       body: (
         <>
           <BookTitle>Ataques</BookTitle>
@@ -2809,6 +2902,9 @@ const Result: React.FC<ResultProps> = (props) => {
                 wornArmorId={currentSheet.wornArmorId}
                 mainHandItemId={currentSheet.mainHandItemId}
                 offHandItemId={currentSheet.offHandItemId}
+                extraHand1ItemId={currentSheet.extraHand1ItemId}
+                extraHand2ItemId={currentSheet.extraHand2ItemId}
+                wieldingExtraHands={sheetHasFourArms(currentSheet)}
                 onWieldingChange={
                   onSheetUpdate ? handleQuickWieldChange : undefined
                 }
@@ -2909,8 +3005,7 @@ const Result: React.FC<ResultProps> = (props) => {
               }
               onCompanionClick={(() => {
                 const hasCompanion = (currentSheet.companions?.length || 0) > 0;
-                const isTreinador =
-                  getClassLevel(currentSheet, 'Treinador') > 0;
+                const isTreinador = hasBestFriendAbility(currentSheet);
                 if (hasCompanion) {
                   return () => {
                     setSelectedCompanionIndex(0);
@@ -3629,6 +3724,18 @@ const Result: React.FC<ResultProps> = (props) => {
               setBackpackInitialFilter(['Armadura', 'Escudo']);
               setBackpackOpen(true);
             }}
+          />
+
+          <ManeuversDrawer
+            open={maneuversDrawerOpen}
+            onClose={() => setManeuversDrawerOpen(false)}
+            enabledIds={(currentSheet.enabledManeuvers ?? []).map(
+              (entry) => entry.id
+            )}
+            onToggle={handleManeuverToggle}
+            bonuses={Object.fromEntries(
+              maneuverRows.map((row) => [row.id, row.bonus.total])
+            )}
           />
 
           <ProficiencyEditDrawer

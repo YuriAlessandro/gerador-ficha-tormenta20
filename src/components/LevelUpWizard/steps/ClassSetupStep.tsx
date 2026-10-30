@@ -162,7 +162,7 @@ const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
     const spellType: 'Arcane' | 'Divine' | 'Both' =
       (classDesc?.spellPath?.schoolChoice
         ? classDesc.spellPath.spellType
-        : undefined) ?? (isBardoLike ? 'Both' : 'Divine');
+        : undefined) ?? (isBardoLike ? 'Arcane' : 'Divine');
 
     return (
       <SpellSchoolSelectionStep

@@ -9,11 +9,13 @@ import { CompleteSkill } from '../interfaces/Skills';
 import { CharacterAttributes } from '../interfaces/Character';
 import Weapon from './Weapon';
 import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
-import type { SheetBonus } from '../interfaces/CharacterSheet';
+import type { ManeuverId, SheetBonus } from '../interfaces/CharacterSheet';
+import ManeuverRow, { ManeuverRowData } from './ManeuverRow';
 import {
   getWieldingSlot,
   pickDefaultWieldSlot,
   WieldingSlot,
+  WieldingDisabledSlots,
 } from './SheetResult/BackpackModal/wielding';
 import { getAmmoUnits } from './SheetResult/BackpackModal/ammo';
 import { getWeaponNonProficiencyPenalty } from '../functions/proficiencies';
@@ -35,6 +37,10 @@ interface WeaponsProps {
   sheetBonuses?: SheetBonus[];
   mainHandItemId?: string;
   offHandItemId?: string;
+  extraHand1ItemId?: string;
+  extraHand2ItemId?: string;
+  /** Oferece as mãos extras (poder Quatro Braços). */
+  wieldingExtraHands?: boolean;
   onWieldingChange?: (itemId: string, slot: WieldingSlot) => void;
   /**
    * Optional disabled-slot map per item id (used when a two-handed weapon
@@ -42,7 +48,7 @@ interface WeaponsProps {
    */
   getWieldingDisabledSlots?: (
     itemId: string | undefined
-  ) => Partial<Record<'main' | 'off', { reason: string }>> | undefined;
+  ) => WieldingDisabledSlots | undefined;
   /**
    * True when at least one hand slot is currently occupied — drives the
    * "weapon not wielded" attack confirmation. Forwarded to each Weapon.
@@ -69,6 +75,10 @@ interface WeaponsProps {
   onWeaponSemanticsChange?: (weapon: Equipment, next: WeaponOverride) => void;
   /** Aviso informativo por arma, repassado a cada linha. */
   getWeaponWarning?: (weapon: Equipment) => string | undefined;
+  /** Manobras de combate ativadas na ficha, listadas abaixo das armas. */
+  maneuvers?: ManeuverRowData[];
+  /** Troca a arma de uma manobra. Ausente = ficha em modo leitura. */
+  onManeuverWeaponChange?: (id: ManeuverId, weaponId: string) => void;
 }
 
 const Weapons: React.FC<WeaponsProps> = (props) => {
@@ -84,6 +94,9 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
     sheetBonuses,
     mainHandItemId,
     offHandItemId,
+    extraHand1ItemId,
+    extraHand2ItemId,
+    wieldingExtraHands = false,
     onWieldingChange,
     getWieldingDisabledSlots,
     wieldingTrackingActive,
@@ -93,9 +106,11 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
     proficiencias,
     onWeaponSemanticsChange,
     getWeaponWarning,
+    maneuvers = [],
+    onManeuverWeaponChange,
   } = props;
 
-  if (!weapons || weapons.length === 0) {
+  if ((!weapons || weapons.length === 0) && maneuvers.length === 0) {
     return (
       <Box>
         <Typography>Nenhuma arma equipada.</Typography>
@@ -103,7 +118,12 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
     );
   }
 
-  const wieldingState = { mainHandItemId, offHandItemId };
+  const wieldingState = {
+    mainHandItemId,
+    offHandItemId,
+    extraHand1ItemId,
+    extraHand2ItemId,
+  };
 
   // Resolve o item de qualquer mão para o desempate de escudo do
   // `pickDefaultWieldSlot` (o que ocupa a mão pode não ser uma arma).
@@ -141,7 +161,8 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
         defaultWieldSlot={pickDefaultWieldSlot(
           wieldingState,
           equip,
-          wieldingLookup
+          wieldingLookup,
+          wieldingExtraHands
         )}
         completeSkills={completeSkills}
         atributos={atributos}
@@ -161,6 +182,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
             ? getWieldingDisabledSlots(equip.id)
             : undefined
         }
+        wieldingExtraHands={wieldingExtraHands}
         wieldingTrackingActive={wieldingTrackingActive}
         availableAmmo={availableAmmo}
         onConsumeAmmo={onConsumeAmmo}
@@ -187,6 +209,19 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
           ⚠️ Armas destacadas: sem proficiência — a penalidade de –5 nos testes
           de ataque já está aplicada.
         </Typography>
+      )}
+      {maneuvers.length > 0 && (
+        <Box sx={{ mt: 1.5 }}>
+          <Typography variant='subtitle2'>Manobras</Typography>
+          {maneuvers.map((maneuver) => (
+            <ManeuverRow
+              key={maneuver.id}
+              maneuver={maneuver}
+              characterName={characterName}
+              onWeaponChange={onManeuverWeaponChange}
+            />
+          ))}
+        </Box>
       )}
     </Box>
   );

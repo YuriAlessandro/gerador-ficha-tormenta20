@@ -455,7 +455,7 @@ const HEROIS_ARTON_UNIVERSAL_SPELLS: Spell[] = [
   {
     nome: 'Discrição',
     execucao: 'Padrão',
-    alcance: 'Pessoal',
+    alcance: 'Pessoal ou toque',
     alvo: 'Você ou 1 objeto',
     duracao: 'Cena',
     resistencia: 'Vontade anula',

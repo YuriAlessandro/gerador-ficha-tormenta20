@@ -8,6 +8,10 @@ import {
 import { isBonusActive } from './bonusConditions';
 import { getClassLevel, getClassLevelsMap } from './multiclass';
 import { sheetHasPowerNamed } from './powers/hasPowerNamed';
+import {
+  LEARNED_CLASS_ABILITY_LEVEL,
+  hasLearnedClassAbility,
+} from './learnedClassAbility';
 import { countTormentaPowers } from './randomUtils';
 import {
   damageAverage,
@@ -65,6 +69,9 @@ const UNARMED_ROLL_LABEL = 'Dano Desarmado';
 const UNARMED_ROLL_POWER_NAMES = new Set([
   'Corpo Aberrante',
   'Estilo Desarmado',
+  // Briga aprendida de outra classe (Duplo Feérico) mora em `classPowers`
+  'Briga (Lutador)',
+  'Briga (Atleta)',
 ]);
 
 /** Habilidades de classe que carregam a rolagem viva de dano desarmado. */
@@ -143,6 +150,9 @@ export function getUnarmedBaseDamage(sheet: CharacterSheet): {
   if (briga) {
     const className = briga.sourceClassName ?? sheet.classe.name;
     consider(getBrigaDice(getClassLevel(sheet, className)), 'Briga');
+  } else if (hasLearnedClassAbility(sheet, 'Briga')) {
+    // Aprendida pelo Duplo Feérico: "como se tivesse 1 nível naquela classe"
+    consider(getBrigaDice(LEARNED_CLASS_ABILITY_LEVEL), 'Briga');
   }
 
   return best;

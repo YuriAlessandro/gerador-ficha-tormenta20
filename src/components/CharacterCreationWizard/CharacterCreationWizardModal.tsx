@@ -64,6 +64,7 @@ import {
   applyAttributeVariant,
   buildClassEquipmentsFromChoices,
   computeFinalAttributeModifiers,
+  getAnySlotExcludedAttributes,
   getEffectiveRaceAttrs,
   isRaceAttributeSelectionComplete,
   getInitialMoneyWithDetails,
@@ -698,7 +699,16 @@ const CharacterCreationWizardModal: React.FC<
   const needsOriginItemChoice = (): boolean =>
     !!origin && originItems().some((item) => item.choice);
 
-  const needsCompanionCreation = (): boolean => classe?.name === 'Treinador';
+  // Treinador, ou Melhor Amigo aprendido por outra classe (Duplo Feérico). A
+  // escolha da habilidade vem no passo de efeitos de poder, que vem ANTES deste.
+  const needsCompanionCreation = (): boolean =>
+    classe?.name === 'Treinador' ||
+    Object.values(selections.powerEffectSelections ?? {}).some((sel) =>
+      (sel.classAbilities ?? []).some(
+        (pick) =>
+          pick.className === 'Treinador' && pick.abilityName === 'Melhor Amigo'
+      )
+    );
 
   const needsPowerEffectSelections = (): boolean => {
     if (!race || !classe) return false;
@@ -1423,8 +1433,10 @@ const CharacterCreationWizardModal: React.FC<
           sexForAttributes
         );
         const anySlots = attrs.filter((a) => a.attr === 'any');
-        const excludedAttributes =
-          raceForAttributes.attributes.excludeFromAny || [];
+        const excludedAttributes = getAnySlotExcludedAttributes(
+          raceForAttributes,
+          attrs
+        );
         return (
           <RaceAttributeStep
             selectedAttributes={selections.raceAttributes || []}

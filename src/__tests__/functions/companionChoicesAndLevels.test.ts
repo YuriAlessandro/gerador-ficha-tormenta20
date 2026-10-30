@@ -96,8 +96,13 @@ const makeSheet = (
   nivel: number,
   treinadorLevels: number,
   powers: string[] = []
-): Pick<CharacterSheet, 'nivel' | 'classLevels' | 'classPowers'> => ({
+): Pick<
+  CharacterSheet,
+  'nivel' | 'classLevels' | 'classPowers' | 'classe' | 'sheetActionHistory'
+> => ({
   nivel,
+  classe: { name: 'Guerreiro' } as CharacterSheet['classe'],
+  sheetActionHistory: [],
   classLevels: Array.from({ length: nivel }, (_, i) => ({
     level: i + 1,
     className: i < treinadorLevels ? 'Treinador' : 'Guerreiro',

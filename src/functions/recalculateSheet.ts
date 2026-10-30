@@ -59,6 +59,11 @@ import {
   getMulticlassAvailableAbilities,
   findClassDescription,
 } from './multiclass';
+import {
+  LEARNED_CLASS_ABILITY_LEVEL,
+  isLearnedClassAbilityEntry,
+  usesCharismaForDefense,
+} from './learnedClassAbility';
 import { stepUpDamage, addFlatDamageBonus } from './weaponDamageStep';
 import {
   updateUnarmedRolls,
@@ -86,6 +91,7 @@ import {
 } from './proficiencies';
 import { applyAttributeSubstitution } from './powers/attributeSubstitution';
 import {
+  sanitizeCustomItemBonuses,
   sanitizeCustomPowerBonuses,
   stampCustomPowerSource,
 } from './powers/customPowerBonuses';
@@ -111,7 +117,13 @@ import {
 } from './holySymbol';
 import { getDefenseMaterialRd } from './itemEnhancements/materialEffects';
 import { injectConjuradoraSpells } from './itemEnhancements/injectConjuradoraSpells';
-import { migrateLegacyEquipState } from '../components/SheetResult/BackpackModal/wielding';
+import {
+  countOccupiedHands,
+  getWieldedItemIds,
+  isItemWielded,
+  migrateLegacyEquipState,
+  sheetHasFourArms,
+} from '../components/SheetResult/BackpackModal/wielding';
 
 import {
   applyRaceAbilities,
@@ -125,7 +137,10 @@ import {
   countTormentaPowers,
   getVirtudePaladinescaPMBonus,
 } from './randomUtils';
-import { getRemovedPowers } from './reverseSheetActions';
+import {
+  getRemovedPowers,
+  reverseSheetActionChange,
+} from './reverseSheetActions';
 import { syncFeiticeiroHerancas } from './powers/feiticeiroHeranca';
 import { applyTormentaAttributePenalty } from './tormentaCharismaPenalty';
 
@@ -267,6 +282,9 @@ const resolveClassLevel = (
   sheet: CharacterSheet,
   source?: SheetChangeSource
 ): number => {
+  if (source?.type === 'power' && source.fixedClassLevel !== undefined) {
+    return source.fixedClassLevel;
+  }
   const className = source?.type === 'power' ? source.className : undefined;
   return className ? getClassLevel(sheet, className) : sheet.nivel;
 };
@@ -757,19 +775,11 @@ const injectEstiloDeUmaArmaBonuses = (
   );
   if (!hasPower) return sheet;
 
-  const { mainHandItemId, offHandItemId } = sheet;
-
-  // Arma de duas mãos ocupa as duas mãos (mesmo id nos dois slots) → não vale.
-  if (mainHandItemId && mainHandItemId === offHandItemId) return sheet;
-
-  // Exatamente uma mão ocupada e a outra vazia.
-  let occupiedId: string | undefined;
-  if (mainHandItemId && !offHandItemId) {
-    occupiedId = mainHandItemId;
-  } else if (offHandItemId && !mainHandItemId) {
-    occupiedId = offHandItemId;
-  }
-  if (!occupiedId) return sheet;
+  // Exatamente uma mão ocupada e as demais vazias: arma de duas mãos ocupa duas
+  // (mesmo id nos dois slots) e um item em mão extra também tira o "nada na
+  // outra" de quem tem Quatro Braços.
+  if (countOccupiedHands(sheet) !== 1) return sheet;
+  const [occupiedId] = getWieldedItemIds(sheet);
 
   // O item empunhado precisa ser uma arma corpo a corpo (escudos ficam em
   // `Escudo`, então não casam aqui).
@@ -818,13 +828,9 @@ const injectEstiloDeArmaEEscudoBonuses = (
   );
   if (!hasPower) return sheet;
 
-  const { mainHandItemId, offHandItemId } = sheet;
-
   // Precisa ter um escudo empunhado em uma das mãos.
-  const hasShieldWielded = (sheet.bag.equipments.Escudo || []).some(
-    (shield) =>
-      shield.id !== undefined &&
-      (shield.id === mainHandItemId || shield.id === offHandItemId)
+  const hasShieldWielded = (sheet.bag.equipments.Escudo || []).some((shield) =>
+    isItemWielded(shield.id, sheet)
   );
   if (!hasShieldWielded) return sheet;
 
@@ -970,6 +976,9 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
 
       return {
         ...skill,
+        // Cura linhas salvas sem atributo-chave (criadas por bônus antes de a
+        // perícia existir na ficha).
+        modAttr: skillAttr,
         halfLevel: Math.floor(updatedSheet.nivel / 2),
         training: finalTraining,
         others: baseOthers + (skill.manualOthers ?? 0),
@@ -1286,9 +1295,30 @@ function applyClassPowers(
 
     // All selections are now combined for repeatable powers
 
+    // Habilidade aprendida de outra classe (Duplo Feérico): funciona como
+    // nível 1 daquela classe. Fichas salvas antes do carimbo na aprendizagem
+    // não trazem `fixedClassLevel` — carimba aqui também.
+    const learnedBonuses = isLearnedClassAbilityEntry(acc, powerName)
+      ? power.sheetBonuses?.map((bonus) =>
+          bonus.source.type === 'power'
+            ? {
+                ...bonus,
+                source: {
+                  ...bonus.source,
+                  fixedClassLevel: LEARNED_CLASS_ABILITY_LEVEL,
+                },
+              }
+            : bonus
+        )
+      : undefined;
+
     const [newAcc] = applyPower(
       acc,
-      { ...power, sourceClassName: sheetClone.classe.name },
+      {
+        ...power,
+        sheetBonuses: learnedBonuses ?? power.sheetBonuses,
+        sourceClassName: sheetClone.classe.name,
+      },
       powerSelections,
       false,
       { pendingRepeatChoice: true }
@@ -1425,6 +1455,9 @@ function applyEquipmentBonuses(sheet: CharacterSheet): CharacterSheet {
     ...(updatedSheet.bag.equipments.Veículo || []),
     ...(updatedSheet.bag.equipments.Serviço || []),
     ...(updatedSheet.bag.equipments.Hospedagem || []),
+    // Nenhum esotérico de livro tem `sheetBonuses`; quem tem é homebrew ou item
+    // criado na mochila, e sem esta linha o efeito deles nunca era aplicado.
+    ...(updatedSheet.bag.equipments['Esotérico'] || []),
   ];
 
   // Process each equipment
@@ -1434,9 +1467,14 @@ function applyEquipmentBonuses(sheet: CharacterSheet): CharacterSheet {
     // in Step 14 from the WORN armor/shield only (see getDefenseMaterialRd), so
     // collecting them here would double-count and also grant RD from armor
     // sitting unused in the bag.
-    if (equip.sheetBonuses) {
+    // Item criado na mochila é conteúdo de usuário: poda a cada recálculo,
+    // como o poder personalizado (Step 7.1).
+    const equipBonuses = equip.isCustom
+      ? sanitizeCustomItemBonuses(equip.sheetBonuses, equip.nome)
+      : equip.sheetBonuses;
+    if (equipBonuses) {
       updatedSheet.sheetBonuses.push(
-        ...equip.sheetBonuses.filter(
+        ...equipBonuses.filter(
           (bonus) => bonus.target.type !== 'DamageReduction'
         )
       );
@@ -1654,137 +1692,9 @@ export function reverseHistoryEntries(
 ): void {
   // Reverse each action in reverse order (LIFO)
   [...entries].reverse().forEach((historyEntry) => {
-    historyEntry.changes.forEach((change) => {
-      switch (change.type) {
-        case 'Attribute': {
-          // Find the original modification to get the exact value that was added
-          const relevantHistory = sheet.sheetActionHistory.find(
-            (entry) =>
-              entry.powerName === powerName &&
-              entry.changes.some(
-                (c) =>
-                  c.type === 'Attribute' && c.attribute === change.attribute
-              )
-          );
-          if (relevantHistory) {
-            const attributeChange = relevantHistory.changes.find(
-              (c) => c.type === 'Attribute' && c.attribute === change.attribute
-            ) as {
-              type: 'Attribute';
-              attribute: Atributo;
-              value: number;
-              delta?: number;
-            };
-            if (attributeChange?.delta !== undefined) {
-              sheet.atributos[change.attribute].value -= attributeChange.delta;
-            } else if (attributeChange) {
-              const originalValue = sheet.atributos[change.attribute].value;
-              const modificationValue = attributeChange.value - originalValue;
-              sheet.atributos[change.attribute].value -= modificationValue;
-            }
-          }
-          break;
-        }
-
-        case 'ProficiencyAdded': {
-          const profIndex = sheet.classe.proficiencias.indexOf(
-            change.proficiency
-          );
-          if (profIndex > -1) {
-            sheet.classe.proficiencias.splice(profIndex, 1);
-          }
-          break;
-        }
-
-        case 'SkillsAdded': {
-          change.skills.forEach((skill: string) => {
-            const skillIndex = sheet.skills.indexOf(skill as Skill);
-            if (skillIndex > -1) {
-              sheet.skills.splice(skillIndex, 1);
-            }
-          });
-          break;
-        }
-
-        case 'SenseAdded': {
-          if (sheet.sentidos) {
-            const senseIndex = sheet.sentidos.indexOf(change.sense);
-            if (senseIndex > -1) {
-              sheet.sentidos.splice(senseIndex, 1);
-            }
-          }
-          break;
-        }
-
-        case 'PowerAdded': {
-          if (sheet.generalPowers) {
-            const powerIndex = sheet.generalPowers.findIndex(
-              (power) => power.name === change.powerName
-            );
-            if (powerIndex > -1) {
-              sheet.generalPowers.splice(powerIndex, 1);
-            }
-          }
-          break;
-        }
-
-        case 'ClassPowerAdded': {
-          if (sheet.classPowers) {
-            const powerIndex = sheet.classPowers.findIndex(
-              (power) => power.name === change.powerName
-            );
-            if (powerIndex > -1) {
-              sheet.classPowers.splice(powerIndex, 1);
-            }
-          }
-          break;
-        }
-
-        // Habilidade de outra classe aprendida (ex.: origem "Duplo Feérico").
-        // Sem isso a entrada fica órfã em classPowers e o applyClassPowers
-        // reaplica os sheetBonuses dela em todo recálculo, para sempre.
-        case 'ClassAbilityLearned': {
-          const composedName = `${change.abilityName} (${change.className})`;
-          if (sheet.classPowers) {
-            const abilityIndex = sheet.classPowers.findIndex(
-              (power) => power.name === composedName
-            );
-            if (abilityIndex > -1) {
-              sheet.classPowers.splice(abilityIndex, 1);
-            }
-          }
-          // Ações ANINHADAS da habilidade aprendida (ex.: as perícias da
-          // Especialista) são carimbadas com o nome composto — se sobreviverem,
-          // o `isActionAlreadyApplied` congela a escolha antiga.
-          sheet.sheetActionHistory = sheet.sheetActionHistory.filter(
-            (entry) => entry.powerName !== composedName
-          );
-          break;
-        }
-
-        case 'SpellsLearned': {
-          if (sheet.spells) {
-            change.spellNames.forEach((spellName: string) => {
-              const spellIndex = sheet.spells.findIndex(
-                (spell) => spell.nome === spellName
-              );
-              if (spellIndex > -1) {
-                sheet.spells.splice(spellIndex, 1);
-              }
-            });
-          }
-          break;
-        }
-
-        case 'AttributeIncreasedByAumentoDeAtributo':
-          sheet.atributos[change.attribute].value -= 1;
-          break;
-
-        default:
-          // Other action types not yet implemented
-          break;
-      }
-    });
+    historyEntry.changes.forEach((change) =>
+      reverseSheetActionChange(sheet, change, powerName, entries)
+    );
   });
 }
 
@@ -2122,6 +2032,13 @@ export function recalculateSheet(
     ) {
       updatedSheet.mashinChassiChoice = { type: 'cleared' };
     }
+  }
+
+  // Sem Quatro Braços não há mãos extras. Limpar aqui, depois da remoção de
+  // poderes acima, impede que um escudo numa delas continue dando Defesa.
+  if (!sheetHasFourArms(updatedSheet)) {
+    updatedSheet.extraHand1ItemId = undefined;
+    updatedSheet.extraHand2ItemId = undefined;
   }
 
   // Step 0.5: Synthesize history entries for removed powers so that
@@ -2551,7 +2468,7 @@ export function recalculateSheet(
     // Defesa depois de o jogador desligar o atributo.
     const defaultAttr = getEffectiveAttributeModifier(
       updatedSheet,
-      updatedSheet.classe.name === 'Nobre'
+      usesCharismaForDefense(updatedSheet)
         ? Atributo.CARISMA
         : Atributo.DESTREZA
     );
@@ -2562,10 +2479,9 @@ export function recalculateSheet(
     !heavyArmor
   ) {
     // User specified a custom attribute (and didn't disable it)
-    const defaultAttr =
-      updatedSheet.classe.name === 'Nobre'
-        ? Atributo.CARISMA
-        : Atributo.DESTREZA;
+    const defaultAttr = usesCharismaForDefense(updatedSheet)
+      ? Atributo.CARISMA
+      : Atributo.DESTREZA;
 
     if (updatedSheet.customDefenseAttribute !== defaultAttr) {
       // Remove default attribute value and add custom. Os dois EFETIVOS: o que
@@ -2791,10 +2707,8 @@ export function recalculateSheet(
   // 2 leve e escudos). Só o item de fato equipado contribui — armaduras na
   // mochila não dão RD. `wornArmorItem` vem do Step 9.
   const equippedShields = updatedSheet.bag.equipments.Escudo || [];
-  const wornShield = equippedShields.find(
-    (shield) =>
-      shield.id === updatedSheet.mainHandItemId ||
-      shield.id === updatedSheet.offHandItemId
+  const wornShield = equippedShields.find((shield) =>
+    isItemWielded(shield.id, updatedSheet)
   );
   [
     ...(wornArmorItem ? getDefenseMaterialRd(wornArmorItem, heavyArmor) : []),

@@ -379,11 +379,11 @@ export function buildSpellPathFromSetup(
     return spellPath;
   }
 
-  // Bardo (e variantes, ex.: Magimarcialista): Both (arcana + divina) com escolas selecionadas
+  // Bardo (e variantes, ex.: Magimarcialista): arcano, filtrado pelas escolas selecionadas
   if (isClassOrVariantOf(classDesc, 'Bardo') && classSetup?.spellSchools) {
     return {
       initialSpells: 2,
-      spellType: 'Both',
+      spellType: 'Arcane',
       qtySpellsLearnAtLevel: (level: number) => (level % 2 === 0 ? 1 : 0),
       schools: classSetup.spellSchools as SpellSchool[],
       spellCircleAvailableAtLevel: (level: number) => {

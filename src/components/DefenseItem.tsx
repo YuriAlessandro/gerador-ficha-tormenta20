@@ -6,7 +6,10 @@ import EditNoteIcon from '@mui/icons-material/EditNote';
 import { DefenseEquipment, ManualStatField } from '../interfaces/Equipment';
 import { getManualStatFields } from '../functions/manualStats';
 import WieldingControl from './SheetResult/BackpackModal/WieldingControl';
-import { WieldingSlot } from './SheetResult/BackpackModal/wielding';
+import {
+  WieldingDisabledSlots,
+  WieldingSlot,
+} from './SheetResult/BackpackModal/wielding';
 
 interface DefenseEquipmentProps {
   equipment: DefenseEquipment;
@@ -18,7 +21,9 @@ interface DefenseEquipmentProps {
   wieldingSlot?: WieldingSlot;
   /** Quick-wield handler. When provided, a hand-icon button is rendered. */
   onWieldingChange?: (slot: WieldingSlot) => void;
-  wieldingDisabledSlots?: Partial<Record<'main' | 'off', { reason: string }>>;
+  wieldingDisabledSlots?: WieldingDisabledSlots;
+  /** Oferece as mãos extras (poder Quatro Braços). */
+  wieldingExtraHands?: boolean;
   /** True when the character lacks proficiency with this armor/shield. */
   isNonProficient?: boolean;
 }
@@ -31,6 +36,7 @@ const DefenseItem: React.FC<DefenseEquipmentProps> = (props) => {
     wieldingSlot = null,
     onWieldingChange,
     wieldingDisabledSlots,
+    wieldingExtraHands = false,
     isNonProficient = false,
   } = props;
   const { nome, defenseBonus, armorPenalty } = equipment;
@@ -162,6 +168,7 @@ const DefenseItem: React.FC<DefenseEquipmentProps> = (props) => {
               currentSlot={wieldingSlot}
               onChange={onWieldingChange}
               disabledSlots={wieldingDisabledSlots}
+              extraHands={wieldingExtraHands}
             />
           </Box>
         )}

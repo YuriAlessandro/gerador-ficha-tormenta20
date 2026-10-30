@@ -101,8 +101,8 @@ export function getDeusMenorPmBonus(sheet: CharacterSheet): number {
  * igual à dos círculos).
  *
  * Vale só para conjuradores DIVINOS puros (`spellType: 'Divine'` — Clérigo,
- * Druida, Frade e a variante Usurpador). O Bardo é `'Both'` e majoritariamente
- * arcano, então fica de fora: a regra fala de classes conjuradoras divinas.
+ * Druida, Frade e a variante Usurpador). O Bardo é arcano (só aprende divinas
+ * via Aumentar Repertório), então fica de fora.
  *
  * Retorna `null` quando não há limite a aplicar.
  */

@@ -55,7 +55,14 @@ import { getAmmoTypeOptions } from './ammo';
 import AddItemDialog from './AddItemDialog';
 import ItemEditorDialog from './ItemEditorDialog';
 import { useBackpackState } from './useBackpackState';
-import { getWieldingSlot, getWornArmor, isClothingWorn } from './wielding';
+import {
+  getDisabledWieldingSlots,
+  getWieldingSlot,
+  getWornArmor,
+  isClothingWorn,
+  sheetHasFourArms,
+  WieldingDisabledSlots,
+} from './wielding';
 import { CATEGORY_ORDER, itemTypeStyles } from './itemTypeStyles';
 
 export interface BackpackModalProps {
@@ -159,6 +166,8 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     initialCustomMaxSpaces: sheet.customMaxSpaces,
     initialMainHandItemId: sheet.mainHandItemId,
     initialOffHandItemId: sheet.offHandItemId,
+    initialExtraHand1ItemId: sheet.extraHand1ItemId,
+    initialExtraHand2ItemId: sheet.extraHand2ItemId,
     initialWornArmorId: sheet.wornArmorId,
     initialUnwornClothingIds: sheet.unwornClothingIds,
     initialGroupByCategory: sheet.backpackGroupByCategory,
@@ -199,7 +208,10 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
   const wieldingState = {
     mainHandItemId: staged.mainHandItemId,
     offHandItemId: staged.offHandItemId,
+    extraHand1ItemId: staged.extraHand1ItemId,
+    extraHand2ItemId: staged.extraHand2ItemId,
   };
+  const extraHands = sheetHasFourArms(sheet);
   const mainHandItem = staged.mainHandItemId
     ? orderedItems.find((it) => it.id === staged.mainHandItemId)
     : undefined;
@@ -210,6 +222,15 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     staged.mainHandItemId !== undefined &&
     staged.mainHandItemId === staged.offHandItemId;
   const twoHandedItem = wieldingTwoHanded ? mainHandItem : undefined;
+  const extraHand1Item = staged.extraHand1ItemId
+    ? orderedItems.find((it) => it.id === staged.extraHand1ItemId)
+    : undefined;
+  const extraHand2Item = staged.extraHand2ItemId
+    ? orderedItems.find((it) => it.id === staged.extraHand2ItemId)
+    : undefined;
+  const extraTwoHanded =
+    staged.extraHand1ItemId !== undefined &&
+    staged.extraHand1ItemId === staged.extraHand2ItemId;
 
   const armorsInBag = orderedItems.filter((it) => it.group === 'Armadura');
   const wornArmor = getWornArmor(armorsInBag, staged.wornArmorId);
@@ -230,49 +251,14 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
   const hasClothing = orderedItems.some((it) => it.group === 'Vestuário');
   const showClothingHint = hasClothing && !clothingHintDismissed;
 
-  /**
-   * Returns the slot disable map for an item card. Blocks slots when a hand
-   * is occupied by:
-   *   - a two-handed weapon (both slots blocked for any other item);
-   *   - a shield (the corresponding hand is blocked for any other item — the
-   *     player must soltar the shield first to wield a weapon there).
-   * The occupant item itself is never blocked, so the user can still soltar.
-   */
   const getDisabledSlots = (
     itemId: string | undefined
-  ): Partial<Record<'main' | 'off', { reason: string }>> | undefined => {
-    if (wieldingTwoHanded && twoHandedItem && itemId !== twoHandedItem.id) {
-      const reason = `Mão ocupada por ${
-        twoHandedItem.customDisplayName || twoHandedItem.nome
-      } (duas mãos). Solte primeiro.`;
-      return { main: { reason }, off: { reason } };
-    }
-
-    const disabled: Partial<Record<'main' | 'off', { reason: string }>> = {};
-    if (
-      mainHandItem &&
-      mainHandItem.group === 'Escudo' &&
-      itemId !== mainHandItem.id
-    ) {
-      disabled.main = {
-        reason: `Mão ocupada por ${
-          mainHandItem.customDisplayName || mainHandItem.nome
-        } (escudo). Solte primeiro.`,
-      };
-    }
-    if (
-      offHandItem &&
-      offHandItem.group === 'Escudo' &&
-      itemId !== offHandItem.id
-    ) {
-      disabled.off = {
-        reason: `Mão ocupada por ${
-          offHandItem.customDisplayName || offHandItem.nome
-        } (escudo). Solte primeiro.`,
-      };
-    }
-    return Object.keys(disabled).length > 0 ? disabled : undefined;
-  };
+  ): WieldingDisabledSlots | undefined =>
+    getDisabledWieldingSlots(
+      wieldingState,
+      (id) => orderedItems.find((it) => it.id === id),
+      itemId
+    );
 
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -327,6 +313,8 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         // applying its defense bonus).
         mainHandItemId: staged.mainHandItemId,
         offHandItemId: staged.offHandItemId,
+        extraHand1ItemId: staged.extraHand1ItemId,
+        extraHand2ItemId: staged.extraHand2ItemId,
         wornArmorId: staged.wornArmorId,
         unwornClothingIds: staged.unwornClothingIds,
       },
@@ -388,6 +376,8 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
       displacement: recalculated.displacement ?? sheet.displacement,
       mainHandItemId: staged.mainHandItemId,
       offHandItemId: staged.offHandItemId,
+      extraHand1ItemId: staged.extraHand1ItemId,
+      extraHand2ItemId: staged.extraHand2ItemId,
       wornArmorId: staged.wornArmorId,
       unwornClothingIds: staged.unwornClothingIds,
       backpackGroupByCategory: staged.groupByCategory,
@@ -536,6 +526,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
           item.id ? (slot) => setWielding(item.id as string, slot) : undefined
         }
         wieldingDisabledSlots={getDisabledSlots(item.id)}
+        wieldingExtraHands={extraHands}
         isWorn={wornProps.isWorn}
         onWornChange={wornProps.onWornChange}
         onAdjustAmmoUnits={
@@ -718,7 +709,11 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         groupByCategory={staged.groupByCategory}
         onGroupByCategoryChange={setGroupByCategory}
       />
-      {(mainHandItem || offHandItem || wornArmor) && (
+      {(mainHandItem ||
+        offHandItem ||
+        extraHand1Item ||
+        extraHand2Item ||
+        wornArmor) && (
         <Box
           sx={{
             px: { xs: 1.25, sm: 2 },
@@ -780,6 +775,30 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
                 />
               )}
             </>
+          )}
+          {extraHand1Item && (
+            <Chip
+              size='small'
+              color={extraTwoHanded ? 'primary' : 'secondary'}
+              variant='outlined'
+              label={`${extraTwoHanded ? '🤝' : '🖐️'} ${
+                extraHand1Item.customDisplayName || extraHand1Item.nome
+              }`}
+              onDelete={() => setWielding(extraHand1Item.id ?? '', null)}
+              sx={{ maxWidth: '100%' }}
+            />
+          )}
+          {extraHand2Item && !extraTwoHanded && (
+            <Chip
+              size='small'
+              color='secondary'
+              variant='outlined'
+              label={`🖐️ ${
+                extraHand2Item.customDisplayName || extraHand2Item.nome
+              }`}
+              onDelete={() => setWielding(extraHand2Item.id ?? '', null)}
+              sx={{ maxWidth: '100%' }}
+            />
           )}
         </Box>
       )}

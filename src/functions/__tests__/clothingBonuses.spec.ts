@@ -214,3 +214,78 @@ describe('vestuário vestido vs guardado', () => {
     expect(rdBonuses).toHaveLength(0);
   });
 });
+
+/**
+ * Item criado na mochila (`isCustom`) com efeitos: o recálculo poda os bônus
+ * como conteúdo de usuário e re-carimba a origem com o nome do item.
+ */
+describe('item personalizado com efeitos', () => {
+  const capaCustom = (over: Partial<Equipment> = {}): Equipment => ({
+    id: 'capa-custom',
+    nome: 'Capa da sombra',
+    group: 'Vestuário',
+    spaces: 1,
+    isCustom: true,
+    sheetBonuses: [
+      {
+        source: { type: 'race', raceName: 'Placeholder' },
+        target: { type: 'Skill', name: Skill.FURTIVIDADE },
+        modifier: { type: 'Fixed', value: 1 },
+      },
+    ],
+    ...over,
+  });
+
+  test('vestuário custom vestido aplica e guardado não', () => {
+    const vestida = recalculateSheet(makeSheet([capaCustom()]));
+    expect(equipmentSkillBonus(vestida, Skill.FURTIVIDADE)).toBe(1);
+    expect(skillOthers(vestida, Skill.FURTIVIDADE)).toBe(1);
+
+    const guardada = recalculateSheet(
+      makeSheet([capaCustom()], ['capa-custom'])
+    );
+    expect(equipmentSkillBonus(guardada, Skill.FURTIVIDADE)).toBe(0);
+  });
+
+  test('alvo fora da lista permitida e valor absurdo são podados', () => {
+    const sheet = recalculateSheet(
+      makeSheet([
+        capaCustom({
+          sheetBonuses: [
+            {
+              source: { type: 'race', raceName: 'Placeholder' },
+              target: { type: 'Proficiency', proficiency: 'Armas Marciais' },
+              modifier: { type: 'Fixed', value: 1 },
+            },
+            {
+              source: { type: 'race', raceName: 'Placeholder' },
+              target: { type: 'Skill', name: Skill.FURTIVIDADE },
+              modifier: { type: 'Fixed', value: 999 },
+            },
+          ],
+        }),
+      ])
+    );
+    expect(
+      sheet.sheetBonuses.some(
+        (bonus) =>
+          bonus.source.type === 'equipment' &&
+          bonus.target.type === 'Proficiency'
+      )
+    ).toBe(false);
+    expect(equipmentSkillBonus(sheet, Skill.FURTIVIDADE)).toBe(50);
+  });
+
+  test('esotérico com efeito passa a aplicar', () => {
+    const sheet = recalculateSheet(
+      makeSheet([
+        capaCustom({
+          id: 'orbe-custom',
+          nome: 'Orbe da sombra',
+          group: 'Esotérico',
+        }),
+      ])
+    );
+    expect(equipmentSkillBonus(sheet, Skill.FURTIVIDADE)).toBe(1);
+  });
+});

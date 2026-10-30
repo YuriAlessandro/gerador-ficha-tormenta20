@@ -176,11 +176,42 @@ const CLERIGO: ClassDescription = {
       name: 'Mestre Celebrante',
       text: 'O número de pessoas que você afeta com uma missa aumenta em dez vezes e os benefícios que elas recebem dobram.',
       requirements: [
-        [{ type: RequirementType.PODER, name: 'Missa: Bênção da Vida' }],
-        [{ type: RequirementType.PODER, name: 'Missa: Chamado às Armas' }],
-        [{ type: RequirementType.PODER, name: 'Missa: Elevação do Espírito' }],
-        [{ type: RequirementType.PODER, name: 'Missa: Escudo Divino' }],
-        [{ type: RequirementType.PODER, name: 'Missa: Superar as Limitações' }],
+        [
+          { type: RequirementType.PODER, name: 'Missa: Bênção da Vida' },
+          { type: RequirementType.NIVEL, value: 12 },
+        ],
+        [
+          { type: RequirementType.PODER, name: 'Missa: Chamado às Armas' },
+          { type: RequirementType.NIVEL, value: 12 },
+        ],
+        [
+          { type: RequirementType.PODER, name: 'Missa: Elevação do Espírito' },
+          { type: RequirementType.NIVEL, value: 12 },
+        ],
+        [
+          { type: RequirementType.PODER, name: 'Missa: Escudo Divino' },
+          { type: RequirementType.NIVEL, value: 12 },
+        ],
+        [
+          { type: RequirementType.PODER, name: 'Missa: Superar as Limitações' },
+          { type: RequirementType.NIVEL, value: 12 },
+        ],
+        // Missas de Heróis de Arton (p. 65), que trata do Mestre Celebrante
+        // junto delas. "Qualquer poder de Missa" fica como lista explícita
+        // (o powerTree liga os poderes pelo nome); um teste garante que toda
+        // Missa nova de Clérigo entre aqui.
+        [
+          { type: RequirementType.PODER, name: 'Missa: Compartilhar Milagre' },
+          { type: RequirementType.NIVEL, value: 12 },
+        ],
+        [
+          { type: RequirementType.PODER, name: 'Missa: Imposição da Vontade' },
+          { type: RequirementType.NIVEL, value: 12 },
+        ],
+        [
+          { type: RequirementType.PODER, name: 'Missa: Mente Abençoada' },
+          { type: RequirementType.NIVEL, value: 12 },
+        ],
       ],
     },
     {
@@ -221,7 +252,7 @@ const CLERIGO: ClassDescription = {
       requirements: [],
     },
     {
-      name: 'Símbolo Sagrado Abençoado',
+      name: 'Símbolo Sagrado Energizado',
       text: 'Você pode gastar uma ação de movimento e 1 PM para fazer uma prece e energizar seu símbolo sagrado até o fim da cena. Um símbolo sagrado energizado emite uma luz dourada ou prateada (se sua divindade canaliza energia positiva) ou púrpura ou avermelhada (se canaliza energia negativa) que ilumina como uma tocha. Enquanto você estiver empunhando um símbolo sagrado energizado, o custo em PM para lançar suas magias divinas diminui em 1.',
       requirements: [],
     },

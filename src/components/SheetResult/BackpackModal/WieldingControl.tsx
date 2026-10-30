@@ -16,6 +16,8 @@ import {
   canWieldOneHanded,
   isTwoHanded as defaultIsTwoHanded,
   isWieldable as defaultIsWieldable,
+  SingleHandSlot,
+  WieldingDisabledSlots,
   WieldingSlot,
 } from './wielding';
 
@@ -31,18 +33,27 @@ export interface WieldingControlProps {
    * Slot-specific disable + tooltip. Used when the other hand (or both) is
    * already occupied by a two-handed weapon belonging to a different item.
    */
-  disabledSlots?: Partial<Record<'main' | 'off', { reason: string }>>;
+  disabledSlots?: WieldingDisabledSlots;
+  /** Oferece as mãos extras (poder Quatro Braços). */
+  extraHands?: boolean;
 }
 
-const SLOT_LABELS: Record<'main' | 'off', string> = {
+const SLOT_LABELS: Record<SingleHandSlot, string> = {
   main: 'Mão Principal',
   off: 'Mão Secundária',
+  extra1: 'Mão Extra 1',
+  extra2: 'Mão Extra 2',
 };
 
+const SINGLE_SLOTS: SingleHandSlot[] = ['main', 'off'];
+const EXTRA_SLOTS: SingleHandSlot[] = ['extra1', 'extra2'];
+
 function buttonColor(slot: WieldingSlot): 'inherit' | 'primary' | 'secondary' {
-  if (slot === 'main' || slot === 'both') return 'primary';
-  if (slot === 'off') return 'secondary';
-  return 'inherit';
+  if (slot === 'main' || slot === 'both' || slot === 'bothExtra') {
+    return 'primary';
+  }
+  if (slot === null) return 'inherit';
+  return 'secondary';
 }
 
 function tooltipFor(slot: WieldingSlot): string {
@@ -50,6 +61,11 @@ function tooltipFor(slot: WieldingSlot): string {
     return 'Empunhada em duas mãos. Clique para soltar ou mudar.';
   if (slot === 'main') return 'Empunhada (Mão Principal). Clique para mudar.';
   if (slot === 'off') return 'Empunhada (Mão Secundária). Clique para mudar.';
+  if (slot === 'bothExtra') {
+    return 'Empunhada nas duas mãos extras. Clique para soltar ou mudar.';
+  }
+  if (slot === 'extra1') return 'Empunhada (Mão Extra 1). Clique para mudar.';
+  if (slot === 'extra2') return 'Empunhada (Mão Extra 2). Clique para mudar.';
   return 'Não empunhado. Clique para empunhar.';
 }
 
@@ -60,6 +76,7 @@ const WieldingControl: React.FC<WieldingControlProps> = ({
   size = 'small',
   isWieldable = defaultIsWieldable,
   disabledSlots,
+  extraHands = false,
 }) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
@@ -81,7 +98,7 @@ const WieldingControl: React.FC<WieldingControlProps> = ({
     handleClose();
   };
 
-  const renderHandSlot = (slot: 'main' | 'off') => {
+  const renderHandSlot = (slot: SingleHandSlot) => {
     const selected = currentSlot === slot;
     const disabled = disabledSlots?.[slot];
     // O item já está na outra mão e a pilha tem cópias sobrando: escolher esta
@@ -89,7 +106,9 @@ const WieldingControl: React.FC<WieldingControlProps> = ({
     // de que isso é possível.
     const splitsStack =
       !selected &&
-      (currentSlot === 'main' || currentSlot === 'off') &&
+      currentSlot !== null &&
+      currentSlot !== 'both' &&
+      currentSlot !== 'bothExtra' &&
       canSplitStack(item);
     const notes = [
       ...(oneHandedMounted ? ['montado'] : []),
@@ -145,11 +164,32 @@ const WieldingControl: React.FC<WieldingControlProps> = ({
             <ListItemIcon sx={{ minWidth: 28 }}>
               {currentSlot === 'both' ? <CheckIcon fontSize='small' /> : null}
             </ListItemIcon>
-            <ListItemText primary='Empunhar (ocupa as duas mãos)' />
+            <ListItemText
+              primary={
+                extraHands
+                  ? 'Mãos principais (ocupa duas mãos)'
+                  : 'Empunhar (ocupa as duas mãos)'
+              }
+            />
           </MenuItem>
         )}
-        {(!twoHanded || oneHandedMounted) && renderHandSlot('main')}
-        {(!twoHanded || oneHandedMounted) && renderHandSlot('off')}
+        {twoHanded && extraHands && (
+          <MenuItem
+            selected={currentSlot === 'bothExtra'}
+            onClick={() => handleSelect('bothExtra')}
+          >
+            <ListItemIcon sx={{ minWidth: 28 }}>
+              {currentSlot === 'bothExtra' ? (
+                <CheckIcon fontSize='small' />
+              ) : null}
+            </ListItemIcon>
+            <ListItemText primary='Mãos extras (ocupa duas mãos)' />
+          </MenuItem>
+        )}
+        {(!twoHanded || oneHandedMounted) && SINGLE_SLOTS.map(renderHandSlot)}
+        {(!twoHanded || oneHandedMounted) &&
+          extraHands &&
+          EXTRA_SLOTS.map(renderHandSlot)}
         <MenuItem
           selected={currentSlot === null}
           onClick={() => handleSelect(null)}

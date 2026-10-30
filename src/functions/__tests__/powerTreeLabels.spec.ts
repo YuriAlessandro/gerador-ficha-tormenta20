@@ -11,13 +11,27 @@ const SUPPLEMENTS = [
   SupplementId.TORMENTA20_HEROIS_ARTON,
 ];
 
-const classes = dataRegistry.getClassesWithSupplementInfo(SUPPLEMENTS);
-const generalPowers = dataRegistry.getAllPowersBySupplements(SUPPLEMENTS);
-
-function graphOf(name: string) {
-  const classe = classes.find((c) => c.name === name);
+function graphOf(name: string, supplements = SUPPLEMENTS) {
+  const classe = dataRegistry
+    .getClassesWithSupplementInfo(supplements)
+    .find((c) => c.name === name);
   if (!classe) throw new Error(`classe ${name} não encontrada`);
-  return buildClassPowerGraph({ classe, generalPowers });
+  // Mesma conta da ClassPowerTreesView: poderes da classe fora do filtro.
+  const active = new Set(classe.powers.map((power) => power.name));
+  const inactivePowerNames = new Set(
+    (
+      dataRegistry
+        .getClassesWithSupplementInfo(Object.values(SupplementId))
+        .find((c) => c.name === name)?.powers ?? []
+    )
+      .map((power) => power.name)
+      .filter((powerName) => !active.has(powerName))
+  );
+  return buildClassPowerGraph({
+    classe,
+    generalPowers: dataRegistry.getAllPowersBySupplements(supplements),
+    inactivePowerNames,
+  });
 }
 
 describe('getPowerTreeLabel', () => {
@@ -58,10 +72,21 @@ describe('casamento com os dados reais', () => {
   });
 
   test('a árvore de missas do Clérigo tem nome curado', () => {
+    // Com Heróis de Arton: as cinco do básico + as três novas (p. 65).
     const arvore = graphOf('Clérigo').clusters.find(
-      (c) => c.rootIds.length === 5
+      (c) => c.rootIds.length === 8
     );
 
+    expect(arvore?.rootIds).toContain('Missa: Mente Abençoada');
+    expect(getPowerTreeLabel(arvore?.rootIds ?? [])).toBe('Missas');
+  });
+
+  test('só com o livro básico, as cinco missas também têm nome curado', () => {
+    const arvore = graphOf('Clérigo', [
+      SupplementId.TORMENTA20_CORE,
+    ]).clusters.find((c) => c.rootIds.length === 5);
+
+    expect(arvore?.rootIds).toContain('Missa: Bênção da Vida');
     expect(getPowerTreeLabel(arvore?.rootIds ?? [])).toBe('Missas');
   });
 

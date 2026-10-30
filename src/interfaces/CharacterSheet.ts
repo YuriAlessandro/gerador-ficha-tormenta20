@@ -27,6 +27,12 @@ export type SheetChangeSource =
       type: 'power';
       name: string;
       className?: string;
+      /**
+       * Nível de classe FIXO para `{classLevel}`/`capBy: 'classLevel'`. Usado
+       * pela habilidade aprendida de outra classe (Duplo Feérico), que funciona
+       * "como se tivesse 1 nível naquela classe".
+       */
+      fixedClassLevel?: number;
     }
   | {
       type: 'levelUp';
@@ -418,6 +424,10 @@ export type SheetActionReceipt =
       optionKey: string;
       chosenName: string;
       formattedText: string;
+      // Família da classe que ganhou a escola escolhida (Xamã Místico →
+      // 'Druida'). Só presente quando a escola foi de fato acrescentada, para
+      // que remover o poder a tire de novo. Ausente em fichas antigas.
+      appendedSpellSchoolTo?: string;
     }
   | {
       type: 'SkillTrainedOrBonused';
@@ -755,6 +765,12 @@ export type BonusConditionClause = (
   | { kind: 'hasProficiency'; value: string }
   | { kind: 'hasSkill'; value: Skill }
   | { kind: 'devoteOf'; value: string }
+  /**
+   * Devoto de QUALQUER deus. Para regras de item genérico, que não guarda de
+   * qual deus é — ex.: o Símbolo sagrado, cujo +1 vale para "um deus do qual é
+   * devoto" (o símbolo carregado é tomado como o do próprio deus).
+   */
+  | { kind: 'isDevote' }
   | { kind: 'isRace'; value: string }
   /**
    * Opção de `chooseFromOptions` já escolhida (lida do histórico). Ex.: o
@@ -857,6 +873,19 @@ export interface SheetOptionalRules {
 }
 
 // TODO: Once all type errors are fixed, change this into a proper class with constructor and stuff.
+export type ManeuverId =
+  | 'agarrar'
+  | 'atropelar'
+  | 'derrubar'
+  | 'desarmar'
+  | 'empurrar'
+  | 'quebrar';
+
+export interface EnabledManeuver {
+  id: ManeuverId;
+  weaponId?: string;
+}
+
 export default interface CharacterSheet {
   id: string;
   nome: string;
@@ -905,6 +934,10 @@ export default interface CharacterSheet {
   // (preserves backwards compatibility for sheets created before this feature).
   mainHandItemId?: string;
   offHandItemId?: string;
+  // Par extra de mãos (poder de raça Quatro Braços). Mesmas regras do par acima:
+  // o mesmo id nos dois campos significa arma de duas mãos.
+  extraHand1ItemId?: string;
+  extraHand2ItemId?: string;
   // Currently worn armor (Equipment.id reference). When undefined and there is
   // exactly 1 armor in the bag, that armor implicitly applies (legacy compat).
   // When undefined with ≥2 armors, NONE applies — the sheet shows a banner
@@ -941,6 +974,12 @@ export default interface CharacterSheet {
   // personagem tende a viver num modo — um em campanha, gastando consumíveis,
   // outro em fase de compras.
   backpackAutoDeductMoney?: boolean;
+  /**
+   * Manobras de combate ativadas na lista de Ataques, com a arma escolhida para
+   * cada uma (`weaponId` ausente = arma padrão, ver `resolveManeuverWeapon`).
+   * Ao esvaziar, volta a `undefined`, como `unwornClothingIds`.
+   */
+  enabledManeuvers?: EnabledManeuver[];
   devoto?: CharacterReligion;
   origin:
     | {

@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import CharacterSheet, {
+  EnabledManeuver,
   SheetAction,
   SheetBonus,
 } from '../interfaces/CharacterSheet';
@@ -8,12 +9,17 @@ import { DUENDE_PRESENTES } from '../data/systems/tormenta20/herois-de-arton/rac
 import { CharacterAttributes } from '../interfaces/Character';
 import Bag from '../interfaces/Bag';
 import { WeaponOverride } from '../interfaces/Equipment';
+import { isManeuverId } from './maneuvers';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import PROFICIENCIAS from '../data/systems/tormenta20/proficiencias';
 import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes';
 import RACE_COUNTS_AS from '../data/systems/tormenta20/races/raceCountsAs';
 import { migrateNotesToJournal } from './playerJournal';
-import { migrateLegacyOficioArtesao } from './migrateSheet';
+import {
+  migrateLegacyOficioArtesao,
+  migrateLegacyPowerNames,
+} from './migrateSheet';
+import { stepUpDamage } from './weaponDamageStep';
 import { getCompanionTrickDefinition } from '../data/systems/tormenta20/herois-de-arton/companion/companionTricks';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
 import { dataRegistry } from '../data/registry';
@@ -243,6 +249,50 @@ function healCentauroHoovesDamageType(sheet: CharacterSheet): void {
   });
 }
 
+/**
+ * Arma natural de raça Grande guardava o dado IMPRESSO no livro (1d8), que já é
+ * o valor para o tamanho Grande, e o passo de dano por tamanho do recálculo
+ * (Step 11.7) somava +1 em cima: Chifres e Cascos saíam 1d10. Os dados agora
+ * guardam a base Médio-equivalente (1d6), como a Mordida do Urso, mas a cópia
+ * da mochila é congelada (o `addEquipment` não roda de novo, ver
+ * `healCentauroHoovesDamageType`), então curamos a ficha salva aqui.
+ *
+ * - Com `baseDano` (a arma já passou pelo recálculo): rebaixa a base para 1d6 e
+ *   desce um passo no `dano` bakeado, para a ficha já abrir certa, sem esperar
+ *   a próxima edição. Outros passos e o "+N" bakeados são preservados.
+ * - Sem `baseDano` (ficha que nunca foi recalculada): o `dano` 1d8 exibido já
+ *   está certo; só gravamos a base 1d6 para o próximo recálculo não inflar.
+ *
+ * Arma editada à mão fica intocada: o recálculo preserva os valores do usuário.
+ * Gate triplo (raça + nome + valor antigo) como na cura do `tipo`; idempotente
+ * porque a segunda passada já encontra `baseDano` 1d6.
+ */
+const LARGE_RACE_NATURAL_WEAPONS: Record<string, string> = {
+  Ceratops: 'Chifres',
+  Centauro: 'Cascos',
+};
+
+function healLargeRaceNaturalWeaponDamage(sheet: CharacterSheet): void {
+  const weaponName = LARGE_RACE_NATURAL_WEAPONS[sheet.raca?.name];
+  if (!weaponName) return;
+  const weapons = sheet.bag?.equipments?.Arma;
+  if (!Array.isArray(weapons)) return;
+  weapons.forEach((weapon) => {
+    if (weapon?.nome !== weaponName || weapon.hasManualEdits) return;
+    if (weapon.baseDano === '1d8') {
+      // eslint-disable-next-line no-param-reassign
+      weapon.baseDano = '1d6';
+      if (weapon.dano) {
+        // eslint-disable-next-line no-param-reassign
+        weapon.dano = stepUpDamage(weapon.dano, -1);
+      }
+    } else if (!weapon.baseDano && weapon.dano === '1d8') {
+      // eslint-disable-next-line no-param-reassign
+      weapon.baseDano = '1d6';
+    }
+  });
+}
+
 // Poderes que sempre contaram como poder da Tormenta "exceto para perda de
 // Carisma", mas cujo dado não setava a flag que implementa a ressalva. Ela é
 // campo novo, então a cópia embutida nas fichas salvas não a tem — sem este
@@ -359,6 +409,30 @@ function refreshOriginPower<
 }
 
 const VALID_WEAPON_ATTRIBUTES = new Set([...VALID_ATRIBUTOS, 'Nenhum']);
+
+/**
+ * Saneia `enabledManeuvers`: descarta entradas inválidas e repetidas, e o campo
+ * some quando não sobra nenhuma.
+ */
+function sanitizeEnabledManeuvers(sheet: CharacterSheet): void {
+  const raw = sheet.enabledManeuvers as unknown;
+  if (raw === undefined) return;
+
+  const seen = new Set<string>();
+  const cleaned: EnabledManeuver[] = [];
+  (Array.isArray(raw) ? (raw as EnabledManeuver[]) : []).forEach((entry) => {
+    if (!entry || !isManeuverId(entry.id) || seen.has(entry.id)) return;
+    seen.add(entry.id);
+    cleaned.push(
+      typeof entry.weaponId === 'string'
+        ? { id: entry.id, weaponId: entry.weaponId }
+        : { id: entry.id }
+    );
+  });
+
+  if (cleaned.length === 0) delete sheet.enabledManeuvers;
+  else sheet.enabledManeuvers = cleaned;
+}
 
 /**
  * Saneia `weaponOverrides` (edições sobre armas virtuais). O mapa vem inteiro da
@@ -575,6 +649,8 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
       );
       healCentauroHoovesDamageType(sheet);
     }
+
+    healLargeRaceNaturalWeaponDamage(sheet);
 
     // Mesmo princípio do refresh de poderes concedidos abaixo: a ficha embute a
     // cópia da herança de Suraggel da época em que foi escolhida, e antes de
@@ -800,6 +876,9 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   // (Artesão) casava, quebrando também a substituição do Artesão Criativo.
   migrateLegacyOficioArtesao(sheet);
 
+  // Mesmo motivo para poderes renomeados para o nome do livro.
+  migrateLegacyPowerNames(sheet);
+
   if (!Array.isArray(sheet.spells)) sheet.spells = [];
   if (!Array.isArray(sheet.generalPowers)) sheet.generalPowers = [];
   if (!Array.isArray(sheet.sheetBonuses)) sheet.sheetBonuses = [];
@@ -1001,6 +1080,7 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   // NÃO são podados fora da forma: o ponto deles é justamente persistir entre
   // transformações. Só sanidade de shape, contra ficha corrompida na nuvem.
   sanitizeWeaponOverrides(sheet);
+  sanitizeEnabledManeuvers(sheet);
   sanitizeAttributeModifierMaps(sheet);
 
   sanitizeSheetElements(sheet);

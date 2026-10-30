@@ -10,8 +10,15 @@ import combatPowers from '../../data/systems/tormenta20/powers/combatPowers';
 import heroisCombatPowers from '../../data/systems/tormenta20/herois-de-arton/powers/combatPowers';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Bag from '../../interfaces/Bag';
-import Equipment from '../../interfaces/Equipment';
+import Equipment, { DefenseEquipment } from '../../interfaces/Equipment';
 import { GeneralPower } from '../../interfaces/Poderes';
+import { evaluateBonusCondition } from '../bonusConditions';
+import {
+  computeSheetDelta,
+  rehydrateSheet,
+  stripSheetForStorage,
+} from '../sheetPayloadOptimizer';
+import { getActiveArmorPenalty } from '../proficiencies';
 
 /**
  * Estilos de combate condicionados à empunhadura, exercitados pelo recálculo
@@ -300,5 +307,174 @@ describe('Lança Montada empunhada com uma mão (montado)', () => {
       buildSheet([combatPowers.ESTILO_DE_ARMA_LONGA], [justa], 'jus', 'jus')
     );
     expect(atkOf(result, 'jus')).toBe(2);
+  });
+});
+
+describe('Quatro Braços', () => {
+  const fourArms = racePowers.QUATRO_BRACOS;
+  const espada = () => fromCatalog('Espada Longa', 'esp');
+  const machado = () => fromCatalog('Machado de Batalha', 'mac');
+  const escudo = () => fromCatalog('Escudo Pesado', 'esc');
+
+  const withExtraHands = (
+    sheet: CharacterSheet,
+    extra1?: string,
+    extra2?: string
+  ): CharacterSheet => {
+    const updated = sheet;
+    updated.extraHand1ItemId = extra1;
+    updated.extraHand2ItemId = extra2;
+    return updated;
+  };
+
+  it('escudo em mão extra soma na Defesa', () => {
+    const base = recalculateSheet(
+      buildSheet([fourArms], [espada(), escudo()], 'esp')
+    );
+    const result = recalculateSheet(
+      withExtraHands(buildSheet([fourArms], [espada(), escudo()], 'esp'), 'esc')
+    );
+    expect(result.defesa).toBeGreaterThan(base.defesa);
+    expect(result.extraHand1ItemId).toBe('esc');
+  });
+
+  it('escudo em mão extra conta na penalidade de armadura', () => {
+    const shield = escudo() as DefenseEquipment;
+    expect(shield.armorPenalty).toBeGreaterThan(0);
+    const sheet = withExtraHands(
+      buildSheet([fourArms], [espada(), shield], 'esp'),
+      'esc'
+    );
+    expect(getActiveArmorPenalty(sheet)).toBe(shield.armorPenalty);
+  });
+
+  it('Estilo de Arma e Escudo vale com o escudo em mão extra', () => {
+    const items = () => [espada(), escudo()];
+    const base = recalculateSheet(
+      withExtraHands(buildSheet([fourArms], items(), 'esp'), 'esc')
+    );
+    const result = recalculateSheet(
+      withExtraHands(
+        buildSheet(
+          [fourArms, combatPowers.ESTILO_DE_ARMA_E_ESCUDO],
+          items(),
+          'esp'
+        ),
+        'esc'
+      )
+    );
+    expect(result.defesa).toBe(base.defesa + 2);
+  });
+
+  it('Estilo de Uma Arma desliga com item em mão extra', () => {
+    const power = [fourArms, combatPowers.ESTILO_DE_UMA_ARMA];
+    const items = () => [espada(), machado()];
+    const base = recalculateSheet(
+      withExtraHands(buildSheet([fourArms], items(), 'esp'), 'mac')
+    );
+    const result = recalculateSheet(
+      withExtraHands(buildSheet(power, items(), 'esp'), 'mac')
+    );
+    expect(result.defesa).toBe(base.defesa);
+    expect(hasActiveBonus(result, 'Estilo de Uma Arma', 'Defense')).toBe(false);
+  });
+
+  it('Estilo de Uma Arma vale com a arma numa mão extra e o resto livre', () => {
+    const power = [fourArms, combatPowers.ESTILO_DE_UMA_ARMA];
+    const base = recalculateSheet(
+      withExtraHands(buildSheet([fourArms], [espada()]), 'esp')
+    );
+    const result = recalculateSheet(
+      withExtraHands(buildSheet(power, [espada()]), 'esp')
+    );
+    expect(result.defesa).toBe(base.defesa + 2);
+  });
+
+  it('condições de empunhadura enxergam as mãos extras', () => {
+    const sheet = withExtraHands(
+      buildSheet([fourArms], [espada(), escudo()], 'esp'),
+      'esc'
+    );
+    expect(
+      evaluateBonusCondition(sheet, {
+        combinator: 'AND',
+        clauses: [{ kind: 'wieldingShield' }],
+      })
+    ).toBe(true);
+    expect(
+      evaluateBonusCondition(sheet, {
+        combinator: 'AND',
+        clauses: [{ kind: 'dualWielding' }],
+      })
+    ).toBe(true);
+  });
+
+  it('arma de duas mãos no par extra não é empunhadura dupla', () => {
+    const sheet = withExtraHands(
+      buildSheet([fourArms], [fromCatalog('Montante', 'mon')]),
+      'mon',
+      'mon'
+    );
+    expect(
+      evaluateBonusCondition(sheet, {
+        combinator: 'AND',
+        clauses: [{ kind: 'dualWielding' }],
+      })
+    ).toBe(false);
+    expect(
+      evaluateBonusCondition(sheet, {
+        combinator: 'AND',
+        clauses: [{ kind: 'wieldingTwoHandedWeapon' }],
+      })
+    ).toBe(true);
+  });
+
+  it('as quatro mãos sobrevivem a gravar e recarregar da nuvem', () => {
+    const items = () => [
+      espada(),
+      machado(),
+      fromCatalog('Montante', 'mon'),
+      escudo(),
+    ];
+    const saved = recalculateSheet(
+      withExtraHands(
+        buildSheet([fourArms], items(), 'esp', 'mac'),
+        'mon',
+        'mon'
+      )
+    );
+    const stored = JSON.parse(JSON.stringify(stripSheetForStorage(saved)));
+    const loaded = rehydrateSheet(stored, SUPPLEMENTS);
+    normalizeSheet(loaded);
+    // JSON tira os métodos da classe; o app reconstrói a Bag ao carregar.
+    loaded.bag = new Bag(loaded.bag.equipments);
+    const result = recalculateSheet(loaded);
+
+    expect(result.mainHandItemId).toBe('esp');
+    expect(result.offHandItemId).toBe('mac');
+    expect(result.extraHand1ItemId).toBe('mon');
+    expect(result.extraHand2ItemId).toBe('mon');
+  });
+
+  it('soltar a mão extra vira remoção do campo no delta da nuvem', () => {
+    const sheet = recalculateSheet(
+      withExtraHands(buildSheet([fourArms], [espada()]), 'esp')
+    );
+    const baseline = stripSheetForStorage(_.cloneDeep(sheet));
+    const updated = stripSheetForStorage({
+      ..._.cloneDeep(sheet),
+      extraHand1ItemId: undefined,
+    });
+    expect(computeSheetDelta(baseline, updated)?.extraHand1ItemId).toBeNull();
+  });
+
+  it('sem o poder, as mãos extras são limpas no recálculo', () => {
+    const base = recalculateSheet(buildSheet([], [espada(), escudo()], 'esp'));
+    const result = recalculateSheet(
+      withExtraHands(buildSheet([], [espada(), escudo()], 'esp'), 'esc', 'esp')
+    );
+    expect(result.extraHand1ItemId).toBeUndefined();
+    expect(result.extraHand2ItemId).toBeUndefined();
+    expect(result.defesa).toBe(base.defesa);
   });
 });

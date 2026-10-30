@@ -2,6 +2,7 @@ import CharacterSheet from '../../interfaces/CharacterSheet';
 import { getEffectiveAttributeModifier } from '../effectiveAttributes';
 import Skill, { getSkillAttr } from '../../interfaces/Skills';
 import { getActiveArmorPenalty } from '../proficiencies';
+import { sheetHasClassAbility } from '../learnedClassAbility';
 import type {
   SpellCastCheck,
   SpellCastCheckAdjustment,
@@ -47,9 +48,9 @@ function hasClassAbility(sheet: CharacterSheet, name: string): boolean {
   return !!sheet?.classe?.abilities?.some((ability) => ability.name === name);
 }
 
-/** A ficha lança magias por Usurpar. */
+/** A ficha lança magias por Usurpar (também aprendida pelo Duplo Feérico). */
 export function hasUsurpar(sheet: CharacterSheet): boolean {
-  return hasClassAbility(sheet, 'Usurpar');
+  return !!sheet && sheetHasClassAbility(sheet, 'Usurpar');
 }
 
 /**

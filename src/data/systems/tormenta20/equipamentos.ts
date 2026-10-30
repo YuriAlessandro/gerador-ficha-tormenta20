@@ -4,6 +4,8 @@ import { getEffectiveAttributeModifier } from '../../../functions/effectiveAttri
 import { Atributo } from './atributos';
 import { HEROIS_ARTON_ARMORS } from './herois-de-arton/equipment/armors';
 import { AMEACAS_ARTON_ARMORS } from './ameacas-de-arton/equipment/armors';
+import { usesCharismaForDefense } from '../../../functions/learnedClassAbility';
+import { isItemWielded } from '../../../components/SheetResult/BackpackModal/wielding';
 import Equipment, {
   DefenseEquipment,
   CombatItems,
@@ -294,7 +296,6 @@ export const Armas = catalog({
     alcance: 'Médio',
     group: 'Arma',
     preco: 35,
-    twoHanded: true,
     ammoType: 'Virotes',
   },
   FUNDA: {
@@ -971,11 +972,7 @@ export function calcDefense(charSheet: CharacterSheet): CharacterSheet {
         // is no legacy fallback — a shield in the bag with no hand assigned
         // does NOT contribute to defense.
         if (equip.group === 'Escudo') {
-          const inHand =
-            equip.id !== undefined &&
-            (equip.id === cloneSheet.mainHandItemId ||
-              equip.id === cloneSheet.offHandItemId);
-          if (!inHand) return acc;
+          if (!isItemWielded(equip.id, cloneSheet)) return acc;
         }
 
         equipped.push(equip);
@@ -1006,8 +1003,8 @@ export function calcDefense(charSheet: CharacterSheet): CharacterSheet {
 
   // Se não tem armadura pesada
   if (!heavyArmor) {
-    // Se for nobre
-    if (cloneSheet.classe.name === 'Nobre') {
+    // Autoconfiança (Nobre, ou aprendida pelo Duplo Feérico)
+    if (usesCharismaForDefense(cloneSheet)) {
       // Atributo EFETIVO: um bônus temporário de Carisma sobe a Defesa do Nobre.
       const carismaMod = getEffectiveAttributeModifier(
         cloneSheet,

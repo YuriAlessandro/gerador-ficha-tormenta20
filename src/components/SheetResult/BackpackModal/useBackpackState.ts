@@ -25,6 +25,7 @@ import {
   pruneWielding,
   WieldingSlot,
   WORN_ARMOR_NONE,
+  getWieldedItemIds,
 } from './wielding';
 import { isStackable } from './stacking';
 
@@ -58,6 +59,8 @@ interface StagedState {
   paidUnits: Record<string, number>;
   mainHandItemId?: string;
   offHandItemId?: string;
+  extraHand1ItemId?: string;
+  extraHand2ItemId?: string;
   wornArmorId?: string;
   /**
    * Peças de Vestuário GUARDADAS (conjunto de opt-out — ver
@@ -77,6 +80,8 @@ export interface BackpackInputs {
   initialAutoDeductMoney?: boolean;
   initialMainHandItemId?: string;
   initialOffHandItemId?: string;
+  initialExtraHand1ItemId?: string;
+  initialExtraHand2ItemId?: string;
   initialWornArmorId?: string;
   initialUnwornClothingIds?: string[];
   initialGroupByCategory?: boolean;
@@ -502,8 +507,7 @@ export function reducer(state: StagedState, action: Action): StagedState {
       // one-handed go to the main hand.
       let { mainHandItemId, offHandItemId } = state;
       const isWeapon = action.item.group === 'Arma';
-      const noWielding =
-        mainHandItemId === undefined && offHandItemId === undefined;
+      const noWielding = getWieldedItemIds(state).length === 0;
       if (isWeapon && noWielding && addedId) {
         if (action.item.twoHanded === true) {
           mainHandItemId = addedId;
@@ -514,8 +518,17 @@ export function reducer(state: StagedState, action: Action): StagedState {
       }
 
       // Auto-wield shield: if a shield is added and the off-hand is free AND
-      // no two-handed weapon occupies the main hand, it goes to the off-hand.
-      if (action.item.group === 'Escudo' && addedId && !offHandItemId) {
+      // no two-handed weapon occupies the main hand AND no other shield is held
+      // (dois escudos é proibido), it goes to the off-hand.
+      const holdsShield = getWieldedItemIds(state).some((id) =>
+        (state.equipments.Escudo ?? []).some((shield) => shield.id === id)
+      );
+      if (
+        action.item.group === 'Escudo' &&
+        addedId &&
+        !offHandItemId &&
+        !holdsShield
+      ) {
         const mainItem = mainHandItemId
           ? flattenEquipments(state.equipments).find(
               (it) => it.id === mainHandItemId
@@ -591,6 +604,14 @@ export function reducer(state: StagedState, action: Action): StagedState {
         state.mainHandItemId === action.id ? undefined : state.mainHandItemId;
       const offHandItemId =
         state.offHandItemId === action.id ? undefined : state.offHandItemId;
+      const extraHand1ItemId =
+        state.extraHand1ItemId === action.id
+          ? undefined
+          : state.extraHand1ItemId;
+      const extraHand2ItemId =
+        state.extraHand2ItemId === action.id
+          ? undefined
+          : state.extraHand2ItemId;
       const wornArmorId =
         state.wornArmorId === action.id ? undefined : state.wornArmorId;
       // Higiene de payload: ids são uuid e nunca reusados, mas deixar o id
@@ -608,6 +629,8 @@ export function reducer(state: StagedState, action: Action): StagedState {
         paidUnits,
         mainHandItemId,
         offHandItemId,
+        extraHand1ItemId,
+        extraHand2ItemId,
         wornArmorId,
         unwornClothingIds,
       };
@@ -704,6 +727,8 @@ export function reducer(state: StagedState, action: Action): StagedState {
         state: {
           mainHandItemId: state.mainHandItemId,
           offHandItemId: state.offHandItemId,
+          extraHand1ItemId: state.extraHand1ItemId,
+          extraHand2ItemId: state.extraHand2ItemId,
         },
         itemId: action.itemId,
         slot: action.slot,
@@ -715,6 +740,8 @@ export function reducer(state: StagedState, action: Action): StagedState {
         displayOrder: next.displayOrder,
         mainHandItemId: next.mainHandItemId,
         offHandItemId: next.offHandItemId,
+        extraHand1ItemId: next.extraHand1ItemId,
+        extraHand2ItemId: next.extraHand2ItemId,
       };
     }
     case 'SET_WORN_ARMOR': {
@@ -754,6 +781,8 @@ export function useBackpackState({
   initialAutoDeductMoney = true,
   initialMainHandItemId,
   initialOffHandItemId,
+  initialExtraHand1ItemId,
+  initialExtraHand2ItemId,
   initialWornArmorId,
   initialUnwornClothingIds,
   initialGroupByCategory = false,
@@ -774,6 +803,8 @@ export function useBackpackState({
       bag: { equipments },
       mainHandItemId: initialMainHandItemId,
       offHandItemId: initialOffHandItemId,
+      extraHand1ItemId: initialExtraHand1ItemId,
+      extraHand2ItemId: initialExtraHand2ItemId,
       wornArmorId: initialWornArmorId,
     });
     const existingIds = new Set<string>();
@@ -784,6 +815,8 @@ export function useBackpackState({
       {
         mainHandItemId: migrated.mainHandItemId,
         offHandItemId: migrated.offHandItemId,
+        extraHand1ItemId: migrated.extraHand1ItemId,
+        extraHand2ItemId: migrated.extraHand2ItemId,
       },
       existingIds
     );
@@ -808,6 +841,8 @@ export function useBackpackState({
       paidUnits: {},
       mainHandItemId: pruned.mainHandItemId,
       offHandItemId: pruned.offHandItemId,
+      extraHand1ItemId: pruned.extraHand1ItemId,
+      extraHand2ItemId: pruned.extraHand2ItemId,
       wornArmorId: wornArmorIsPresent ? seededWornArmorId : undefined,
       // Sem sentinela aqui: `undefined` significa só "nada guardado", então
       // basta descartar os ids de peças que saíram da mochila.
@@ -955,6 +990,8 @@ export function useBackpackState({
     if (
       staged.mainHandItemId !== initialSnapshot.mainHandItemId ||
       staged.offHandItemId !== initialSnapshot.offHandItemId ||
+      staged.extraHand1ItemId !== initialSnapshot.extraHand1ItemId ||
+      staged.extraHand2ItemId !== initialSnapshot.extraHand2ItemId ||
       staged.wornArmorId !== initialSnapshot.wornArmorId ||
       staged.groupByCategory !== initialSnapshot.groupByCategory
     ) {

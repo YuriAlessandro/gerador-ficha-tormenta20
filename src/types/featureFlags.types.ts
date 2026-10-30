@@ -24,6 +24,8 @@ export interface FeatureFlags {
   limitBoost: FeatureFlag;
   challenges: FeatureFlag;
   guidedTours: FeatureFlag;
+  gmCompendium: FeatureFlag;
+  itemShops: FeatureFlag;
 }
 
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
@@ -75,4 +77,14 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   // mundo, então `supporterOnly` fica FALSE (o `useFeatureAccess` é binário).
   // Default desligado até o rollout.
   guidedTours: { enabled: false, supporterOnly: false },
+  // Compêndio do Mestre (mesa virtual): notas, imagens e vídeos do mestre em
+  // pastas. Grátis com limite de entradas (`maxCompendiumEntries`);
+  // `supporterOnly` existe para o admin travar para apoiadores por um tempo.
+  // Default desligado até o rollout.
+  gmCompendium: { enabled: false, supporterOnly: false },
+  // Lojas de itens (mesa virtual): o mestre monta lojas e os jogadores
+  // compram com um clique. Grátis com limite de lojas por mesa
+  // (`maxShopsPerTable`); `supporterOnly` trava a criação para apoiadores.
+  // Comprar é sempre livre. Default desligado até o rollout.
+  itemShops: { enabled: false, supporterOnly: false },
 };

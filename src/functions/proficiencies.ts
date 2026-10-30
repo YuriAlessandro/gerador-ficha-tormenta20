@@ -9,6 +9,7 @@ import EQUIPAMENTOS, {
 import { AMEACAS_ARTON_WEAPONS } from '../data/systems/tormenta20/ameacas-de-arton/equipment/weapons';
 import { HEROIS_ARTON_WEAPONS } from '../data/systems/tormenta20/herois-de-arton/equipment/weapons';
 import PROFICIENCIAS from '../data/systems/tormenta20/proficiencias';
+import { isItemWielded } from '../components/SheetResult/BackpackModal/wielding';
 
 export const WEAPON_NON_PROFICIENCY_PENALTY = -5;
 
@@ -102,9 +103,10 @@ const WEAPON_CATEGORY_BY_NAME = new Map<string, WeaponCategory>();
 });
 
 // Mesma história do mapa acima, para `twoHanded`: o campo só existe no catálogo
-// desde 02/05/2026 e `refreshBagItemsFromCatalog` não o recarimba, então um
-// Mosquete copiado para a mochila antes disso chega aqui sem ele — e passaria
-// como arma de uma mão para 'Armas de Fogo de Uma Mão'.
+// desde 02/05/2026, então um Mosquete copiado para a mochila antes disso chega
+// sem ele — e passaria como arma de uma mão para 'Armas de Fogo de Uma Mão'.
+// `refreshBagItemsFromCatalog` passou a recarimbá-lo na carga da ficha; o
+// fallback segue para quem avalia um item que não passou por ela.
 const WEAPON_TWO_HANDED_BY_NAME = new Map<string, boolean>();
 (
   [
@@ -266,7 +268,9 @@ export function getActiveArmorPenalty(sheet: CharacterSheet): number {
     return bag.getActiveArmorPenalty(
       sheet.wornArmorId,
       sheet.mainHandItemId,
-      sheet.offHandItemId
+      sheet.offHandItemId,
+      sheet.extraHand1ItemId,
+      sheet.extraHand2ItemId
     );
   }
   if (bag.getArmorPenalty) return bag.getArmorPenalty();
@@ -306,10 +310,10 @@ export function getNonProficientArmorPenalty(sheet: CharacterSheet): number {
   }
 
   shields.forEach((shield) => {
-    const inHand =
-      shield.id !== undefined &&
-      (shield.id === sheet.mainHandItemId || shield.id === sheet.offHandItemId);
-    if (inHand && !isProficientWithDefense(shield, proficiencias)) {
+    if (
+      isItemWielded(shield.id, sheet) &&
+      !isProficientWithDefense(shield, proficiencias)
+    ) {
       penalty += Math.max(0, shield.armorPenalty);
     }
   });

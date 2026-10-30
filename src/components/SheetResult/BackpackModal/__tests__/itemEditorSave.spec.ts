@@ -1,3 +1,4 @@
+import Skill from '../../../../interfaces/Skills';
 import Equipment, { DefenseEquipment } from '../../../../interfaces/Equipment';
 import { applyItemEnhancements } from '../../../../functions/itemEnhancements/applyEnhancements';
 import {
@@ -578,5 +579,72 @@ describe('Resetar volta as estatísticas ao catálogo', () => {
     };
     expect(findCatalogItem(custom)).toBeUndefined();
     expect(withCatalogStats(custom, undefined)).toBe(custom);
+  });
+});
+
+describe('buildSavedItem — efeitos de item personalizado', () => {
+  const bonus = (value: number) => ({
+    source: { type: 'race' as const, raceName: 'Placeholder' },
+    target: { type: 'Skill' as const, name: Skill.FURTIVIDADE },
+    modifier: { type: 'Fixed' as const, value },
+  });
+
+  const espadaCustom: Equipment = {
+    id: 'espada-custom',
+    nome: 'Espada da sombra',
+    group: 'Arma',
+    spaces: 1,
+    isCustom: true,
+    dano: '1d8',
+    critico: '19',
+    sheetBonuses: [bonus(1)],
+    // Dano extra faz o pipeline congelar `baseSheetBonuses` no 1º save.
+    extraDamage: [
+      { id: 'fogo', dice: '1d6', damageType: 'Fogo', source: 'user' },
+    ],
+  };
+
+  test('edita, poda e carimba a origem com o nome do item', () => {
+    const fogo = {
+      id: 'fogo',
+      dice: '1d6',
+      damageType: 'Fogo' as const,
+      source: 'user' as const,
+    };
+    const first = save(
+      espadaCustom,
+      mkForm({ sheetBonuses: [bonus(1)], userExtraDamage: [fogo] })
+    );
+    expect(first.baseSheetBonuses).toBeDefined();
+
+    const edited = save(
+      first,
+      mkForm({
+        sheetBonuses: [bonus(3)],
+        userExtraDamage: [fogo],
+      })
+    );
+    expect(edited.sheetBonuses).toEqual([
+      {
+        source: { type: 'equipment', equipmentName: 'Espada da sombra' },
+        target: { type: 'Skill', name: Skill.FURTIVIDADE },
+        modifier: { type: 'Fixed', value: 3 },
+      },
+    ]);
+  });
+
+  test('remover todos os efeitos limpa o item', () => {
+    const edited = save(espadaCustom, mkForm({ sheetBonuses: [] }));
+    expect(edited.sheetBonuses ?? []).toHaveLength(0);
+  });
+
+  test('item de catálogo não tem os bônus mexidos', () => {
+    const catalogo: Equipment = {
+      ...espadaCustom,
+      isCustom: undefined,
+      extraDamage: undefined,
+    };
+    const edited = save(catalogo, mkForm({ sheetBonuses: [] }));
+    expect(edited.sheetBonuses).toEqual([bonus(1)]);
   });
 });

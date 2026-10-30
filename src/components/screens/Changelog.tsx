@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            23/10/2026 (v4.36).
+            30/10/2026 (v4.37).
           </p>
 
           <p>
@@ -74,6 +74,357 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.37</h3>
+
+              <Typography variant='body1' sx={{ mt: 2 }}>
+                Os destaques desta versão, o{' '}
+                <strong>Compêndio do Mestre</strong> e as{' '}
+                <strong>Lojas de itens</strong>, vieram da{' '}
+                <strong>votação dos apoiadores</strong>. Obrigado a quem votou e
+                a quem sustenta o projeto! 💜
+              </Typography>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  📚 Compêndio do Mestre
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Cada <strong>Mesa Virtual</strong> agora tem o seu próprio
+                  compêndio: um lugar para o mestre guardar{' '}
+                  <strong>anotações</strong>, <strong>imagens</strong> e{' '}
+                  <strong>vídeos</strong> organizados em pastas. Antes, as notas
+                  viviam só dentro dos painéis do escudo e sumiam junto com
+                  eles; agora ficam salvas no compêndio da mesa até você
+                  apagá-las. Prepare tudo antes da sessão pelo botão{' '}
+                  <strong>Compêndio</strong> na página da mesa.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  Na sessão, o Compêndio aparece no trilho do mestre (e numa
+                  seção própria no celular). De qualquer entrada você pode{' '}
+                  <strong>enviar aos jogadores</strong>, que recebem o conteúdo
+                  na tela na mesma hora,{' '}
+                  <strong>exibir na Tela do Jogador</strong> ou{' '}
+                  <strong>fixar no escudo</strong> num painel ligado à entrada:
+                  editou a nota, o painel atualiza; removeu o painel, a nota
+                  continua no compêndio. Textos podem ganhar a aparência de{' '}
+                  <strong>pergaminho</strong>, <strong>livro</strong> ou{' '}
+                  <strong>carta</strong>, e imagens e vídeos (YouTube ou link
+                  direto) entram por URL.
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  As notas que você já tem no escudo podem ser trazidas de uma
+                  vez pelo botão <strong>Importar do escudo</strong>, ou uma a
+                  uma pela opção <strong>Salvar no compêndio</strong> do painel.
+                  Também dá para <strong>copiar</strong> entradas e pastas para
+                  outra mesa sua. O compêndio é gratuito até 30 entradas por
+                  mesa, com limites maiores para apoiadores, e o tutorial guiado
+                  da mesa ganhou um passo a passo dele.
+                </Typography>
+              </Alert>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  🛒 Lojas de itens
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  O mestre agora pode montar <strong>lojas</strong> na{' '}
+                  <strong>Mesa Virtual</strong> e abrir cada uma quando o grupo
+                  chegar lá. Os jogadores compram com <strong>um clique</strong>
+                  : o valor sai do dinheiro da ficha e o item vai direto para a
+                  mochila.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  Os itens vêm da lista oficial, com preço e estatísticas do
+                  livro, ou são criados pelo mestre, e tudo pode ser alterado.
+                  Itens <strong>superiores</strong> e <strong>mágicos</strong>{' '}
+                  têm o preço calculado pelas regras do livro. Cada item pode
+                  ter estoque limitado, e dá para dar <strong>descontos</strong>{' '}
+                  em um item, numa categoria inteira ou na loja toda, além de um
+                  ajuste por jogador para a regra de <strong>Barganha</strong>.
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  O mestre vê o histórico de compras de cada loja, recebe um
+                  aviso a cada compra e pode preparar tudo antes da sessão pelo
+                  botão <strong>Lojas</strong> na página da mesa. Cada mesa pode
+                  ter 2 lojas de graça, com mais lojas para apoiadores, e o
+                  tutorial guiado da mesa ganhou um passo a passo para o mestre
+                  e para os jogadores.
+                </Typography>
+              </Alert>
+
+              <ul>
+                <li>
+                  <strong>Novo:</strong> As <strong>manobras de combate</strong>{' '}
+                  agora podem ser ativadas na lista de ataques. Na engrenagem da
+                  seção Ataques, escolha entre Agarrar, Atropelar, Derrubar,
+                  Desarmar, Empurrar e Quebrar. Cada linha rola o teste com a
+                  arma escolhida e já soma tamanho, Equilibrada e poderes como
+                  Derrubar Aprimorado.
+                </li>
+                <li>
+                  <strong>Novo:</strong> A extensão do Fichas de Nimb para o{' '}
+                  <strong>Roll20</strong> agora importa <strong>ameaças</strong>
+                  . Na janela de importação, a nova aba <strong>Ameaças</strong>{' '}
+                  lista as criaturas da sua conta, e importar uma põe a ficha do
+                  personagem no modo <strong>Ficha Ameaça</strong> com ND, PV,
+                  PM, Defesa, resistências, perícias, ataques, habilidades e
+                  magias. Antes de importar, você confere se cada ataque é corpo
+                  a corpo ou à distância e pode trocar.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Quem tem o poder{' '}
+                  <strong>Quatro Braços</strong> agora pode empunhar até{' '}
+                  <strong>quatro itens</strong>: a Mochila, os Ataques e a
+                  Defesa oferecem também a <strong>Mão Extra 1</strong> e a{' '}
+                  <strong>Mão Extra 2</strong>, e uma arma de duas mãos pode
+                  ocupar o par extra. Itens nessas mãos contam na Defesa, nos
+                  bônus e no PDF. Sugestão de usuário!
+                </li>
+                <li>
+                  <strong>Novo:</strong> As <strong>Builds</strong> agora
+                  mostram <strong>avisos de regras</strong> no editor e na
+                  página: nome de poder ou magia que não está nos livros, poder
+                  repetido, poderes a mais no nível, magia que a classe não
+                  alcança e poder de outra classe. Os avisos só informam: a
+                  build sempre salva. No editor, dá para corrigir com um clique
+                  (<strong>Trocar por</strong> e{' '}
+                  <strong>Remover deste nível</strong>) e marcar o que é
+                  intencional como <strong>Vem de outra fonte</strong>, que some
+                  da página pública.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> O{' '}
+                  <strong>guia de contribuição</strong> do projeto no GitHub foi
+                  atualizado: versões do Node e do npm, instalação igual à do
+                  build oficial e o que dá (e o que não dá) para validar sem os
+                  módulos privados. (por{' '}
+                  <a href='https://github.com/ZaraTakion' target='blank'>
+                    ZaraTakion
+                  </a>
+                  )
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> O{' '}
+                  <strong>item personalizado</strong> da mochila agora pode ter{' '}
+                  <strong>efeitos na ficha</strong>, como +1 numa perícia, bônus
+                  de dano, Defesa, PV ou PM. Dá para criar o item com o efeito
+                  na hora, no meio da sessão, e ajustá-lo depois pela nova aba{' '}
+                  <strong>Efeitos</strong> do editor de item. Peças de{' '}
+                  <strong>Vestuário</strong> só dão o efeito enquanto estiverem
+                  vestidas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Itens <strong>esotéricos</strong>{' '}
+                  com efeitos (vindos de homebrew ou criados na mochila) agora
+                  aplicam esses bônus na ficha. Antes, eles eram ignorados.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A <strong>Besta Leve</strong> volta
+                  a ser uma arma de <strong>uma mão</strong>, como no livro, e
+                  pode ser empunhada junto com um escudo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> <strong>Mestre em Arma</strong> e{' '}
+                  <strong>Mestre Celebrante</strong> agora exigem o{' '}
+                  <strong>12º nível</strong> na classe. Antes, eles apareciam
+                  para guerreiros e clérigos de nível baixo, inclusive em fichas
+                  aleatórias.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder da Tormenta{' '}
+                  <strong>Legião Aberrante</strong> passa a exigir Anatomia
+                  Insana <strong>e</strong> três outros poderes da Tormenta.
+                  Antes, bastava um dos dois.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Poderes da Tormenta que pedem{' '}
+                  <strong>&quot;N outros poderes da Tormenta&quot;</strong>{' '}
+                  (como Armamento Aberrante, Asas Insetoides e Membros Extras)
+                  exigiam um poder a mais do que o livro. Agora, com um poder da
+                  Tormenta na ficha, o Armamento Aberrante já fica liberado.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As Missas de Heróis de Arton
+                  (Compartilhar Milagre, Imposição da Vontade e Mente Abençoada)
+                  agora liberam o <strong>Mestre Celebrante</strong>, e aparecem
+                  na árvore de poderes do Clérigo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O <strong>Meio-Orc</strong> não
+                  pode mais colocar o +1 livre em <strong>Carisma</strong> nem
+                  em <strong>Força</strong>, como diz o livro Ameaças de Arton
+                  (&quot;+1 em outro atributo, exceto Carisma&quot;). Antes, o
+                  assistente deixava a ficha nascer com Força +3.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Uma perícia que recebe bônus antes
+                  de ser treinada (como o <strong>Ofício</strong> escolhido pelo
+                  Vanguardista do Kliren) agora soma o atributo-chave. Antes, a
+                  Inteligência sumia do total. Fichas já salvas são corrigidas
+                  ao abrir.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A melhoria{' '}
+                  <strong>Equilibrada</strong> não dá mais +2 em Atletismo. No
+                  livro, o bônus é de +2 em testes de manobra, que continua
+                  descrito no item.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A <strong>Ficha Aleatória</strong>{' '}
+                  agora já sai com os números certos. Antes, cerca de uma em
+                  cada três fichas mudava sozinha na primeira edição: PM de
+                  bônus por nível (como o Sangue Mágico) contado em dobro, carga
+                  e Defesa que não acompanhavam o aumento de Força e Destreza,
+                  Estilo de Arma e Escudo sem o +2 na Defesa, perícias
+                  aprendidas ao subir de nível aparecendo destreinadas, PV que
+                  não caía quando a Tormenta reduzia Constituição e deslocamento
+                  sem a Fúria da Savana.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Os pontos de atributo &quot;para
+                  distribuir como quiser&quot; (como os do{' '}
+                  <strong>Rei Mercenário</strong>, do Vassalo) não perdem mais
+                  um ponto no histórico da ficha quando dois vão para o mesmo
+                  atributo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Os <strong>Chifres</strong> do
+                  Ceratops e os <strong>Cascos</strong> do Centauro voltam a
+                  causar <strong>1d8</strong>, como no livro. Antes, o bônus de
+                  tamanho Grande era somado em cima e as armas saíam com 1d10.
+                  Fichas já salvas são corrigidas ao abrir.
+                </li>
+                <li>
+                  <strong>Correção:</strong> <strong>Remover um poder</strong>{' '}
+                  no editor de poderes e <strong>Desfazer Nível</strong> agora
+                  tiram tudo o que o poder ou o nível deu. Antes ficavam para
+                  trás a arma natural na mochila (Mordida de Dentes Afiados,
+                  Ataque Desarmado do Estilo Desarmado), a magia do animal do{' '}
+                  <strong>Totem Espiritual</strong>, a perícia treinada pelo{' '}
+                  <strong>Valete</strong> do Vassalo e a escola de magia
+                  acrescentada pelo <strong>Xamã Místico</strong>. Quando outra
+                  fonte dá o mesmo item, ele fica (a Mordida do Gnoll volta a
+                  1d6), e uma pilha de itens comprados depois perde só as
+                  unidades que o poder tinha dado.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Itens de origem como a{' '}
+                  <strong>Mochila de aventureiro</strong>, o{' '}
+                  <strong>Manto eclesiástico</strong> e o{' '}
+                  <strong>Símbolo sagrado</strong> já entram na ficha nova com
+                  os bônus do livro. Antes, espaços de carga e bônus de perícia
+                  só apareciam depois de salvar e abrir a ficha de novo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O <strong>Símbolo sagrado</strong>{' '}
+                  só dá +1 nos testes de resistência a quem é devoto de algum
+                  deus, como no livro. Antes, qualquer personagem que o usasse
+                  recebia o bônus.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Armas já guardadas na mochila
+                  passam a seguir a empunhadura do livro: a{' '}
+                  <strong>Besta Leve</strong> salva como arma de duas mãos vira
+                  arma de uma mão e libera a outra mão. Quando a outra mão está
+                  ocupada (por um escudo, por exemplo), nada muda.
+                </li>
+                <li>
+                  <strong>Correção:</strong> As magias{' '}
+                  <strong>Orientação</strong>, <strong>Relâmpago</strong>,{' '}
+                  <strong>Raio Solar</strong>, <strong>Voz Divina</strong>,{' '}
+                  <strong>Desespero Esmagador</strong>,{' '}
+                  <strong>Vidência</strong> e <strong>Discrição</strong> agora
+                  mostram execução, alcance, área, duração e resistência como no
+                  livro, e o aprimoramento do <strong>Heroísmo</strong> custa +2
+                  PM em vez de +4. Vale para magias aprendidas a partir desta
+                  versão.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O poder de Clérigo{' '}
+                  <strong>Símbolo Sagrado Abençoado</strong> passa a se chamar{' '}
+                  <strong>Símbolo Sagrado Energizado</strong>, como no livro.
+                  Fichas e Builds salvas com o nome antigo são atualizadas ao
+                  abrir.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Habilidades aprendidas pela origem{' '}
+                  <strong>Duplo Feérico</strong> agora funcionam como no 1º
+                  nível da classe. O <strong>Melhor Amigo</strong> do Treinador
+                  cria o parceiro (com passo próprio no assistente).{' '}
+                  <strong>Autoconfiança</strong> passa a usar Carisma na Defesa.
+                  A <strong>Briga</strong> dá 1d6 desarmado.{' '}
+                  <strong>Fúria</strong>, <strong>Inspiração</strong> e{' '}
+                  <strong>Baluarte</strong> ganham o botão Usar.{' '}
+                  <strong>Ataque Furtivo</strong>, <strong>Golpe Divino</strong>{' '}
+                  e <strong>Marca da Presa</strong> ganham rolagem. A{' '}
+                  <strong>Insolência</strong> fica limitada a +1. Os poderes que
+                  exigem essas habilidades ficam disponíveis. Trocar de origem
+                  desfaz tudo o que a habilidade concedeu.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O <strong>Bardo</strong> agora só
+                  aprende <strong>magias arcanas</strong> das três escolas
+                  escolhidas, como no livro, também ao subir de nível, na ficha
+                  aleatória e na multiclasse. Antes, a lista ao subir de nível
+                  mostrava magias divinas dessas escolas. Magias divinas
+                  continuam liberadas pelo poder{' '}
+                  <strong>Aumentar Repertório</strong>.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Em homebrews, a opção{' '}
+                  <strong>Conceder poder</strong> (inclusive dentro de opções de
+                  escolha) agora também lista as{' '}
+                  <strong>habilidades de raça</strong> existentes, como{' '}
+                  <strong>Sentidos Élficos</strong>. Antes, só apareciam poderes
+                  gerais e de classe.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Não dá mais para empunhar{' '}
+                  <strong>dois escudos</strong> ao mesmo tempo, como diz o
+                  livro. Antes, um escudo em cada mão somava os dois na Defesa.
+                  Fichas que já estão assim não mudam até você trocar os itens
+                  de mão.
+                </li>
+              </ul>
+
               <h3>4.36</h3>
               <ul>
                 <li>

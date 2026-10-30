@@ -1392,10 +1392,10 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
   [spellsCircle1Names.orientacao]: {
     spellCircle: spellsCircles.c1,
     nome: 'Orientação',
-    execucao: 'Movimentação',
+    execucao: 'Padrão',
     alcance: 'Curto',
     alvo: '1 criatura',
-    duracao: 'Cena',
+    duracao: '1 rodada',
     school: 'Adiv',
     description:
       'Em seu próximo teste de perícia, o alvo pode rolar dois dados e ficar com o melhor resultado.',
@@ -2267,7 +2267,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     execucao: 'Padrão',
     alcance: 'Pessoal',
     area: 'Cone de 6m',
-    duracao: 'Cena',
+    duracao: 'Instantânea',
     resistencia: 'Vontade parcial',
     school: 'Encan',
     description:
@@ -2400,8 +2400,8 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     spellCircle: spellsCircles.c2,
     nome: 'Relâmpago',
     execucao: 'Padrão',
-    alcance: 'Médio',
-    area: 'Linha',
+    alcance: 'Pessoal',
+    area: 'Linha de 30m',
     duracao: 'Instantânea',
     resistencia: 'Reflexos reduz à metade',
     school: 'Evoc',
@@ -2865,8 +2865,8 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     spellCircle: spellsCircles.c2,
     nome: 'Voz Divina',
     execucao: 'Padrão',
-    alcance: 'Curto',
-    alvo: '1 criatura',
+    alcance: 'Pessoal',
+    alvo: 'Você',
     duracao: 'Cena',
     school: 'Adiv',
     description:
@@ -3089,8 +3089,8 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     spellCircle: spellsCircles.c2,
     nome: 'Raio Solar',
     execucao: 'Padrão',
-    alcance: 'Médio',
-    area: 'Linha',
+    alcance: 'Pessoal',
+    area: 'Linha de 30m',
     duracao: 'Instantânea',
     resistencia: 'Reflexos (veja o texto)',
     school: 'Evoc',
@@ -3471,6 +3471,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Ilimitado',
     alvo: '1 criatura',
     duracao: 'Sustentada',
+    resistencia: 'Vontade anula',
     school: 'Adiv',
     description:
       'Através de uma superfície reflexiva (bacia de água benta para clérigos, lago para druidas, bola de cristal para magos, espelho para feiticeiros etc.) você pode ver e ouvir uma criatura escolhida e seus arredores (cerca de 6m em qualquer direção), mesmo que ela se mova. O alvo pode estar a qualquer distância, mas se passar em um teste de Vontade, a magia falha. A vítima recebe bônus ou penalidades em seu teste de resistência, dependendo do conhecimento que você tiver dela. • Não conhece o alvo: +10. • Ouviu falar do alvo: +5. • O alvo está em outro plano ou mundo: +5. • Já encontrou o alvo pessoalmente: +0. • Tem uma pintura, escultura ou outra representação do alvo: –2. • Conhece bem o alvo: –5. • Tem um pertence pessoal ou peça de roupa do alvo: –5. • Tem uma parte do corpo do alvo (unhas, cabelos...): –10',
@@ -4130,7 +4131,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
       'Esta magia imbui uma criatura com coragem e valentia. O alvo fica imune a medo e recebe 40 PV temporários e +4 em testes de ataque e rolagens de dano contra o inimigo de maior ND na cena.',
     aprimoramentos: [
       {
-        addPm: 4,
+        addPm: 2,
         text: 'muda o bônus para +6.',
       },
     ],

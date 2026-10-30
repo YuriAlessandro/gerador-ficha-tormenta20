@@ -441,7 +441,11 @@ const PowersDisplay: React.FC<{
     // (statblock completo, abre um modal) e o Companheiro Animal do Druida
     // (parceiro, rola a página até o painel).
     let companionSlot: React.ReactNode = null;
-    if (onCompanionClick && pw.name === 'Melhor Amigo') {
+    if (
+      onCompanionClick &&
+      // "Melhor Amigo (Treinador)" = aprendido pelo Duplo Feérico
+      (pw.name === 'Melhor Amigo' || pw.name === 'Melhor Amigo (Treinador)')
+    ) {
       companionSlot = (
         <IconButton
           size='small'

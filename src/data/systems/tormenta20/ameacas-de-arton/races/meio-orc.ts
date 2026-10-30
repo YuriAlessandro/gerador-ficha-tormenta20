@@ -57,10 +57,13 @@ const MEIO_ORC: Race = {
   // Ver `raceCountsAs.ts` para a justificativa no livro.
   countsAsRaces: RACE_COUNTS_AS['Meio-Orc'],
   attributes: {
+    // "+1 em OUTRO atributo" (Ameaças de Arton, p. 31): não pode ser Força.
+    excludeFixedFromAny: true,
     attrs: [
       { attr: Atributo.FORCA, mod: 2 },
       { attr: 'any', mod: 1 },
     ],
+    excludeFromAny: [Atributo.CARISMA],
   },
   faithProbability: {},
   abilities: meioOrcAbilities,

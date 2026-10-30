@@ -22,12 +22,15 @@ import { isSword } from './weaponTraits';
 import {
   isWieldedTwoHanded,
   getWornArmor,
+  getWieldedItemIds,
+  isItemWielded,
 } from '../components/SheetResult/BackpackModal/wielding';
 import { isWearingHeavyArmor } from './wornArmor';
 import { getClassLevel } from './multiclass';
 import { getSheetProficiencias } from './proficiencies';
 import { sheetHasPowerNamed } from './powers/hasPowerNamed';
 import { getEffectiveDeityName } from './powers/poderCapturadoEffects';
+import { isDevoto } from './powers/deityNames';
 
 function compare(actual: number, op: BonusConditionOp, value: number): boolean {
   if (op === 'gte') return actual >= value;
@@ -35,11 +38,9 @@ function compare(actual: number, op: BonusConditionOp, value: number): boolean {
   return actual === value;
 }
 
-/** Itens empunhados (mão principal/secundária) — armas, escudos, alquímicos. */
+/** Itens empunhados (em qualquer mão) — armas, escudos, alquímicos. */
 function getWieldedItems(sheet: CharacterSheet): Equipment[] {
-  const ids = [sheet.mainHandItemId, sheet.offHandItemId].filter(
-    Boolean
-  ) as string[];
+  const ids = getWieldedItemIds(sheet);
   if (ids.length === 0) return [];
   const eq = sheet.bag.equipments;
   const pool: Equipment[] = [
@@ -73,10 +74,8 @@ function evaluateClause(
       return worn?.nome === clause.value;
     }
     case 'wieldingShield':
-      return (sheet.bag.equipments.Escudo || []).some(
-        (s) =>
-          s.id &&
-          (s.id === sheet.mainHandItemId || s.id === sheet.offHandItemId)
+      return (sheet.bag.equipments.Escudo || []).some((s) =>
+        isItemWielded(s.id, sheet)
       );
     case 'wieldingSword':
       return getWieldedItems(sheet).some(
@@ -97,11 +96,7 @@ function evaluateClause(
         (i) => i.group === 'Arma' && !isWeaponMelee(i)
       );
     case 'dualWielding':
-      return (
-        !!sheet.mainHandItemId &&
-        !!sheet.offHandItemId &&
-        sheet.mainHandItemId !== sheet.offHandItemId
-      );
+      return getWieldedItemIds(sheet).length >= 2;
     case 'level':
       return compare(sheet.nivel, clause.op, clause.value);
     case 'attribute':
@@ -134,6 +129,9 @@ function evaluateClause(
       // o efeito estiver ativo ("considerado um devoto desse deus para efeitos
       // de habilidades e itens").
       return getEffectiveDeityName(sheet) === clause.value;
+    case 'isDevote':
+      // Mesma fonte de `devoteOf` (inclui o Poder Capturado e a Devoção Dupla).
+      return isDevoto(sheet);
     case 'isRace':
       return sheet.raca?.name === clause.value;
     default:

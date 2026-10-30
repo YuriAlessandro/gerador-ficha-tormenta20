@@ -17,7 +17,8 @@ import {
   isRaceOrVariantOf,
 } from './general';
 import { findClassDescription } from './multiclass';
-import { countTormentaPowers } from './randomUtils';
+import { sheetHasClassAbility } from './learnedClassAbility';
+import { countTormentaPowers, listTormentaPowers } from './randomUtils';
 import {
   deityRequirementMatches,
   getSheetDeityNames,
@@ -158,7 +159,11 @@ function getTrainedSkillNames(sheet: CharacterSheet): string[] {
 }
 
 /** Avalia um único requisito, ignorando a flag `not` (aplicada por quem chama). */
-function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
+function evaluateRule(
+  sheet: CharacterSheet,
+  rule: Requirement,
+  power: GeneralPower | ClassPower
+): boolean {
   switch (rule.type) {
     case RequirementType.PODER: {
       // Varre TODOS os baldes de poder (inclusive `devoto.poderes`, onde um
@@ -171,8 +176,8 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
       // propósito (ver `powers/hasPowerNamed.ts`), mas alguns poderes pedem
       // `PODER` com o nome de uma habilidade de classe — Briga de Rua exige
       // "Briga", concedida automaticamente ao Lutador no 1º nível.
-      if ((sheet.classe.abilities ?? []).some((a) => a.name === rule.name))
-        return true;
+      // Vale também a habilidade aprendida de outra classe (Duplo Feérico).
+      if (rule.name && sheetHasClassAbility(sheet, rule.name)) return true;
 
       // Verifica opções escolhidas via chooseFromOptions (ex: Égide/Montaria Sagrada)
       return (sheet.sheetActionHistory ?? []).some((entry) =>
@@ -215,15 +220,18 @@ function evaluateRule(sheet: CharacterSheet, rule: Requirement): boolean {
       return false;
     }
     case RequirementType.HABILIDADE:
-      return sheet.classe.abilities.some(
-        (ability) => ability.name === rule.name
-      );
+      return !!rule.name && sheetHasClassAbility(sheet, rule.name);
     case RequirementType.PODER_TORMENTA: {
       const qtdPowers = rule.value as number;
       // `countTormentaPowers` também enxerga poderes de outros tipos marcados
       // com `countAsTormentaPower` (poder personalizado, origem homebrew).
-      // OTHER powers, so can't count itself
-      return countTormentaPowers(sheet) >= qtdPowers + 1;
+      // O livro pede N OUTROS poderes ("quatro outros poderes da Tormenta",
+      // Tormenta20 p. 136-137) e o dado guarda N. Na escolha o poder ainda não
+      // está na ficha; se já estiver (reavaliação), ele não conta para si.
+      const countsItself = listTormentaPowers(sheet).some(
+        (entry) => entry.name === power.name
+      );
+      return countTormentaPowers(sheet) - (countsItself ? 1 : 0) >= qtdPowers;
     }
     case RequirementType.PROFICIENCIA: {
       const proficiencia = rule.name as string;
@@ -317,7 +325,8 @@ export function isPowerAvailable(
       req.every(
         (rule) =>
           isRequirementWaived(rule, power, waivers, options?.className)
-            .waived || applyRequirementNot(rule, evaluateRule(sheet, rule))
+            .waived ||
+          applyRequirementNot(rule, evaluateRule(sheet, rule, power))
       )
     );
   }

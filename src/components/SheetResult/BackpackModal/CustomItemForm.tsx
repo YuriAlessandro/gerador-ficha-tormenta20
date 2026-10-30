@@ -30,12 +30,18 @@ import Equipment, {
   WeaponCategory,
 } from '../../../interfaces/Equipment';
 import Skill from '../../../interfaces/Skills';
+import { SheetBonus } from '../../../interfaces/CharacterSheet';
+import {
+  MAX_CUSTOM_POWER_BONUSES,
+  sanitizeCustomItemBonuses,
+} from '../../../functions/powers/customPowerBonuses';
 import { CATEGORY_ORDER } from './itemTypeStyles';
 import { isDefenseGroup } from './equipmentCatalog';
 import { WEAPON_CATEGORY_LABELS } from '../../../functions/proficiencies';
 import { parseDamageTypes, formatDamageTypes } from './damageTypeSelect';
 import { WEAPON_TAG_SUGGESTIONS, weaponTagLabel } from './weaponTagOptions';
 import AmmoTypeField from './AmmoTypeField';
+import CustomItemBonusesSection from './CustomItemBonusesSection';
 import { AmmoTypeOption } from './ammo';
 import {
   buildWeaponPurposeFields,
@@ -149,6 +155,9 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
     initial?.canBeWielded ?? false
   );
   const [twoHanded, setTwoHanded] = useState(initial?.twoHanded ?? false);
+  const [sheetBonuses, setSheetBonuses] = useState<SheetBonus[]>(
+    initial?.sheetBonuses ?? []
+  );
 
   const [nomeError, setNomeError] = useState('');
   const [spacesError, setSpacesError] = useState('');
@@ -173,6 +182,8 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
     }
     setSpacesError('');
 
+    if (sheetBonuses.length > MAX_CUSTOM_POWER_BONUSES) return;
+
     const preco = parseFloat(precoText.replace(',', '.'));
 
     const baseItem: Equipment = {
@@ -187,6 +198,11 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
       quantity: initial?.quantity ?? 1,
       canBeWielded: !naturallyWieldable && canBeWielded ? true : undefined,
     };
+    const sanitizedBonuses = sanitizeCustomItemBonuses(
+      sheetBonuses,
+      trimmedNome
+    );
+    if (sanitizedBonuses.length > 0) baseItem.sheetBonuses = sanitizedBonuses;
 
     if (group === 'Arma' && isAmmoItem) {
       // Pacote de munição: mesma forma de `Armas.FLECHAS` — vive no grupo Arma,
@@ -706,10 +722,22 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
             />
           </Grid>
         )}
+
+        <Grid size={12}>
+          <CustomItemBonusesSection
+            group={group}
+            value={sheetBonuses}
+            onChange={setSheetBonuses}
+          />
+        </Grid>
       </Grid>
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
         <Button onClick={onCancel}>Cancelar</Button>
-        <Button variant='contained' onClick={handleSubmit}>
+        <Button
+          variant='contained'
+          onClick={handleSubmit}
+          disabled={sheetBonuses.length > MAX_CUSTOM_POWER_BONUSES}
+        >
           {initial ? 'Salvar item' : 'Criar item'}
         </Button>
       </Box>

@@ -37,7 +37,12 @@ import {
   splitToFit,
 } from './pdf/sheetExtraPages';
 import { getOrderedItemsByGroup } from '../components/SheetResult/BackpackModal/bagOrdering';
+import {
+  getWieldedItemIds,
+  isItemWielded,
+} from '../components/SheetResult/BackpackModal/wielding';
 import { getItemSpaces } from '../interfaces/Bag';
+import { usesCharismaForDefense } from './learnedClassAbility';
 
 const CP1252_REPLACEMENTS: Record<string, string> = {
   '‘': "'",
@@ -117,8 +122,9 @@ const getDefenseAttribute = (sheet: CharacterSheet): Atributo => {
   const wornArmor = sheet.wornArmorId
     ? sheet.bag.getEquipments().Armadura.find((a) => a.id === sheet.wornArmorId)
     : undefined;
-  const defaultAttr =
-    sheet.classe.name === 'Nobre' ? Atributo.CARISMA : Atributo.DESTREZA;
+  const defaultAttr = usesCharismaForDefense(sheet)
+    ? Atributo.CARISMA
+    : Atributo.DESTREZA;
   if (wornArmor && isHeavyArmor(wornArmor)) return defaultAttr;
   if (sheet.useDefenseAttribute === false) return defaultAttr;
   return sheet.customDefenseAttribute || defaultAttr;
@@ -435,11 +441,7 @@ export const fillSheetPdf: (
     sheet.bag,
     (it) => it.group === 'Arma'
   );
-  const wieldedWeapons = allWeapons.filter(
-    (w) =>
-      w.id !== undefined &&
-      (w.id === sheet.mainHandItemId || w.id === sheet.offHandItemId)
-  );
+  const wieldedWeapons = allWeapons.filter((w) => isItemWielded(w.id, sheet));
   const restWeapons = allWeapons.filter((w) => !wieldedWeapons.includes(w));
   const weapons = [...wieldedWeapons, ...restWeapons].slice(
     0,
@@ -490,17 +492,12 @@ export const fillSheetPdf: (
   if (!resolvedWornArmor && !sheet.wornArmorId && allArmors.length === 1) {
     [resolvedWornArmor] = allArmors;
   }
-  const wieldedShields = allShields.filter(
-    (s) =>
-      s.id !== undefined &&
-      (s.id === sheet.mainHandItemId || s.id === sheet.offHandItemId)
-  );
+  const wieldedShields = allShields.filter((s) => isItemWielded(s.id, sheet));
   // Fallback: if neither hand has a shield assigned but exactly 1 shield
   // exists, treat it as wielded for PDF purposes (legacy compat).
   const effectiveShields =
     wieldedShields.length === 0 &&
-    !sheet.mainHandItemId &&
-    !sheet.offHandItemId &&
+    getWieldedItemIds(sheet).length === 0 &&
     allShields.length === 1
       ? allShields
       : wieldedShields;
@@ -626,7 +623,9 @@ export const fillSheetPdf: (
     sheet.bag.getActiveArmorPenalty(
       sheet.wornArmorId,
       sheet.mainHandItemId,
-      sheet.offHandItemId
+      sheet.offHandItemId,
+      sheet.extraHand1ItemId,
+      sheet.extraHand2ItemId
     ) + (sheet.extraArmorPenalty ?? 0);
   armorPenaltyField.setText(
     activeArmorPenalty > 0 ? `-${activeArmorPenalty}` : '0'

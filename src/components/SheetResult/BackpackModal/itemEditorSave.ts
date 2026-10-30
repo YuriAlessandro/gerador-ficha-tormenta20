@@ -28,6 +28,8 @@ import {
   withMaterialSnapshot,
 } from '../../../functions/itemEnhancements/snapshot';
 import { isDefenseGroup } from './equipmentCatalog';
+import { SheetBonus } from '../../../interfaces/CharacterSheet';
+import { sanitizeCustomItemBonuses } from '../../../functions/powers/customPowerBonuses';
 import { formatDamageTypes } from './damageTypeSelect';
 import { getManualStatFields } from '../../../functions/manualStats';
 
@@ -197,6 +199,11 @@ export interface ItemEditorFormState {
     damageType: DamageType;
     source: 'user';
   }[];
+  /**
+   * Efeitos de um item criado na mochila (`isCustom`). Ausente para item de
+   * catálogo/homebrew, cujos bônus não são editáveis aqui.
+   */
+  sheetBonuses?: SheetBonus[];
 }
 
 /**
@@ -312,6 +319,17 @@ export function buildSavedItem(
         ? persistedUserExtraDamage
         : undefined,
   };
+
+  if (item.isCustom && form.sheetBonuses) {
+    const userBonuses = sanitizeCustomItemBonuses(form.sheetBonuses, item.nome);
+    next.sheetBonuses = userBonuses.length > 0 ? userBonuses : undefined;
+    // `applyItemEnhancements` remonta `sheetBonuses` a partir deste snapshot
+    // (+ derivados de melhoria/encanto); sem reescrevê-lo, a edição seria
+    // revertida no save de um item que já passou pelo pipeline.
+    if (item.baseSheetBonuses !== undefined) {
+      next.baseSheetBonuses = userBonuses;
+    }
+  }
 
   const weaponStatTouched =
     manualEditedFields.has('dano') ||

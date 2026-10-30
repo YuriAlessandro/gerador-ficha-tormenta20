@@ -358,11 +358,15 @@ export default class Bag {
    *                     exactly 1 armor, that armor is treated as worn.
    * @param mainHandItemId  current main-hand id (shield or weapon).
    * @param offHandItemId   current off-hand id.
+   * @param extraHand1ItemId  extra hand id (Quatro Braços).
+   * @param extraHand2ItemId  extra hand id (Quatro Braços).
    */
   public getActiveArmorPenalty(
     wornArmorId?: string,
     mainHandItemId?: string,
-    offHandItemId?: string
+    offHandItemId?: string,
+    extraHand1ItemId?: string,
+    extraHand2ItemId?: string
   ): number {
     const armors = this.equipments.Armadura;
     let armorPenalty = 0;
@@ -378,7 +382,12 @@ export default class Bag {
     this.equipments.Escudo.forEach((shield) => {
       const inHand =
         shield.id !== undefined &&
-        (shield.id === mainHandItemId || shield.id === offHandItemId);
+        [
+          mainHandItemId,
+          offHandItemId,
+          extraHand1ItemId,
+          extraHand2ItemId,
+        ].includes(shield.id);
       if (inHand) shieldPenalty += Math.max(0, shield.armorPenalty);
     });
 

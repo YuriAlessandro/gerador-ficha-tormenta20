@@ -43,7 +43,10 @@ import {
   resolveFundamentalistChoice,
 } from './powers/fundamentalista';
 import { normalizeDeityName } from './deityName';
-import { migrateLegacyEquipState } from '../components/SheetResult/BackpackModal/wielding';
+import {
+  isItemWielded,
+  migrateLegacyEquipState,
+} from '../components/SheetResult/BackpackModal/wielding';
 import { stampUsedSupplements } from './contentSources';
 import {
   getClassBaseSkills,
@@ -191,6 +194,11 @@ import {
   getBaseAbilitiesForLevelUp,
   resolveClassSetup,
 } from './multiclass';
+import {
+  LEARNED_CLASS_ABILITY_LEVEL,
+  composeLearnedAbilityName,
+} from './learnedClassAbility';
+import { hasBestFriendAbility } from './companionLevels';
 import { getCavaleiroCaminho } from './powers/cavaleiroCaminho';
 import {
   resolveSchoolChoice,
@@ -735,6 +743,28 @@ export function applyAttributeVariant(
   };
 }
 
+/**
+ * Atributos que um slot `any` da raça não pode receber: `excludeFromAny` mais,
+ * quando a raça diz "+1 em OUTRO atributo" (`excludeFixedFromAny`), os que ela
+ * já modifica. Ponto único para o assistente e para o sorteio.
+ *
+ * `effectiveAttrs` é o retorno de `getEffectiveRaceAttrs` (herança, dimorfismo,
+ * variante e Raças Abertas já aplicados) — com Raças Abertas todo slot é `any`
+ * e não sobra atributo fixo para excluir.
+ */
+export function getAnySlotExcludedAttributes(
+  race: Race,
+  effectiveAttrs: RaceAttributeAbility[]
+): Atributo[] {
+  const excluded = new Set<Atributo>(race.attributes.excludeFromAny ?? []);
+  if (race.attributes.excludeFixedFromAny) {
+    effectiveAttrs.forEach(({ attr }) => {
+      if (attr !== 'any') excluded.add(attr);
+    });
+  }
+  return [...excluded];
+}
+
 // Sorteia uma variante de atributos (geração aleatória — no assistente quem
 // escolhe é o jogador). Raças sem variantes passam intactas.
 export function rollAttributeVariant(race: Race): {
@@ -782,7 +812,7 @@ export function modifyAttributesBasedOnRace(
   let manualChoiceIndex = 0; // Track which manual choice to use next
 
   const raceAttributes = getEffectiveRaceAttrs(raca, sex);
-  const excludeFromAny = raca.attributes.excludeFromAny || [];
+  const excludeFromAny = getAnySlotExcludedAttributes(raca, raceAttributes);
 
   const reducedAttrs = raceAttributes.reduce<ReduceAttributesParams>(
     ({ atributos, nomesDosAtributosModificados }, attrDaRaca) => {
@@ -790,9 +820,13 @@ export function modifyAttributesBasedOnRace(
       let selectedAttrName: Atributo;
 
       if (attrDaRaca.attr === 'any' && manualAttributeChoices) {
-        // Use manual choice if available
+        // Use manual choice if available. Uma escolha que a raça proíbe
+        // (seleção antiga, ou feita antes da trava) cai no sorteio.
+        const manualChoice = manualAttributeChoices[manualChoiceIndex];
         selectedAttrName =
-          manualAttributeChoices[manualChoiceIndex] ||
+          (manualChoice && !excludeFromAny.includes(manualChoice)
+            ? manualChoice
+            : undefined) ||
           selectAttributeToChange(
             nomesDosAtributosModificados,
             attrDaRaca,
@@ -2663,11 +2697,12 @@ export const applyPower = (
             };
           }
 
-          sheet.sheetActionHistory.push({
-            source: sheetAction.source,
-            powerName: powerOrAbility.name,
-            changes: firstChanges,
-          });
+          // Todos os pontos da ação vão para UMA entrada de histórico. Com
+          // `allowRepeats` ("3 pontos para distribuir como quiser"), dois pontos
+          // no mesmo atributo gerariam entradas idênticas, e o
+          // `deduplicateHistory` do recálculo descartava uma delas: o atributo
+          // ficava certo, mas reverter o nível devolvia um ponto a menos.
+          const actionChanges = [...firstChanges];
 
           // Pontos restantes da mesma ação (ex.: "3 pontos para distribuir").
           for (let pickIndex = 1; pickIndex < picks; pickIndex += 1) {
@@ -2687,12 +2722,14 @@ export const applyPower = (
                   ) ?? getRandomItemFromArray(remaining);
 
             chosenHere.push(next);
-            sheet.sheetActionHistory.push({
-              source: sheetAction.source,
-              powerName: powerOrAbility.name,
-              changes: increaseAttributeValue(next),
-            });
+            actionChanges.push(...increaseAttributeValue(next));
           }
+
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: actionChanges,
+          });
         } else {
           // Skip this attribute increase if no valid target found
           // eslint-disable-next-line no-console
@@ -2964,7 +3001,10 @@ export const applyPower = (
             sheet.classPowers = [];
           }
 
-          const composedName = `${selectedAbility.name} (${selectedClass.name})`;
+          const composedName = composeLearnedAbilityName(
+            selectedAbility.name,
+            selectedClass.name
+          );
 
           // Ressalva do livro: ao escolher a habilidade "Magias" você recebe
           // +1 PM, mas NÃO soma o atributo-chave dela no total de PM. Os
@@ -2979,7 +3019,21 @@ export const applyPower = (
                   modifier: { type: 'Fixed', value: 1 },
                 },
               ]
-            : selectedAbility.sheetBonuses ?? [];
+            : // "como se tivesse 1 nível naquela classe": `{classLevel}` e
+              // `capBy: 'classLevel'` (Insolência, Tanga de Peles) resolvem
+              // para 1, não para o nível do personagem.
+              (selectedAbility.sheetBonuses ?? []).map((bonus) =>
+                bonus.source.type === 'power'
+                  ? {
+                      ...bonus,
+                      source: {
+                        ...bonus.source,
+                        className: selectedClass.name,
+                        fixedClassLevel: LEARNED_CLASS_ABILITY_LEVEL,
+                      },
+                    }
+                  : bonus
+              );
 
           // Convert ClassAbility to ClassPower format and add to classPowers
           sheet.classPowers.push({
@@ -2987,6 +3041,7 @@ export const applyPower = (
             text: selectedAbility.text,
             sheetActions: selectedAbility.sheetActions,
             sheetBonuses: learnedBonuses,
+            rolls: selectedAbility.rolls,
           });
 
           // Apply sheetBonuses from the learned ability
@@ -3032,6 +3087,22 @@ export const applyPower = (
             name: getSourceName(sheetAction.source),
             value: `Aprendeu ${selectedAbility.name} de ${selectedClass.name}`,
           });
+
+          // Melhor Amigo do Treinador: a habilidade não tem sheetActions — o
+          // companheiro nasce aqui, no nível de treinador 1. O assistente
+          // sobrescreve com as escolhas do jogador em `generateEmptySheet`.
+          if (
+            selectedClass.name === 'Treinador' &&
+            selectedAbility.name === 'Melhor Amigo' &&
+            !sheet.companions?.length
+          ) {
+            sheet.companions = [
+              generateRandomCompanion(
+                LEARNED_CLASS_ABILITY_LEVEL,
+                sheet.atributos[Atributo.CARISMA]?.value ?? 0
+              ),
+            ];
+          }
 
           if (isMagiasAbility) {
             subSteps.push({
@@ -3551,18 +3622,18 @@ export const applyPower = (
 
         // Escola adicional (Xamã Místico): acrescenta às escolas da classe.
         // Idempotente — o replay com a escolha persistida não duplica.
+        const appendedSchoolNames = new Set<string>();
         if (appendChosenSpellSchoolTo) {
           chosenNames.forEach((name) => {
             const school = spellSchoolFromLabel(name);
             if (!school) return;
-            Object.assign(
+            const updates = buildAppendSpellSchoolUpdates(
               sheet,
-              buildAppendSpellSchoolUpdates(
-                sheet,
-                appendChosenSpellSchoolTo,
-                school
-              )
+              appendChosenSpellSchoolTo,
+              school
             );
+            if (Object.keys(updates).length > 0) appendedSchoolNames.add(name);
+            Object.assign(sheet, updates);
           });
         }
 
@@ -3595,6 +3666,9 @@ export const applyPower = (
                 optionKey,
                 chosenName: chosen.name,
                 formattedText: `${chosen.name}. ${chosen.text}`,
+                ...(appendedSchoolNames.has(chosen.name)
+                  ? { appendedSpellSchoolTo: appendChosenSpellSchoolTo }
+                  : {}),
               },
             ],
           });
@@ -5360,6 +5434,9 @@ const calculateBonusValue = (
   source?: SheetChangeSource
 ) => {
   const resolveClassLevel = (): number => {
+    if (source?.type === 'power' && source.fixedClassLevel !== undefined) {
+      return source.fixedClassLevel;
+    }
     const className = source?.type === 'power' ? source.className : undefined;
     return className ? getClassLevel(sheet, className) : sheet.nivel;
   };
@@ -5725,9 +5802,8 @@ export const applyStatModifiers = (
   // Material especial em armadura/escudo EQUIPADO (ex.: Adamante). Só o item de
   // fato equipado contribui — itens na mochila não dão RD.
   const equippedShields = sheet.bag.equipments.Escudo || [];
-  const wornShield = equippedShields.find(
-    (shield) =>
-      shield.id === sheet.mainHandItemId || shield.id === sheet.offHandItemId
+  const wornShield = equippedShields.find((shield) =>
+    isItemWielded(shield.id, sheet)
   );
   [
     ...(wornArmor ? getDefenseMaterialRd(wornArmor, hasHeavyArmor) : []),
@@ -6504,7 +6580,13 @@ export default function generateRandomSheet(
   // bônus `UnarmedDamageStep` já filtrados por `isBonusActive` no passo 14.
   updateUnarmedRolls(charSheet);
 
-  return charSheet;
+  // Passo 17: Recalcular a ficha inteira, como o assistente já faz ao
+  // confirmar a criação (`handleWizardConfirm`). O `levelUp` acima é
+  // incremental e não reconstrói os derivados: somava o PM de bônus `LevelCalc`
+  // a cada nível e de novo no passo 14, deixava carga/Defesa/deslocamento com o
+  // atributo do nível 1 e não marcava a perícia aprendida no level-up como
+  // treinada. Sem isto, a ficha exibida mudava sozinha na primeira edição.
+  return recalculateSheet(charSheet);
 }
 
 export function generateEmptySheet(
@@ -7984,7 +8066,7 @@ export function generateEmptySheet(
     wizardSelections.companionWeaponDamageType &&
     wizardSelections.companionSkills &&
     wizardSelections.companionTricks &&
-    emptySheet.classe.name === 'Treinador'
+    hasBestFriendAbility(emptySheet)
   ) {
     const trainerCharisma = emptySheet.atributos[Atributo.CARISMA]?.value ?? 0;
     emptySheet.companions = [

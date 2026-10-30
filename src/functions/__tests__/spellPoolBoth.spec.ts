@@ -18,6 +18,9 @@ import { ClassDescription } from '../../interfaces/Class';
  *
  * O resultado é que Bardos gerados aleatoriamente (e o level-up automático)
  * só recebiam magias divinas.
+ *
+ * O Bardo é ARCANO (JdA: "Você pode lançar magias arcanas de 1º círculo que
+ * pertençam a essas escolas"); divinas só via Aumentar Repertório.
  */
 
 const CORE = [SupplementId.TORMENTA20_CORE];
@@ -68,10 +71,10 @@ function sampleOfferedNames(
   return names;
 }
 
-describe("Bardo (spellType 'Both'): arcanas E divinas", () => {
-  it('o pool inicial tem magias das duas tradições', () => {
+describe('Bardo: só arcanas', () => {
+  it('o pool inicial tem arcanas e nenhuma divina exclusiva', () => {
     const bardo = setupClass('Bardo');
-    expect(bardo.spellPath?.spellType).toBe('Both');
+    expect(bardo.spellPath?.spellType).toBe('Arcane');
     expect(bardo.spellPath?.schools?.length).toBeGreaterThan(0);
 
     const offered = sampleOfferedNames(bardo, 1);
@@ -79,7 +82,7 @@ describe("Bardo (spellType 'Both'): arcanas E divinas", () => {
     const divine1 = exclusiveNames('divine', [1]);
 
     expect([...offered].some((n) => arcane1.has(n))).toBe(true);
-    expect([...offered].some((n) => divine1.has(n))).toBe(true);
+    expect([...offered].some((n) => divine1.has(n))).toBe(false);
   });
 
   it('respeita as escolas escolhidas', () => {
