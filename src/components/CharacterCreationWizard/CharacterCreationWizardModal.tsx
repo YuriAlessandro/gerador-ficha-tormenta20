@@ -21,60 +21,34 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import CompactStepProgress from '@/components/common/CompactStepProgress';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { dataRegistry } from '@/data/registry';
-import { getGrantedPowerPool } from '@/functions/powers/grantedPowerPool';
+
 import { resolveFundamentalistChoice } from '@/functions/powers/fundamentalista';
-import { DivindadeEnum } from '@/data/systems/tormenta20/divindades';
+
 import SelectedOptions from '@/interfaces/SelectedOptions';
 import { WizardSelections } from '@/interfaces/WizardSelections';
 import Race, { AttributeVariant } from '@/interfaces/Race';
-import { ClassDescription, SpellPath } from '@/interfaces/Class';
-import { allSpellSchools } from '@/interfaces/Spells';
+import { ClassDescription } from '@/interfaces/Class';
+
 import Origin, { Items, OriginBenefits } from '@/interfaces/Origin';
 import Divindade from '@/interfaces/Divindade';
 import { SupplementId } from '@/types/supplement.types';
-import { applyGolemDespertoCustomization } from '@/data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
-import { applyDuendeCustomization } from '@/data/systems/tormenta20/herois-de-arton/races/duende';
-import { applyMoreauCustomization } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau';
-import { MoreauHeritageName } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
-import { applySuragelAlternativeAbility } from '@/data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
-import { getClassSetupAbilities } from '@/functions/multiclass';
-import {
-  ArcanistaSubtypes,
-  applyLinhagemAbencoadaToSpellPath,
-  getArcanistaSpellPath,
-} from '@/data/systems/tormenta20/classes/arcanista';
-import {
-  buildSpellPool,
-  countTowardsCrossMinimum,
-  getSchoolChoiceConfig,
-} from '@/functions/spellPathUtils';
+
+import { getSchoolChoiceConfig } from '@/functions/spellPathUtils';
 
 // Import step components
-import {
-  getPowerSelectionRequirements,
-  isLearnSkillOptionAvailable,
-  countRequirementSelections,
-  resolvePowerRequirements,
-  resolveLearnSkillPick,
-  ResolvedRequirement,
-} from '@/functions/powers/manualPowerSelection';
-import { PowerSelectionRequirement } from '@/interfaces/PowerSelections';
+
 import { getAgeAttributeTotalsForSelection } from '@/functions/ages';
 import {
   applyAttributeVariant,
   buildClassEquipmentsFromChoices,
-  computeFinalAttributeModifiers,
   getAnySlotExcludedAttributes,
   getEffectiveRaceAttrs,
-  isRaceAttributeSelectionComplete,
   getInitialMoneyWithDetails,
-  isClassOrVariantOf,
-  raceHasSexDimorphism,
   resolveSexForAttributes,
 } from '@/functions/general';
 import { getOriginBagEquipments } from '@/functions/originItems';
 import { getPlateauByLevel } from '@/functions/powers/general';
-import PROFICIENCIAS from '@/data/systems/tormenta20/proficiencias';
+
 import { rollAttributePool } from '@/functions/attributeMethods';
 import {
   getClassBaseSkillsWithChoices,
@@ -88,36 +62,44 @@ import Equipment, { BagEquipments } from '@/interfaces/Equipment';
 import cloneDeep from 'lodash/cloneDeep';
 import { MarketSelections } from '@/interfaces/MarketEquipment';
 import { ensureIds, stackByName } from '@/interfaces/Bag';
-import { raceHasOrigin } from '@/data/systems/tormenta20/origins';
+
 import {
   ComplicationSelectionStep,
   ComplicationPowerStep,
 } from '@/premium/components/Complications';
-import { isComplicationPowerSelectionComplete } from '@/premium/functions/complications';
-import {
-  applyOpenRace,
-  hasOpenableAttributes,
-} from '@/premium/functions/openRaces';
+
 import {
   getVariedAttributeMethod,
-  resolveVariedAttributeMethod,
   VARIED_ATTRIBUTE_METHODS,
 } from '@/premium/data/attributeMethods';
 import { AgeComplicationsStep } from '@/premium/components/Ages';
-import { getAgeBracket } from '@/premium/data/ageBrackets';
-import {
-  getAgeOriginBenefits,
-  getRequiredAgeComplications,
-  isAgeSelectionComplete,
-} from '@/premium/functions/ages';
+
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import { useOptionalRulesAvailable } from '@/hooks/useOptionalRules';
 import type { GeneralPower } from '@/interfaces/Poderes';
-import { isTrickChoiceComplete } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
+
+import { getDeityClassVariant } from '@/data/systems/tormenta20/deuses-de-arton/classes/deityClassVariants';
 import {
-  applyDeityClassVariant,
-  getDeityClassVariant,
-} from '@/data/systems/tormenta20/deuses-de-arton/classes/deityClassVariants';
+  CreationWizardContext,
+  getCreationAlchemyAction,
+  getCreationIntelligenceSkillsCount,
+  getCreationOriginItems,
+  getCreationRaceChoices,
+  getCreationSpellInfo,
+  getCreationSteps,
+  getCreationUsedSkills,
+  isCreationStepComplete,
+  resolveCatalogClass,
+  resolveCreationAttributeState,
+  resolveCreationClass,
+  resolveCreationDeity,
+  resolveCreationOrigin,
+  resolveCreationRace,
+  resolveDeityChoiceNames,
+  resolveGrantedPowerPool,
+  resolveRaceForAttributes,
+  resolveSecondaryDeity,
+} from '@/functions/wizardRules/creationWizardRules';
 import CharacterBasicInfoStep from './steps/CharacterBasicInfoStep';
 import AttributeBaseValuesStep from './steps/AttributeBaseValuesStep';
 import RaceAttributeStep from './steps/RaceAttributeStep';
@@ -219,114 +201,33 @@ const CharacterCreationWizardModal: React.FC<
     [selectedOptions.supplements]
   );
 
-  // Extract old race name for Osteon/Soterrado Memória Póstuma (used as dependency)
-  const memoriaPostumaOldRace =
-    selections.powerEffectSelections?.['Memória Póstuma']?.osteonOldRace;
-
-  // Extract old race name for Yidishan Natureza Orgânica (used as dependency)
-  const yidishanNaturezaOldRace =
-    selections.powerEffectSelections?.['Natureza Orgânica']?.yidishanOldRace;
+  // Raça antiga (Memória Póstuma, Natureza Orgânica) e herança de Suraggel
+  // mudam a própria raça; extraídas para servirem de dependência.
+  const { memoriaPostumaOldRace, yidishanNaturezaOldRace } =
+    getCreationRaceChoices(selections);
 
   // Get race and apply customization if provided
-  const race: Race | undefined = useMemo(() => {
-    let baseRace = dataRegistry.getRaceByName(
+  const race: Race | undefined = useMemo(
+    () =>
+      resolveCreationRace(
+        selectedOptions.raca,
+        supplements,
+        raceCustomization,
+        {
+          memoriaPostumaOldRace,
+          yidishanNaturezaOldRace,
+          suragelAbility: selections.suragelAbility,
+        }
+      ),
+    [
       selectedOptions.raca,
-      supplements
-    );
-    if (!baseRace) return undefined;
-
-    // Apply race customization if provided (from pre-wizard modal)
-    if (raceCustomization) {
-      // Golem Desperto customization
-      if (
-        baseRace.name === 'Golem Desperto' &&
-        raceCustomization.golemChassis &&
-        raceCustomization.golemEnergySource &&
-        raceCustomization.golemSize
-      ) {
-        baseRace = applyGolemDespertoCustomization(
-          baseRace,
-          raceCustomization.golemChassis,
-          raceCustomization.golemEnergySource,
-          raceCustomization.golemSize
-        );
-      }
-
-      // Duende customization
-      if (
-        baseRace.name === 'Duende' &&
-        raceCustomization.duendeNature &&
-        raceCustomization.duendeSize &&
-        raceCustomization.duendeBonusAttributes &&
-        raceCustomization.duendePresentes &&
-        raceCustomization.duendeTabuSkill
-      ) {
-        baseRace = applyDuendeCustomization(
-          baseRace,
-          raceCustomization.duendeNature,
-          raceCustomization.duendeSize,
-          raceCustomization.duendeBonusAttributes,
-          raceCustomization.duendePresentes,
-          raceCustomization.duendeTabuSkill
-        );
-      }
-
-      // Moreau customization
-      if (
-        baseRace.name === 'Moreau' &&
-        raceCustomization.moreauHeritage &&
-        raceCustomization.moreauBonusAttributes
-      ) {
-        baseRace = applyMoreauCustomization(
-          baseRace,
-          raceCustomization.moreauHeritage as MoreauHeritageName,
-          raceCustomization.moreauBonusAttributes
-        );
-      }
-    }
-
-    // Apply Osteon/Soterrado old race from Memória Póstuma selections
-    if (
-      memoriaPostumaOldRace &&
-      (baseRace.name === 'Osteon' || baseRace.name === 'Soterrado')
-    ) {
-      const allRaces = dataRegistry.getRacesBySupplements(supplements);
-      const oldRaceObj = allRaces.find((r) => r.name === memoriaPostumaOldRace);
-      if (oldRaceObj) {
-        baseRace = { ...baseRace, oldRace: { ...oldRaceObj } };
-      }
-    }
-
-    // Herança alternativa de Suraggel (Deuses de Arton): substitui Luz Sagrada /
-    // Sombras Profanas. Precisa acontecer AQUI porque `needsPowerEffectSelections`,
-    // o passo "Efeitos de Poderes" e sua validação derivam as escolhas pendentes
-    // de `race.abilities` — sem isso o assistente pede as seleções da habilidade
-    // padrão e nunca as da herança escolhida.
-    baseRace = applySuragelAlternativeAbility(
-      baseRace,
-      selections.suragelAbility
-    );
-
-    // Apply Yidishan old race from Natureza Orgânica selections
-    if (yidishanNaturezaOldRace && baseRace.name === 'Yidishan') {
-      const allRaces = dataRegistry.getRacesBySupplements(supplements);
-      const oldRaceObj = allRaces.find(
-        (r) => r.name === yidishanNaturezaOldRace
-      );
-      if (oldRaceObj) {
-        baseRace = { ...baseRace, oldRace: { ...oldRaceObj } };
-      }
-    }
-
-    return baseRace;
-  }, [
-    selectedOptions.raca,
-    supplements,
-    raceCustomization,
-    memoriaPostumaOldRace,
-    yidishanNaturezaOldRace,
-    selections.suragelAbility,
-  ]);
+      supplements,
+      raceCustomization,
+      memoriaPostumaOldRace,
+      yidishanNaturezaOldRace,
+      selections.suragelAbility,
+    ]
+  );
 
   // Para raças com attributeVariants (Kallyanach), `race.attributes` é só o
   // fallback do catálogo — a escolha do jogador no passo "Variante de Atributos"
@@ -344,13 +245,7 @@ const CharacterCreationWizardModal: React.FC<
    * variante de classe por divindade (Deuses de Arton).
    */
   const deityChoiceNames = useMemo(
-    () =>
-      [
-        selectedOptions.devocao?.value,
-        selectedOptions.dualDevotion
-          ? selectedOptions.devocaoSecundaria?.value
-          : undefined,
-      ].filter((name): name is string => !!name && name !== '--'),
+    () => resolveDeityChoiceNames(selectedOptions),
     [
       selectedOptions.devocao?.value,
       selectedOptions.dualDevotion,
@@ -358,10 +253,10 @@ const CharacterCreationWizardModal: React.FC<
     ]
   );
 
-  const catalogClasse: ClassDescription | undefined = useMemo(() => {
-    const classes = dataRegistry.getClassesBySupplements(supplements);
-    return classes.find((c) => c.name === selectedOptions.classe);
-  }, [supplements, selectedOptions.classe]);
+  const catalogClasse: ClassDescription | undefined = useMemo(
+    () => resolveCatalogClass(selectedOptions.classe, supplements),
+    [supplements, selectedOptions.classe]
+  );
 
   /**
    * Variante de classe por divindade — hoje só "Paladino de Marah". Define o
@@ -387,31 +282,23 @@ const CharacterCreationWizardModal: React.FC<
   // não estão na classe do catálogo, e sem isso o passo "Efeitos de Poderes"
   // nunca via a magia da Linhagem Feérica nem o poder da Linhagem Rubra, que
   // saíam sorteados.
-  const classe: ClassDescription | undefined = useMemo(() => {
-    if (!catalogClasse) return undefined;
-    const withVariant = applyDeityClassVariant(
+  const classe: ClassDescription | undefined = useMemo(
+    () =>
+      resolveCreationClass(catalogClasse, deityClassVariant, {
+        deityClassChoices: selections.deityClassChoices,
+        arcanistaSubtype: selections.arcanistaSubtype,
+        feiticeiroLinhagem: selections.feiticeiroLinhagem,
+        linhagemAbencoadaDeus: selections.linhagemAbencoada?.deus,
+      }),
+    [
       catalogClasse,
       deityClassVariant,
-      selections.deityClassChoices
-    );
-    const setupAbilities = getClassSetupAbilities(withVariant.name, {
-      arcanistaSubtype: selections.arcanistaSubtype,
-      feiticeiroLinhagem: selections.feiticeiroLinhagem,
-      linhagemAbencoadaDeus: selections.linhagemAbencoada?.deus,
-    });
-    if (setupAbilities.length === 0) return withVariant;
-    return {
-      ...withVariant,
-      abilities: [...(withVariant.abilities ?? []), ...setupAbilities],
-    };
-  }, [
-    catalogClasse,
-    deityClassVariant,
-    selections.deityClassChoices,
-    selections.arcanistaSubtype,
-    selections.feiticeiroLinhagem,
-    selections.linhagemAbencoada?.deus,
-  ]);
+      selections.deityClassChoices,
+      selections.arcanistaSubtype,
+      selections.feiticeiroLinhagem,
+      selections.linhagemAbencoada?.deus,
+    ]
+  );
 
   // Expand Ofício (Qualquer) in base skills to specific Ofício variants
   const expandedBasicas = useMemo(
@@ -448,10 +335,10 @@ const CharacterCreationWizardModal: React.FC<
   );
 
   // Memoize origin to prevent infinite re-renders (used as useEffect dependency)
-  const origin: Origin | undefined = useMemo(() => {
-    const allOrigins = dataRegistry.getOriginsBySupplements(supplements);
-    return allOrigins.find((o: Origin) => o.name === selectedOptions.origin);
-  }, [supplements, selectedOptions.origin]);
+  const origin: Origin | undefined = useMemo(
+    () => resolveCreationOrigin(selectedOptions.origin, supplements),
+    [supplements, selectedOptions.origin]
+  );
 
   // Congela os itens da origem assim que ela é escolhida. `getItems()` sorteia a
   // cada chamada, então sem isso a lista exibida no passo de benefícios, a do
@@ -467,64 +354,40 @@ const CharacterCreationWizardModal: React.FC<
 
   // Memoize deity to prevent infinite re-renders (used as useEffect dependency)
   // Use registry to get deity with supplement powers merged
-  const deity: Divindade | null = useMemo(() => {
-    if (!selectedOptions.devocao?.value) return null;
-
-    // First try to get deity name from DivindadeEnum
-    const baseDeity =
-      DivindadeEnum[
-        selectedOptions.devocao.value as keyof typeof DivindadeEnum
-      ];
-
-    if (!baseDeity) {
-      // Divindade homebrew: o value é o NOME (não há chave no enum).
-      return (
-        dataRegistry.getDeityByName(
-          selectedOptions.devocao.value,
-          supplements
-        ) || null
-      );
-    }
-
-    // Get the deity with supplement powers from registry
-    const deityWithPowers = dataRegistry.getDeityByName(
-      baseDeity.name,
-      supplements
-    );
-
-    return deityWithPowers || baseDeity;
-  }, [selectedOptions.devocao?.value, supplements]);
+  const deity: Divindade | null = useMemo(
+    () => resolveCreationDeity(selectedOptions.devocao?.value, supplements),
+    [selectedOptions.devocao?.value, supplements]
+  );
 
   /**
    * Devoção Dupla: a segunda divindade escolhida no formulário. Guardada por
    * nome, resolvida aqui pelo registry como a primária.
    */
-  const secondaryDeity: Divindade | null = useMemo(() => {
-    if (!selectedOptions.dualDevotion) return null;
-    const value = selectedOptions.devocaoSecundaria?.value;
-    if (!value) return null;
-    const base =
-      DivindadeEnum[value as keyof typeof DivindadeEnum]?.name ?? value;
-    const resolved = dataRegistry.getDeityByName(base, supplements);
-    return resolved && resolved.name !== deity?.name ? resolved : null;
-  }, [
-    selectedOptions.dualDevotion,
-    selectedOptions.devocaoSecundaria?.value,
-    supplements,
-    deity,
-  ]);
+  const secondaryDeity: Divindade | null = useMemo(
+    () =>
+      resolveSecondaryDeity(
+        selectedOptions.dualDevotion,
+        selectedOptions.devocaoSecundaria?.value,
+        supplements,
+        deity
+      ),
+    [
+      selectedOptions.dualDevotion,
+      selectedOptions.devocaoSecundaria?.value,
+      supplements,
+      deity,
+    ]
+  );
 
   /**
    * Piscina de poderes concedidos: a união das listas dos deuses da devoção,
    * mais o poder único do sincretismo. A QUANTIDADE que o personagem escolhe
    * não muda — segue saindo de `classe.qtdPoderesConcedidos`.
    */
-  const grantedPowerPool = useMemo(() => {
-    if (!deity) return [];
-    const names = [deity.name];
-    if (secondaryDeity) names.push(secondaryDeity.name);
-    return getGrantedPowerPool(names, supplements);
-  }, [deity, secondaryDeity, supplements]);
+  const grantedPowerPool = useMemo(
+    () => resolveGrantedPowerPool(deity, secondaryDeity, supplements),
+    [deity, secondaryDeity, supplements]
+  );
 
   /**
    * Fundamentalista (Deuses de Arton): escolhido no formulário, revalidado
@@ -562,12 +425,11 @@ const CharacterCreationWizardModal: React.FC<
   // atributos (ex.: a lista de variantes do catálogo).
   const raceForAttributes: Race | undefined = useMemo(
     () =>
-      raceWithVariant && selections.openRaces
-        ? applyOpenRace(
-            raceWithVariant,
-            getEffectiveRaceAttrs(raceWithVariant, sexForAttributes)
-          )
-        : raceWithVariant,
+      resolveRaceForAttributes(
+        raceWithVariant,
+        selections.openRaces,
+        sexForAttributes
+      ),
     [raceWithVariant, selections.openRaces, sexForAttributes]
   );
 
@@ -577,52 +439,24 @@ const CharacterCreationWizardModal: React.FC<
   const variedAttributeMethods = optionalRulesAvailable
     ? VARIED_ATTRIBUTE_METHODS
     : [];
-  const attributeMethod = selections.attributeMethod || 'free';
-  const variedAttributeMethod =
-    optionalRulesAvailable && attributeMethod !== 'free'
-      ? resolveVariedAttributeMethod(
-          attributeMethod,
-          selections.attributeMethodVariant
-        )
-      : undefined;
-
-  // Idades Variadas ligadas nesta ficha? A idade em si existe sempre (o
-  // envelhecimento do livro básico não é opcional), mas só a regra de Heróis de
-  // Arton mexe em benefícios de origem, complicações e níveis extras.
-  const variedAges =
-    optionalRulesAvailable &&
-    !!selections.variedAges &&
-    !!selections.ageBracket;
-
-  // Quantos benefícios de origem a faixa etária concede: Criança 0 ("Sem
-  // Origem"), Adolescente 1 ("Origem em Construção"), demais 2.
-  const ageOriginBenefits = variedAges
-    ? getAgeOriginBenefits(selections.ageBracket)
-    : 2;
-
-  // "Já Vi Coisas" só existe no Adulto; nas demais faixas o poder não é opcional
-  // (não existe), então o toggle nunca vale.
-  const tookAgeOptionalPower =
-    variedAges &&
-    !!selections.ageOptionalPowerTaken &&
-    !!getAgeBracket(selections.ageBracket)?.optionalGeneralPower;
-
-  // A raça TEM modificadores para redistribuir? Lê sempre a raça fechada — a
-  // aberta já é o resultado da transformação.
-  const canOpenRace =
-    optionalRulesAvailable &&
-    hasOpenableAttributes(
-      raceWithVariant
-        ? getEffectiveRaceAttrs(raceWithVariant, sexForAttributes)
-        : undefined
-    );
+  const {
+    variedAttributeMethod,
+    variedAges,
+    ageOriginBenefits,
+    tookAgeOptionalPower,
+    canOpenRace,
+    finalAttributeModifiers,
+  } = resolveCreationAttributeState(
+    selections,
+    raceWithVariant,
+    raceForAttributes,
+    sexForAttributes,
+    optionalRulesAvailable
+  );
 
   /**
-   * Modificadores que a idade aplica com a raça e a regra escolhidas AGORA.
-   *
-   * Vive aqui em cima porque a idade é decidida no primeiro passo e todo o
-   * resto do assistente depende dela: um personagem maduro tem Int +1 e, com
-   * isso, uma perícia extra e poderes a mais ao alcance.
+   * Modificadores que a idade aplica com a raça e a regra escolhidas AGORA
+   * (mostrados no passo de atributos).
    */
   const ageAttributeModifiers = getAgeAttributeTotalsForSelection(
     {
@@ -633,357 +467,61 @@ const CharacterCreationWizardModal: React.FC<
     raceForAttributes?.name
   );
 
-  // Modificadores finais dos seis atributos (base + raciais + idade).
-  // Necessários pelos passos que filtram poderes antes de a ficha existir — sem
-  // eles a ficha-mock usa valores falsos e todo pré-requisito de atributo passa
-  // de graça.
-  const finalAttributeModifiers = computeFinalAttributeModifiers(
+  // Bardo, Druida (e variantes) e homebrews com spellPath.schoolChoice
+  // escolhem escolas. O setup() deles sorteia, mas no wizard a escolha é manual.
+  const schoolChoiceConfig = classe ? getSchoolChoiceConfig(classe) : null;
+
+  /**
+   * Tudo o que as regras do assistente (`creationWizardRules`) precisam. As
+   * mesmas regras rodam fora do React no motor sem sorteio (Builds v2).
+   */
+  const wizardCtx: CreationWizardContext = {
+    selectedOptions,
+    selections,
+    raceCustomization,
+    access: {
+      optionalRules: optionalRulesAvailable,
+      complications: complicationsFeature.hasAccess,
+      multiclass: false,
+    },
+    supplements,
+    race,
+    raceWithVariant,
     raceForAttributes,
     sexForAttributes,
-    selections.baseAttributes,
-    selections.raceAttributes,
-    ageAttributeModifiers
-  );
+    catalogClasse,
+    deityClassVariant,
+    deityClassVariantStepLabel,
+    classe,
+    expandedBasicas,
+    origin,
+    deity,
+    secondaryDeity,
+    grantedPowerPool,
+    variedAttributeMethod,
+    variedAges,
+    ageOriginBenefits,
+    tookAgeOptionalPower,
+    canOpenRace,
+    finalAttributeModifiers,
+    schoolChoiceConfig,
+  };
 
   // Helper to calculate intelligence modifier (including racial modifiers)
   const getIntelligenceModifier = (): number =>
     finalAttributeModifiers[Atributo.INTELIGENCIA];
 
-  // Helper to get intelligence skills count
-  const getIntelligenceSkillsCount = (): number => {
-    const intMod = getIntelligenceModifier();
-    return intMod > 0 ? intMod : 0;
-  };
+  const getIntelligenceSkillsCount = (): number =>
+    getCreationIntelligenceSkillsCount(wizardCtx);
 
-  // Determine which steps are needed
-  const needsRaceAttributeVariant = (): boolean => {
-    if (!race) return false;
-    return (
-      race.attributeVariants !== undefined && race.attributeVariants.length > 1
-    );
-  };
+  // Itens da origem; lê do cache quando já congelado.
+  const originItems = (): Items[] => getCreationOriginItems(wizardCtx);
 
-  const needsRaceAttributes = (): boolean => {
-    if (!raceForAttributes) return false;
-    // Com Raças Abertas disponível o passo aparece sempre: é lá que mora o
-    // toggle da regra, então ele precisa existir mesmo antes de o jogador
-    // decidir (e mesmo em raças sem nenhum slot `any` no catálogo).
-    if (canOpenRace) return true;
-    return getEffectiveRaceAttrs(raceForAttributes, sexForAttributes).some(
-      (attr) => attr.attr === 'any'
-    );
-  };
+  const getAlchemyItemsAction = () => getCreationAlchemyAction(wizardCtx);
 
-  const needsClassSkills = (): boolean => {
-    if (!classe) return false;
-    return true;
-  };
+  const getSpellInfo = () => getCreationSpellInfo(wizardCtx);
 
-  const needsIntelligenceSkills = (): boolean =>
-    getIntelligenceSkillsCount() > 0;
-
-  const needsClassPowers = (): boolean =>
-    // For now, always skip (placeholder implementation)
-    false;
-
-  const needsOriginPowers = (): boolean =>
-    // For now, always skip (placeholder implementation)
-    false;
-
-  // Itens da origem que o jogador escolhe (ex.: Gladiador, "uma arma marcial ou
-  // exótica"). Lê do cache quando já congelado — `getItems()` re-sorteia a cada
-  // chamada, mas a existência de escolhas é estável entre sorteios.
-  const originItems = (): Items[] =>
-    selections.cachedOriginItems || origin?.getItems() || [];
-
-  const needsOriginItemChoice = (): boolean =>
-    !!origin && originItems().some((item) => item.choice);
-
-  // Treinador, ou Melhor Amigo aprendido por outra classe (Duplo Feérico). A
-  // escolha da habilidade vem no passo de efeitos de poder, que vem ANTES deste.
-  const needsCompanionCreation = (): boolean =>
-    classe?.name === 'Treinador' ||
-    Object.values(selections.powerEffectSelections ?? {}).some((sel) =>
-      (sel.classAbilities ?? []).some(
-        (pick) =>
-          pick.className === 'Treinador' && pick.abilityName === 'Melhor Amigo'
-      )
-    );
-
-  const needsPowerEffectSelections = (): boolean => {
-    if (!race || !classe) return false;
-
-    // Check race abilities
-    const hasRaceRequirements = race.abilities.some((ability) => {
-      const reqs = getPowerSelectionRequirements(ability);
-      return reqs !== null;
-    });
-    if (hasRaceRequirements) return true;
-
-    // Check class abilities (only level 1 for initial creation)
-    const hasClassRequirements = classe.abilities
-      ?.filter((ability) => ability.nivel <= 1)
-      .some((ability) => {
-        const reqs = getPowerSelectionRequirements(ability);
-        return reqs !== null;
-      });
-    if (hasClassRequirements) return true;
-
-    // Check origin powers
-    if (origin) {
-      const originBenefits = origin.getPowersAndSkills
-        ? origin.getPowersAndSkills([], origin, true)
-        : { powers: { origin: [], general: [] }, skills: [] };
-
-      const hasOriginRequirements = originBenefits.powers.origin.some(
-        (power) => {
-          const reqs = getPowerSelectionRequirements(power);
-          return reqs !== null;
-        }
-      );
-      if (hasOriginRequirements) return true;
-    }
-
-    // Check deity granted powers (selected in previous step)
-    if (deity && selections.deityPowers && selections.deityPowers.length > 0) {
-      const selectedDeityPowers = grantedPowerPool.filter((p) =>
-        selections.deityPowers?.includes(p.name)
-      );
-      const hasDeityRequirements = selectedDeityPowers.some((power) => {
-        const reqs = getPowerSelectionRequirements(power);
-        return reqs !== null;
-      });
-      if (hasDeityRequirements) return true;
-    }
-
-    return false;
-  };
-
-  const needsDeityPowers = (): boolean =>
-    // Show step if there's a deity selected
-    // Classes without qtdPoderesConcedidos defined select 1 power (default)
-    // Classes with qtdPoderesConcedidos = 'all' show info message
-    // Classes with qtdPoderesConcedidos = number select that many powers
-    !!deity;
-  // Bardo, Druida (e variantes) e homebrews com spellPath.schoolChoice
-  // escolhem escolas. O setup() deles sorteia, mas no wizard a escolha é manual.
-  const schoolChoiceConfig = classe ? getSchoolChoiceConfig(classe) : null;
-
-  const needsInitialSpellSelection = (): boolean => {
-    if (!classe) return false;
-    // Classes com spellPath: só mostrar se tiver magias iniciais > 0
-    if (classe.spellPath) {
-      return classe.spellPath.initialSpells > 0;
-    }
-    // Classes que lançam magias sem spellPath explícito (ciente de variantes)
-    return (
-      isClassOrVariantOf(classe, 'Arcanista') ||
-      isClassOrVariantOf(classe, 'Bardo') ||
-      isClassOrVariantOf(classe, 'Druida') ||
-      isClassOrVariantOf(classe, 'Clérigo') ||
-      isClassOrVariantOf(classe, 'Frade')
-    );
-  };
-
-  const needsArcanistaSubtypeSelection = (): boolean =>
-    classe?.name === 'Arcanista';
-
-  const needsFeiticeiroLinhagemSelection = (): boolean =>
-    selections.arcanistaSubtype === 'Feiticeiro';
-
-  const needsSuragelAbilitySelection = (): boolean => {
-    if (!race) return false;
-    const isSuragel = race.name.startsWith('Suraggel');
-    const hasDeusesArton = supplements.includes(
-      SupplementId.TORMENTA20_DEUSES_ARTON
-    );
-    return isSuragel && hasDeusesArton;
-  };
-
-  const needsComplicationSelection = (): boolean =>
-    complicationsFeature.hasAccess &&
-    !!classe &&
-    supplements.includes(SupplementId.TORMENTA20_HEROIS_ARTON);
-
-  const needsComplicationPower = (): boolean =>
-    needsComplicationSelection() &&
-    !!selections.complication &&
-    selections.complication !== 'declined';
-
-  // Idades Variadas: o passo só existe a partir de Adulto (as faixas mais novas
-  // não têm complicação de idade). Para o Adulto ele aparece mesmo assim,
-  // porque é lá que mora o toggle de "Já Vi Coisas".
-  const needsAgeComplications = (): boolean =>
-    variedAges && getRequiredAgeComplications(selections.ageBracket) > 0;
-
-  const needsAgePower = (): boolean =>
-    needsAgeComplications() && tookAgeOptionalPower;
-
-  const needsQareenElementSelection = (): boolean => {
-    if (!race) return false;
-    return race.name === 'Qareen';
-  };
-
-  const needsMoreauSapienciaSelection = (): boolean => {
-    if (!race) return false;
-    return (
-      race.name === 'Moreau' && raceCustomization?.moreauHeritage === 'Coruja'
-    );
-  };
-
-  // Check if the class has an addAlchemyItems action at level 1
-  const getAlchemyItemsAction = (): {
-    budget: number;
-    count: number;
-    abilityName: string;
-  } | null => {
-    if (!classe) return null;
-    const abilities = (classe.abilities || []).filter((a) => a.nivel <= 1);
-    let result: { budget: number; count: number; abilityName: string } | null =
-      null;
-    abilities.some((ability) =>
-      (ability.sheetActions || []).some((sa) => {
-        if (sa.action.type === 'addAlchemyItems') {
-          result = {
-            budget: sa.action.budget,
-            count: sa.action.count,
-            abilityName: ability.name,
-          };
-          return true;
-        }
-        return false;
-      })
-    );
-    return result;
-  };
-
-  const needsAlchemyItemSelection = (): boolean =>
-    getAlchemyItemsAction() !== null;
-
-  // Helper to get spell info for classes without spellPath defined initially
-  const getSpellInfo = (): Pick<
-    SpellPath,
-    | 'spellType'
-    | 'initialSpells'
-    | 'excludeSchools'
-    | 'includeDivineSchools'
-    | 'includeArcaneSchools'
-    | 'crossTraditionLimit'
-    | 'crossTraditionRules'
-  > | null => {
-    if (!classe) return null;
-
-    const hasTeurgistaMistico =
-      selections.deityPowers?.includes('Teurgista Místico');
-
-    let result: Pick<
-      SpellPath,
-      | 'spellType'
-      | 'initialSpells'
-      | 'excludeSchools'
-      | 'includeDivineSchools'
-      | 'includeArcaneSchools'
-      | 'crossTraditionLimit'
-      | 'crossTraditionRules'
-    > | null = null;
-
-    // For classes with spellPath already defined
-    if (classe.spellPath) {
-      result = {
-        spellType: classe.spellPath.spellType,
-        initialSpells: classe.spellPath.initialSpells,
-        excludeSchools: classe.spellPath.excludeSchools,
-        includeDivineSchools: classe.spellPath.includeDivineSchools,
-        includeArcaneSchools: classe.spellPath.includeArcaneSchools,
-        crossTraditionLimit: classe.spellPath.crossTraditionLimit,
-        crossTraditionRules: classe.spellPath.crossTraditionRules,
-      };
-    } else if (classe.name === 'Arcanista' && selections.arcanistaSubtype) {
-      // Arcanista: o spellPath só existe depois do setup(), então lemos a
-      // definição da classe (fonte única) em vez de repetir os números aqui.
-      const isFeiticeiroAbencoado =
-        selections.arcanistaSubtype === 'Feiticeiro' &&
-        selections.feiticeiroLinhagem === 'Linhagem Abençoada';
-      const subtypePath = getArcanistaSpellPath(
-        selections.arcanistaSubtype as ArcanistaSubtypes
-      );
-      const resolvedPath = isFeiticeiroAbencoado
-        ? applyLinhagemAbencoadaToSpellPath(subtypePath)
-        : subtypePath;
-
-      result = {
-        spellType: resolvedPath.spellType,
-        initialSpells: resolvedPath.initialSpells,
-        excludeSchools: resolvedPath.excludeSchools,
-        includeDivineSchools: resolvedPath.includeDivineSchools,
-        crossTraditionRules: resolvedPath.crossTraditionRules,
-      };
-    } else if (isClassOrVariantOf(classe, 'Bardo')) {
-      result = { spellType: 'Arcane', initialSpells: 2 };
-    } else if (isClassOrVariantOf(classe, 'Druida')) {
-      result = { spellType: 'Divine', initialSpells: 2 };
-    } else if (isClassOrVariantOf(classe, 'Clérigo')) {
-      result = { spellType: 'Divine', initialSpells: 3 };
-    } else if (isClassOrVariantOf(classe, 'Frade')) {
-      result = { spellType: 'Divine', initialSpells: 3 };
-    }
-
-    // Apply Teurgista Místico cross-tradition expansion
-    if (result && hasTeurgistaMistico) {
-      if (result.spellType === 'Arcane' && !result.includeDivineSchools) {
-        result.includeDivineSchools = allSpellSchools;
-        result.crossTraditionLimit = 1;
-      } else if (result.spellType === 'Divine') {
-        result.includeArcaneSchools = allSpellSchools;
-        result.crossTraditionLimit = 1;
-      }
-    }
-
-    return result;
-  };
-
-  // Build steps array
-  const getSteps = (): string[] => {
-    const stepsArray: string[] = [];
-    stepsArray.push('Informações Básicas'); // Always first step
-    if (needsRaceAttributeVariant()) stepsArray.push('Variante de Atributos');
-    if (needsRaceAttributes()) stepsArray.push('Atributos da Raça');
-    stepsArray.push('Valores dos Atributos');
-    if (needsSuragelAbilitySelection()) stepsArray.push('Habilidade Suraggel');
-    if (needsQareenElementSelection()) stepsArray.push('Elemento do Qareen');
-    if (needsMoreauSapienciaSelection()) stepsArray.push('Magia da Sapiência');
-    // Antes de 'Perícias da Classe': a troca Luta → Diplomacia precisa estar
-    // decidida quando o jogador escolhe as perícias restantes.
-    if (deityClassVariantStepLabel) stepsArray.push(deityClassVariantStepLabel);
-    if (needsClassSkills()) stepsArray.push('Perícias da Classe');
-    if (needsIntelligenceSkills()) stepsArray.push('Perícias por Inteligência');
-    if (needsAlchemyItemSelection()) stepsArray.push('Itens Alquímicos');
-    if (needsDeityPowers()) stepsArray.push('Poderes da Divindade');
-    if (needsArcanistaSubtypeSelection())
-      stepsArray.push('Caminho do Arcanista');
-    if (needsFeiticeiroLinhagemSelection())
-      stepsArray.push('Linhagem do Feiticeiro');
-    if (schoolChoiceConfig) stepsArray.push('Escolas de Magia');
-    if (needsInitialSpellSelection()) stepsArray.push('Magias Iniciais');
-    // Criança não recebe benefícios de origem ("Sem Origem", p. 288), então o
-    // passo some por inteiro.
-    if (origin && ageOriginBenefits > 0)
-      stepsArray.push('Benefícios da Origem');
-    else if (race && !raceHasOrigin(race.name))
-      stepsArray.push('Propósito de Criação');
-    if (needsAgeComplications()) stepsArray.push('Complicações de Idade');
-    if (needsAgePower()) stepsArray.push('Poder da Idade');
-    if (needsComplicationSelection()) stepsArray.push('Complicação');
-    if (needsComplicationPower()) stepsArray.push('Poder da Complicação');
-    if (needsPowerEffectSelections()) stepsArray.push('Efeitos de Poderes');
-    if (needsClassPowers()) stepsArray.push('Poderes da Classe');
-    if (needsOriginPowers()) stepsArray.push('Poderes da Origem');
-    if (needsCompanionCreation()) stepsArray.push('Melhor Amigo');
-    if (needsOriginItemChoice()) stepsArray.push('Itens da Origem');
-    if (classe) stepsArray.push('Equipamento Inicial');
-    stepsArray.push('Mercado'); // Always show as final step
-    return stepsArray;
-  };
+  const getSteps = (): string[] => getCreationSteps(wizardCtx);
 
   // If no steps needed, auto-confirm with empty selections
   // Only check after steps have been initialized to avoid premature auto-confirm
@@ -1089,51 +627,7 @@ const CharacterCreationWizardModal: React.FC<
   }, [classe?.name]);
 
   // Helper function to get all skills already selected in previous steps
-  const getAllUsedSkills = (): Skill[] => {
-    const skills: Skill[] = [];
-    // Add resolved base skills (and + chosen or)
-    if (classe) {
-      const baseSkills = getClassBaseSkillsWithChoices(
-        classe,
-        selections.baseSkillChoices || [],
-        expandedBasicas
-      );
-      skills.push(...baseSkills);
-    }
-    if (selections.classSkills) {
-      skills.push(...selections.classSkills);
-    }
-    if (selections.intelligenceSkills) {
-      skills.push(...selections.intelligenceSkills);
-    }
-    return skills;
-  };
-
-  /**
-   * Quantidade esperada de escolhas. Quase sempre é o `pick` declarado, mas
-   * `markTrainedSkills` (Especialista do Ladino) é dinâmico: o modificador do
-   * atributo, com piso `minPick`. `getPowerSelectionRequirements` não conhece a
-   * ficha, então declara só o piso e deixa o atributo no metadata.
-   */
-  const resolveRequirementPick = (req: PowerSelectionRequirement): number => {
-    if (req.type === 'learnSkill' && req.metadata?.perTierAboveIniciante) {
-      // Biblioteca Divina e similares: `pick` declarado é o piso (patamar
-      // Iniciante); o restante escala com o patamar do nível-alvo da ficha.
-      return resolveLearnSkillPick(
-        req,
-        getPlateauByLevel(selectedOptions.nivel || 1)
-      );
-    }
-    if (req.type !== 'markTrainedSkills') return req.pick;
-    const attributeMod =
-      req.metadata?.pickByAttribute === Atributo.INTELIGENCIA
-        ? getIntelligenceModifier()
-        : 0;
-    return Math.min(
-      Math.max(req.metadata?.minPick ?? req.pick, attributeMod),
-      getAllUsedSkills().length
-    );
-  };
+  const getAllUsedSkills = (): Skill[] => getCreationUsedSkills(wizardCtx);
 
   // Helper function to build pre-populated bag from origin and selections
   const buildPrePopulatedBag = (
@@ -2099,407 +1593,8 @@ const CharacterCreationWizardModal: React.FC<
   };
 
   // Validation for each step
-  const canProceed = (): boolean => {
-    const stepName = steps[activeStep];
-
-    // Variante de classe por divindade: sempre válido — o padrão do livro
-    // básico já é uma resposta completa, as duas trocas são opcionais.
-    if (deityClassVariantStepLabel && stepName === deityClassVariantStepLabel) {
-      return true;
-    }
-
-    switch (stepName) {
-      case 'Informações Básicas':
-        // Require at least a name (and the racial attribute set choice for
-        // sex-dimorphic races when gender is 'Outro')
-        return (
-          !!selections.characterName &&
-          selections.characterName.trim().length > 0 &&
-          (!race ||
-            !raceHasSexDimorphism(race) ||
-            selections.characterGender !== 'Outro' ||
-            !!selections.dimorphismChoice)
-        );
-
-      case 'Valores dos Atributos': {
-        // Métodos em valor bruto (Valkaria) exigem que TODOS os dados sejam
-        // aplicados — um dado sobrando é atributo jogado fora.
-        if (variedAttributeMethod?.kind === 'raw') {
-          const dice = selections.attributeRawDice;
-          const assignment = selections.attributeRawAssignment;
-          if (!dice || dice.length === 0 || !assignment) return false;
-          return dice.every(
-            (_die, index) =>
-              assignment[index] !== null && assignment[index] !== undefined
-          );
-        }
-
-        // Métodos de pool exigem que todos os 6 valores rolados sejam
-        // distribuídos. Khalmyr entra aqui mesmo estando na coluna "Pontos";
-        // já a compra de pontos e o método Livre não têm pool nenhum.
-        const usesPool =
-          selections.attributeMethod === 'dice'
-            ? true
-            : variedAttributeMethod?.kind === 'pool';
-        if (selections.attributeMethod !== 'free' && usesPool) {
-          const assignment = selections.attributeDiceAssignment;
-          const pool = selections.attributeDicePool;
-          if (!pool || pool.length === 0 || !assignment) return false;
-          return assignment.every((idx) => idx !== null && idx !== undefined);
-        }
-
-        // 'free' e compra de pontos liberam o avanço sempre (a UI de pontos
-        // impede saldo negativo).
-        return true;
-      }
-
-      case 'Complicações de Idade':
-        return isAgeSelectionComplete(
-          variedAges ? selections.ageBracket : undefined,
-          (selections.ageComplications ?? []).length,
-          tookAgeOptionalPower
-        );
-
-      case 'Poder da Idade':
-        return !!selections.agePower;
-
-      case 'Variante de Atributos':
-        // Must have selected a variant
-        return selections.attributeVariant !== undefined;
-
-      case 'Atributos da Raça':
-        return isRaceAttributeSelectionComplete(
-          raceForAttributes,
-          sexForAttributes,
-          selections.raceAttributes
-        );
-
-      case 'Habilidade Suraggel':
-        // Always valid - either default ability or selected alternative
-        return true;
-
-      case 'Elemento do Qareen':
-        return selections.qareenElement !== undefined;
-
-      case 'Magia da Sapiência':
-        return !!selections.moreauSapienciaSpell;
-
-      case 'Perícias da Classe': {
-        if (!classe) return false;
-        const orGroupCount = expandedBasicas.filter(
-          (be) => be.type === 'or'
-        ).length;
-        const baseChoicesValid =
-          orGroupCount === 0 ||
-          (selections.baseSkillChoices?.length || 0) === orGroupCount;
-        const remainingValid =
-          classe.periciasrestantes.qtd === 0 ||
-          selections.classSkills?.length === classe.periciasrestantes.qtd;
-        return baseChoicesValid && remainingValid;
-      }
-
-      case 'Perícias por Inteligência': {
-        const requiredCount = getIntelligenceSkillsCount();
-        if (requiredCount === 0) return true; // No skills needed
-        return selections.intelligenceSkills?.length === requiredCount;
-      }
-
-      case 'Itens Alquímicos': {
-        const alchemyActionForValidation = getAlchemyItemsAction();
-        if (!alchemyActionForValidation) return false;
-        const alchemySelections =
-          selections.powerEffectSelections?.[
-            alchemyActionForValidation.abilityName
-          ]?.alchemyItems || [];
-        const alchemyTotalCost = alchemySelections.reduce(
-          (sum, item) => sum + (item.preco || 0),
-          0
-        );
-        return (
-          alchemySelections.length === alchemyActionForValidation.count &&
-          alchemyTotalCost <= alchemyActionForValidation.budget
-        );
-      }
-
-      case 'Poderes da Classe':
-        // For now, always allow (placeholder)
-        return true;
-
-      case 'Benefícios da Origem':
-        // If regional origin, always allow (no selection needed)
-        if (!origin) return false;
-        if (origin.isRegional) return true;
-        // Otherwise, require as many selections as the age bracket grants
-        // (Adolescente escolhe só 1 — "Origem em Construção")
-        return selections.originBenefits?.length === ageOriginBenefits;
-
-      case 'Propósito de Criação':
-        return !!selections.propositoCriacaoPower;
-
-      case 'Complicação':
-        // Exige decisão explícita: recusar ou escolher uma complicação
-        return selections.complication !== undefined;
-
-      case 'Poder da Complicação':
-        return (
-          !!selections.complicationPower &&
-          isComplicationPowerSelectionComplete(
-            selections.complicationPower,
-            selections.powerEffectSelections?.[
-              selections.complicationPower.name
-            ]
-          )
-        );
-
-      case 'Poderes da Origem':
-        // For now, always allow (placeholder)
-        return true;
-
-      case 'Poderes da Divindade': {
-        if (!classe || !deity) return false;
-        // Step is always completable - deity powers are optional
-        // The 'all' case is handled by DeityPowerStep auto-selecting
-        return true;
-      }
-
-      case 'Caminho do Arcanista':
-        return selections.arcanistaSubtype !== undefined;
-
-      case 'Linhagem do Feiticeiro':
-        if (selections.feiticeiroLinhagem === 'Linhagem Abençoada') {
-          return !!selections.linhagemAbencoada?.deus;
-        }
-        if (selections.feiticeiroLinhagem === 'Linhagem Dracônica') {
-          return !!selections.draconicaDamageType;
-        }
-        return selections.feiticeiroLinhagem !== undefined;
-
-      case 'Escolas de Magia':
-        return selections.spellSchools?.length === schoolChoiceConfig?.count;
-
-      case 'Magias Iniciais': {
-        const spellInfo = getSpellInfo();
-        if (!spellInfo || spellInfo.initialSpells === 0) return true;
-        const chosenSpells = selections.initialSpells ?? [];
-        if (chosenSpells.length !== spellInfo.initialSpells) return false;
-
-        // Linhagem Abençoada: uma das magias tem que ser divina. Os nomes cross
-        // vêm do MESMO builder que o passo usa — computá-los de outro jeito
-        // faria o botão e os checkboxes discordarem.
-        const minCross = spellInfo.crossTraditionRules?.minInitialSpells ?? 0;
-        if (minCross <= 0) return true;
-        const { crossNames, sharedNames } = buildSpellPool({
-          spellPath: {
-            spellType: spellInfo.spellType,
-            schools: selections.spellSchools,
-            excludeSchools: spellInfo.excludeSchools,
-            includeDivineSchools: spellInfo.includeDivineSchools,
-            includeArcaneSchools: spellInfo.includeArcaneSchools,
-            crossTraditionLimit: spellInfo.crossTraditionLimit,
-            crossTraditionRules: spellInfo.crossTraditionRules,
-          },
-          maxCircle: 1,
-          supplements,
-        });
-        return (
-          countTowardsCrossMinimum(
-            chosenSpells,
-            crossNames,
-            sharedNames,
-            spellInfo.initialSpells,
-            minCross
-          ) >= minCross
-        );
-      }
-
-      case 'Efeitos de Poderes': {
-        if (!race || !classe) return false;
-
-        const effectSelections = selections.powerEffectSelections || {};
-
-        // Mesma coleta que o `PowerEffectSelectionStep` usa para desenhar os
-        // seletores: requisitos do poder + os que só existem depois de uma
-        // escolha (`chooseFromOptions`) + os dos poderes concedidos. Enquanto as
-        // duas coisas coletavam por caminhos diferentes, dava para existir
-        // requisito que travava o Próximo sem ter onde escolher (ex.: os
-        // Talentos do Bando dos Kobolds).
-        const allRequirements: ResolvedRequirement[] = [];
-        const collectRequirements = (
-          powerOrAbility: Parameters<typeof resolvePowerRequirements>[0]
-        ) => {
-          allRequirements.push(
-            ...resolvePowerRequirements(powerOrAbility, effectSelections)
-          );
-        };
-
-        // Check race abilities
-        race.abilities.forEach(collectRequirements);
-
-        // Check class abilities (filter to nivel <= 1 to match what PowerEffectSelectionStep displays)
-        (classe.abilities || [])
-          .filter((a) => a.nivel <= 1)
-          .forEach(collectRequirements);
-
-        // Check origin powers
-        if (origin) {
-          const originBenefits = origin.getPowersAndSkills
-            ? origin.getPowersAndSkills([], origin, true)
-            : { powers: { origin: [], general: [] }, skills: [] };
-
-          originBenefits.powers.origin.forEach(collectRequirements);
-        }
-
-        // Check deity granted powers (selected in previous step)
-        if (
-          deity &&
-          selections.deityPowers &&
-          selections.deityPowers.length > 0
-        ) {
-          grantedPowerPool
-            .filter((p) => selections.deityPowers?.includes(p.name))
-            .forEach(collectRequirements);
-        }
-
-        // Validate all requirements are met
-        return allRequirements.every(({ selectionKey, requirement: req }) => {
-          const { type, pick } = req;
-
-          // Requisição declarada opcional (ex.: Arma Amada) nunca bloqueia
-          if (req.optional) return true;
-
-          const ownSelections = effectSelections[selectionKey];
-          const count = countRequirementSelections(
-            req,
-            ownSelections,
-            finalAttributeModifiers[Atributo.INTELIGENCIA]
-          );
-          // Tipo não contável: não bloquear o assistente
-          if (count === null) return true;
-
-          // Adjust pick for proficiencies already owned by the class
-          let effectivePick = resolveRequirementPick(req);
-          if (type === 'addProficiency' && req.availableOptions && classe) {
-            const filteredCount = (req.availableOptions as string[]).filter(
-              (prof) => !classe.proficiencias.includes(prof)
-            ).length;
-            effectivePick = Math.min(pick, filteredCount);
-          }
-
-          // Mesmo ajuste para perícias: `getFilteredAvailableOptions` remove do
-          // passo as perícias que o personagem JÁ treinou nos passos anteriores
-          // ("Perícias da Classe" e "por Inteligência" vêm antes de "Efeitos de
-          // Poderes"). Sem este clamp, um Hobgoblin que treinou Guerra pela
-          // classe fica com a lista de Arte da Guerra vazia — o passo mostra o
-          // aviso "você já possui todas as opções" e o "Próximo" trava sem nada
-          // para clicar.
-          // `Math.min(effectivePick, ...)` (e não `pick`, como no ramo de
-          // proficiência) para compor com o escalonamento por patamar de
-          // `resolveRequirementPick` (Biblioteca Divina). Bônus (`PickSkill`)
-          // inverte a conta: a perícia treinada é que é elegível.
-          if (type === 'learnSkill' && req.availableOptions) {
-            const used = new Set(getAllUsedSkills());
-            const filteredCount = (req.availableOptions as Skill[]).filter(
-              (skill) =>
-                isLearnSkillOptionAvailable(req, skill, used.has(skill))
-            ).length;
-            effectivePick = Math.min(effectivePick, filteredCount);
-          }
-
-          // A habilidade aprendida (Duplo Feérico) pode ter escolha própria —
-          // ex.: Especialista do Ladino pede perícias. As sub-escolhas ficam na
-          // MESMA entrada de seleções do poder de origem.
-          if (type === 'learnClassAbility' && count >= effectivePick) {
-            const powerSelections = ownSelections || {};
-            const chosen = powerSelections.classAbilities?.[0];
-            const chosenAbility = chosen?.abilityName
-              ? dataRegistry
-                  .getClassesBySupplements(supplements)
-                  .find((c) => c.name === chosen.className)
-                  ?.abilities.find((a) => a.name === chosen.abilityName)
-              : undefined;
-            const nestedReqs = chosenAbility
-              ? getPowerSelectionRequirements(
-                  chosenAbility as Parameters<
-                    typeof getPowerSelectionRequirements
-                  >[0]
-                )
-              : null;
-            const hasUnmetNested = (nestedReqs?.requirements ?? []).some(
-              (nestedReq) => {
-                if (nestedReq.optional) return false;
-                const nestedCount = countRequirementSelections(
-                  nestedReq,
-                  powerSelections
-                );
-                if (nestedCount === null) return false;
-                return nestedCount < resolveRequirementPick(nestedReq);
-              }
-            );
-            if (hasUnmetNested) return false;
-          }
-
-          return count >= effectivePick;
-        });
-      }
-
-      case 'Melhor Amigo': {
-        const hasType = !!selections.companionType;
-        const hasSize = !!selections.companionSize;
-        const hasDamageType = !!selections.companionWeaponDamageType;
-        const hasSkills = selections.companionSkills?.length === 3;
-        const tricks = selections.companionTricks || [];
-        const hasTricks =
-          tricks.length === 2 &&
-          // Sub-escolhas do truque (atributos, deslocamento, Magia Inata)
-          tricks.every(isTrickChoiceComplete);
-        const hasSpiritEnergy =
-          selections.companionType !== 'Espírito' ||
-          !!selections.companionSpiritEnergyType;
-        return (
-          hasType &&
-          hasSize &&
-          hasDamageType &&
-          hasSkills &&
-          hasTricks &&
-          hasSpiritEnergy
-        );
-      }
-
-      case 'Itens da Origem': {
-        const chosen = selections.originItemChoices || {};
-        return originItems()
-          .filter((item) => item.choice)
-          .every((item) => !!item.choice && !!chosen[item.choice.key]);
-      }
-
-      case 'Equipamento Inicial': {
-        if (!classe) return true;
-        const eq = selections.classEquipment;
-        if (!eq?.simpleWeapon) return false;
-        if (
-          classe.proficiencias.includes(PROFICIENCIAS.MARCIAIS) &&
-          !eq.martialWeapon
-        ) {
-          return false;
-        }
-        // Espelha o `needsArmor` do `ClassEquipmentStep`: todos escolhem
-        // armadura, menos Arcanista e variantes. Divergir aqui deixaria o
-        // passo incompleto para sempre — ele não oferece o que esta validação
-        // exige.
-        const needsArmor = !isClassOrVariantOf(classe, 'Arcanista');
-        if (needsArmor && !eq.armor) return false;
-        if (isClassOrVariantOf(classe, 'Bardo') && !eq.instrument) return false;
-        return true;
-      }
-
-      case 'Mercado':
-        // Always allow proceeding from market step
-        return true;
-
-      default:
-        return false;
-    }
-  };
+  const canProceed = (): boolean =>
+    isCreationStepComplete(wizardCtx, steps[activeStep]);
 
   const handleNext = () => {
     if (activeStep === steps.length - 1) {
