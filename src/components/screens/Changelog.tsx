@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            29/10/2026 (v4.37).
+            30/10/2026 (v4.37).
           </p>
 
           <p>
@@ -191,6 +191,14 @@ const Changelog: React.FC = () => {
               </Alert>
 
               <ul>
+                <li>
+                  <strong>Novo:</strong> As <strong>manobras de combate</strong>{' '}
+                  agora podem ser ativadas na lista de ataques. Na engrenagem da
+                  seção Ataques, escolha entre Agarrar, Atropelar, Derrubar,
+                  Desarmar, Empurrar e Quebrar. Cada linha rola o teste com a
+                  arma escolhida e já soma tamanho, Equilibrada e poderes como
+                  Derrubar Aprimorado.
+                </li>
                 <li>
                   <strong>Novo:</strong> A extensão do Fichas de Nimb para o{' '}
                   <strong>Roll20</strong> agora importa <strong>ameaças</strong>
