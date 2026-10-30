@@ -204,7 +204,14 @@ import {
 import SheetInfoEditDrawer from './EditDrawers/SheetInfoEditDrawer';
 import SkillsEditDrawer from './EditDrawers/SkillsEditDrawer';
 import { BackpackModal } from './BackpackModal';
-import { commitWielding, WieldingSlot } from './BackpackModal/wielding';
+import {
+  commitWielding,
+  getDisabledWieldingSlots,
+  getWieldedItemIds,
+  isItemWielded,
+  sheetHasFourArms,
+  WieldingSlot,
+} from './BackpackModal/wielding';
 import { getOrderedItemsByGroup } from './BackpackModal/bagOrdering';
 import { findConsumableAmmoStack } from './BackpackModal/ammo';
 import PowersEditorModal from './EditDrawers/PowersEditor';
@@ -1704,6 +1711,8 @@ const Result: React.FC<ResultProps> = (props) => {
         state: {
           mainHandItemId: currentSheet.mainHandItemId,
           offHandItemId: currentSheet.offHandItemId,
+          extraHand1ItemId: currentSheet.extraHand1ItemId,
+          extraHand2ItemId: currentSheet.extraHand2ItemId,
         },
         itemId,
         slot,
@@ -1713,6 +1722,8 @@ const Result: React.FC<ResultProps> = (props) => {
         ...currentSheet,
         mainHandItemId: next.mainHandItemId,
         offHandItemId: next.offHandItemId,
+        extraHand1ItemId: next.extraHand1ItemId,
+        extraHand2ItemId: next.extraHand2ItemId,
       };
       // Só reconstrói a Bag quando a pilha foi dividida/refundida — trocar de
       // mão não deve invalidar a referência da mochila à toa.
@@ -1801,63 +1812,29 @@ const Result: React.FC<ResultProps> = (props) => {
   // Shared by Ataques and Defesa: blocks slots when a hand is already
   // occupied by a 2H weapon or a shield. The wielded item itself is exempt.
   const computeWieldingDisabled = useMemo(() => {
-    const wieldingTwoHanded =
-      currentSheet.mainHandItemId !== undefined &&
-      currentSheet.mainHandItemId === currentSheet.offHandItemId;
     const handCandidates: Equipment[] = [
       ...bagEquipments.Arma,
       ...bagEquipments.Escudo,
       ...bagEquipments.Alquimía,
       ...bagEquipments['Item Geral'],
     ];
-    const twoHandedItem = wieldingTwoHanded
-      ? handCandidates.find((it) => it.id === currentSheet.mainHandItemId)
-      : undefined;
-    const mainHandItemForDisable = currentSheet.mainHandItemId
-      ? handCandidates.find((it) => it.id === currentSheet.mainHandItemId)
-      : undefined;
-    const offHandItemForDisable = currentSheet.offHandItemId
-      ? handCandidates.find((it) => it.id === currentSheet.offHandItemId)
-      : undefined;
-    return (
-      itemId: string | undefined
-    ): Partial<Record<'main' | 'off', { reason: string }>> | undefined => {
-      if (wieldingTwoHanded && twoHandedItem && itemId !== twoHandedItem.id) {
-        const reason = `Mão ocupada por ${
-          twoHandedItem.customDisplayName || twoHandedItem.nome
-        } (duas mãos). Solte primeiro.`;
-        return { main: { reason }, off: { reason } };
-      }
-      const disabled: Partial<Record<'main' | 'off', { reason: string }>> = {};
-      if (
-        mainHandItemForDisable &&
-        mainHandItemForDisable.group === 'Escudo' &&
-        itemId !== mainHandItemForDisable.id
-      ) {
-        disabled.main = {
-          reason: `Mão ocupada por ${
-            mainHandItemForDisable.customDisplayName ||
-            mainHandItemForDisable.nome
-          } (escudo). Solte primeiro.`,
-        };
-      }
-      if (
-        offHandItemForDisable &&
-        offHandItemForDisable.group === 'Escudo' &&
-        itemId !== offHandItemForDisable.id
-      ) {
-        disabled.off = {
-          reason: `Mão ocupada por ${
-            offHandItemForDisable.customDisplayName ||
-            offHandItemForDisable.nome
-          } (escudo). Solte primeiro.`,
-        };
-      }
-      return Object.keys(disabled).length > 0 ? disabled : undefined;
+    const state = {
+      mainHandItemId: currentSheet.mainHandItemId,
+      offHandItemId: currentSheet.offHandItemId,
+      extraHand1ItemId: currentSheet.extraHand1ItemId,
+      extraHand2ItemId: currentSheet.extraHand2ItemId,
     };
+    return (itemId: string | undefined) =>
+      getDisabledWieldingSlots(
+        state,
+        (handItemId) => handCandidates.find((it) => it.id === handItemId),
+        itemId
+      );
   }, [
     currentSheet.mainHandItemId,
     currentSheet.offHandItemId,
+    currentSheet.extraHand1ItemId,
+    currentSheet.extraHand2ItemId,
     bagEquipments.Arma,
     bagEquipments.Escudo,
     bagEquipments.Alquimía,
@@ -1899,7 +1876,9 @@ const Result: React.FC<ResultProps> = (props) => {
           ) ?? { id: maneuverId },
           options,
           currentSheet.mainHandItemId,
-          currentSheet.offHandItemId
+          currentSheet.offHandItemId,
+          currentSheet.extraHand1ItemId,
+          currentSheet.extraHand2ItemId
         );
         return {
           id: maneuverId,
@@ -1968,9 +1947,7 @@ const Result: React.FC<ResultProps> = (props) => {
   );
 
   const weaponsDiv = useMemo(() => {
-    const wieldingTrackingActive =
-      currentSheet.mainHandItemId !== undefined ||
-      currentSheet.offHandItemId !== undefined;
+    const wieldingTrackingActive = getWieldedItemIds(currentSheet).length > 0;
     const hasArremessador = (currentSheet.raca?.abilities ?? []).some(
       (ability) => ability.name === 'Arremessador'
     );
@@ -1989,6 +1966,9 @@ const Result: React.FC<ResultProps> = (props) => {
         sheetBonuses={currentSheet.sheetBonuses}
         mainHandItemId={currentSheet.mainHandItemId}
         offHandItemId={currentSheet.offHandItemId}
+        extraHand1ItemId={currentSheet.extraHand1ItemId}
+        extraHand2ItemId={currentSheet.extraHand2ItemId}
+        wieldingExtraHands={sheetHasFourArms(currentSheet)}
         onWieldingChange={onSheetUpdate ? handleQuickWieldChange : undefined}
         getWieldingDisabledSlots={computeWieldingDisabled}
         wieldingTrackingActive={wieldingTrackingActive}
@@ -2021,6 +2001,8 @@ const Result: React.FC<ResultProps> = (props) => {
     currentSheet.sheetBonuses,
     currentSheet.mainHandItemId,
     currentSheet.offHandItemId,
+    currentSheet.extraHand1ItemId,
+    currentSheet.extraHand2ItemId,
     currentSheet.raca,
     currentSheet.activeEffects,
     currentSheet.weaponOverrides,
@@ -2061,11 +2043,7 @@ const Result: React.FC<ResultProps> = (props) => {
       components.push(`${activeArmor.defenseBonus} (${activeArmor.nome})`);
     }
     (bagEquipments.Escudo ?? []).forEach((shield) => {
-      const inHand =
-        shield.id !== undefined &&
-        (shield.id === currentSheet.mainHandItemId ||
-          shield.id === currentSheet.offHandItemId);
-      if (inHand && shield.defenseBonus > 0) {
+      if (isItemWielded(shield.id, currentSheet) && shield.defenseBonus > 0) {
         components.push(`${shield.defenseBonus} (${shield.nome})`);
       }
     });
@@ -2924,6 +2902,9 @@ const Result: React.FC<ResultProps> = (props) => {
                 wornArmorId={currentSheet.wornArmorId}
                 mainHandItemId={currentSheet.mainHandItemId}
                 offHandItemId={currentSheet.offHandItemId}
+                extraHand1ItemId={currentSheet.extraHand1ItemId}
+                extraHand2ItemId={currentSheet.extraHand2ItemId}
+                wieldingExtraHands={sheetHasFourArms(currentSheet)}
                 onWieldingChange={
                   onSheetUpdate ? handleQuickWieldChange : undefined
                 }

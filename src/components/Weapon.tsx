@@ -59,7 +59,10 @@ import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
 import { getConditionLabelStyle } from '../premium/functions/conditionHighlights';
 import { ACTIVE_EFFECT_COLOR } from '../premium/functions/activeEffectHighlights';
 import WieldingControl from './SheetResult/BackpackModal/WieldingControl';
-import { WieldingSlot } from './SheetResult/BackpackModal/wielding';
+import {
+  WieldingDisabledSlots,
+  WieldingSlot,
+} from './SheetResult/BackpackModal/wielding';
 import { abbreviateDamageType } from '../functions/equipmentDisplay';
 
 // Extracts the trailing flat damage modifier (e.g. "+5"/"-1") from a damage
@@ -89,7 +92,9 @@ interface WeaponProps {
   /** Current hand the weapon occupies, when wielding tracking is enabled. */
   wieldingSlot?: WieldingSlot;
   onWieldingChange?: (slot: WieldingSlot) => void;
-  wieldingDisabledSlots?: Partial<Record<'main' | 'off', { reason: string }>>;
+  wieldingDisabledSlots?: WieldingDisabledSlots;
+  /** Oferece as mãos extras (poder Quatro Braços). */
+  wieldingExtraHands?: boolean;
   /**
    * Mão escolhida pelo atalho "Empunhar e atacar". Calculada pelo pai, que é
    * quem conhece as duas mãos: sem isso este componente só sabia chutar
@@ -137,6 +142,9 @@ const WIELDING_LABELS: Record<Exclude<WieldingSlot, null>, string> = {
   main: '🤚 Principal',
   off: '✋ Secundária',
   both: '🤝 Duas mãos',
+  extra1: '🖐️ Extra 1',
+  extra2: '🖐️ Extra 2',
+  bothExtra: '🤝 Duas mãos (extras)',
 };
 
 interface RollContext {
@@ -157,6 +165,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     wieldingSlot = null,
     onWieldingChange,
     wieldingDisabledSlots,
+    wieldingExtraHands = false,
     defaultWieldSlot = null,
     wieldingTrackingActive = false,
     availableAmmo,
@@ -1064,6 +1073,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
                   currentSlot={wieldingSlot}
                   onChange={onWieldingChange}
                   disabledSlots={wieldingDisabledSlots}
+                  extraHands={wieldingExtraHands}
                 />
               )}
               {onSemanticsChange && (

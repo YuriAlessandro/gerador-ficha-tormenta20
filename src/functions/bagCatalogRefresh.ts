@@ -160,15 +160,24 @@ function reconcileWielding(sheet: CharacterSheet, item: Equipment): void {
   if (!id) return;
   const inMain = sheet.mainHandItemId === id;
   const inOff = sheet.offHandItemId === id;
+  const inExtra1 = sheet.extraHand1ItemId === id;
+  const inExtra2 = sheet.extraHand2ItemId === id;
 
   if (!isTwoHanded(item)) {
     if (inMain && inOff) sheet.offHandItemId = undefined;
+    if (inExtra1 && inExtra2) sheet.extraHand2ItemId = undefined;
     return;
   }
   // A Lança Montada aceita uma mão só: o slot é escolha do jogador.
   if (canWieldOneHanded(item)) return;
   if (inMain && !inOff && !sheet.offHandItemId) sheet.offHandItemId = id;
   if (inOff && !inMain && !sheet.mainHandItemId) sheet.mainHandItemId = id;
+  if (inExtra1 && !inExtra2 && !sheet.extraHand2ItemId) {
+    sheet.extraHand2ItemId = id;
+  }
+  if (inExtra2 && !inExtra1 && !sheet.extraHand1ItemId) {
+    sheet.extraHand1ItemId = id;
+  }
   /* eslint-enable no-param-reassign */
 }
 

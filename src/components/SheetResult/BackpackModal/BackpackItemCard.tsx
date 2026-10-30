@@ -27,6 +27,7 @@ import {
   hasMechanicalBonus,
   isTwoHanded,
   WieldingSlot,
+  WieldingDisabledSlots,
 } from './wielding';
 import { ammoTypeLabel } from './ammo';
 
@@ -45,7 +46,9 @@ export interface BackpackItemCardProps {
    * Optional slot disable map (e.g. when another two-handed weapon occupies
    * both hands).
    */
-  wieldingDisabledSlots?: Partial<Record<'main' | 'off', { reason: string }>>;
+  wieldingDisabledSlots?: WieldingDisabledSlots;
+  /** Oferece as mãos extras (poder Quatro Braços). */
+  wieldingExtraHands?: boolean;
   /**
    * True quando a peça está vestida. Vale para os dois grupos vestíveis:
    * `Armadura` (a armadura escolhida) e `Vestuário` (peça não guardada).
@@ -88,6 +91,7 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
   wieldingSlot = null,
   onWieldingChange,
   wieldingDisabledSlots,
+  wieldingExtraHands = false,
   isWorn = false,
   onWornChange,
   onAdjustAmmoUnits,
@@ -96,7 +100,9 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
   // contradiria o estado.
   const heldOneHanded =
     canWieldOneHanded(item) &&
-    (wieldingSlot === 'main' || wieldingSlot === 'off');
+    wieldingSlot !== null &&
+    wieldingSlot !== 'both' &&
+    wieldingSlot !== 'bothExtra';
   const itemTwoHanded = isTwoHanded(item) && !heldOneHanded;
   const style = itemTypeStyles[item.group];
   const Icon = style.icon;
@@ -224,14 +230,32 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
                   sx={{ height: 20, fontSize: '0.65rem' }}
                 />
               )}
-              {itemTwoHanded && wieldingSlot !== 'both' && (
+              {(wieldingSlot === 'extra1' || wieldingSlot === 'extra2') && (
                 <Chip
                   size='small'
-                  label='2 mãos'
-                  variant='outlined'
+                  label={wieldingSlot === 'extra1' ? 'Extra 1' : 'Extra 2'}
+                  color='secondary'
                   sx={{ height: 20, fontSize: '0.65rem' }}
                 />
               )}
+              {wieldingSlot === 'bothExtra' && (
+                <Chip
+                  size='small'
+                  label='Duas mãos (extras)'
+                  color='primary'
+                  sx={{ height: 20, fontSize: '0.65rem' }}
+                />
+              )}
+              {itemTwoHanded &&
+                wieldingSlot !== 'both' &&
+                wieldingSlot !== 'bothExtra' && (
+                  <Chip
+                    size='small'
+                    label='2 mãos'
+                    variant='outlined'
+                    sx={{ height: 20, fontSize: '0.65rem' }}
+                  />
+                )}
               {isWorn && item.group === 'Armadura' && (
                 <Chip
                   size='small'
@@ -378,6 +402,7 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
                   currentSlot={wieldingSlot}
                   onChange={onWieldingChange}
                   disabledSlots={wieldingDisabledSlots}
+                  extraHands={wieldingExtraHands}
                 />
               )}
             {onEdit && (

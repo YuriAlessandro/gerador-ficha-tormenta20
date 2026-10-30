@@ -9,6 +9,7 @@ import EQUIPAMENTOS, {
 import { AMEACAS_ARTON_WEAPONS } from '../data/systems/tormenta20/ameacas-de-arton/equipment/weapons';
 import { HEROIS_ARTON_WEAPONS } from '../data/systems/tormenta20/herois-de-arton/equipment/weapons';
 import PROFICIENCIAS from '../data/systems/tormenta20/proficiencias';
+import { isItemWielded } from '../components/SheetResult/BackpackModal/wielding';
 
 export const WEAPON_NON_PROFICIENCY_PENALTY = -5;
 
@@ -267,7 +268,9 @@ export function getActiveArmorPenalty(sheet: CharacterSheet): number {
     return bag.getActiveArmorPenalty(
       sheet.wornArmorId,
       sheet.mainHandItemId,
-      sheet.offHandItemId
+      sheet.offHandItemId,
+      sheet.extraHand1ItemId,
+      sheet.extraHand2ItemId
     );
   }
   if (bag.getArmorPenalty) return bag.getArmorPenalty();
@@ -307,10 +310,10 @@ export function getNonProficientArmorPenalty(sheet: CharacterSheet): number {
   }
 
   shields.forEach((shield) => {
-    const inHand =
-      shield.id !== undefined &&
-      (shield.id === sheet.mainHandItemId || shield.id === sheet.offHandItemId);
-    if (inHand && !isProficientWithDefense(shield, proficiencias)) {
+    if (
+      isItemWielded(shield.id, sheet) &&
+      !isProficientWithDefense(shield, proficiencias)
+    ) {
       penalty += Math.max(0, shield.armorPenalty);
     }
   });

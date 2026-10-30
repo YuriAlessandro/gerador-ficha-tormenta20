@@ -142,7 +142,9 @@ export function resolveManeuverWeapon(
   maneuver: EnabledManeuver,
   options: Equipment[],
   mainHandItemId?: string,
-  offHandItemId?: string
+  offHandItemId?: string,
+  extraHand1ItemId?: string,
+  extraHand2ItemId?: string
 ): Equipment {
   const byId = (id?: string) =>
     id ? options.find((weapon) => weapon.id === id) : undefined;
@@ -150,6 +152,8 @@ export function resolveManeuverWeapon(
     byId(maneuver.weaponId) ??
     byId(mainHandItemId) ??
     byId(offHandItemId) ??
+    byId(extraHand1ItemId) ??
+    byId(extraHand2ItemId) ??
     options[0]
   );
 }

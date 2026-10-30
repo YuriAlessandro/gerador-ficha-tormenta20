@@ -934,6 +934,10 @@ export default interface CharacterSheet {
   // (preserves backwards compatibility for sheets created before this feature).
   mainHandItemId?: string;
   offHandItemId?: string;
+  // Par extra de mãos (poder de raça Quatro Braços). Mesmas regras do par acima:
+  // o mesmo id nos dois campos significa arma de duas mãos.
+  extraHand1ItemId?: string;
+  extraHand2ItemId?: string;
   // Currently worn armor (Equipment.id reference). When undefined and there is
   // exactly 1 armor in the bag, that armor implicitly applies (legacy compat).
   // When undefined with ≥2 armors, NONE applies — the sheet shows a banner

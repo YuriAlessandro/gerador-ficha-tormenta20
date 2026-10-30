@@ -2,12 +2,71 @@ import Equipment, {
   BagEquipments,
   equipGroup,
 } from '../../../interfaces/Equipment';
+import CharacterSheet from '../../../interfaces/CharacterSheet';
+import { sheetHasPowerNamed } from '../../../functions/powers/hasPowerNamed';
 
-export type WieldingSlot = 'main' | 'off' | 'both' | null;
+/** Uma mão específica. `extra1`/`extra2` só existem com Quatro Braços. */
+export type SingleHandSlot = 'main' | 'off' | 'extra1' | 'extra2';
+
+export type WieldingSlot = SingleHandSlot | 'both' | 'bothExtra' | null;
 
 export interface WieldingState {
   mainHandItemId?: string;
   offHandItemId?: string;
+  extraHand1ItemId?: string;
+  extraHand2ItemId?: string;
+}
+
+export type WieldingDisabledSlots = Partial<
+  Record<SingleHandSlot, { reason: string }>
+>;
+
+const SINGLE_HAND_SLOTS: SingleHandSlot[] = ['main', 'off', 'extra1', 'extra2'];
+
+const HAND_KEY: Record<SingleHandSlot, keyof WieldingState> = {
+  main: 'mainHandItemId',
+  off: 'offHandItemId',
+  extra1: 'extraHand1ItemId',
+  extra2: 'extraHand2ItemId',
+};
+
+/**
+ * As mãos andam em pares: arma de duas mãos ocupa um par inteiro, com o mesmo
+ * id nos dois campos — o invariante que toda a base já lê como "duas mãos".
+ */
+const HAND_PARTNER: Record<SingleHandSlot, SingleHandSlot> = {
+  main: 'off',
+  off: 'main',
+  extra1: 'extra2',
+  extra2: 'extra1',
+};
+
+const isSingleHandSlot = (slot: WieldingSlot): slot is SingleHandSlot =>
+  slot !== null && slot !== 'both' && slot !== 'bothExtra';
+
+/** Poder de raça "Quatro Braços": permite empunhar até quatro objetos. */
+export function sheetHasFourArms(sheet: CharacterSheet): boolean {
+  return sheetHasPowerNamed(sheet, 'Quatro Braços');
+}
+
+/** Ids distintos nas mãos (arma de duas mãos conta uma vez). */
+export function getWieldedItemIds(state: WieldingState): string[] {
+  const ids = SINGLE_HAND_SLOTS.map((slot) => state[HAND_KEY[slot]]).filter(
+    (id): id is string => !!id
+  );
+  return Array.from(new Set(ids));
+}
+
+export function isItemWielded(
+  itemId: string | undefined,
+  state: WieldingState
+): boolean {
+  return !!itemId && getWieldedItemIds(state).includes(itemId);
+}
+
+/** Mãos ocupadas (arma de duas mãos conta duas). */
+export function countOccupiedHands(state: WieldingState): number {
+  return SINGLE_HAND_SLOTS.filter((slot) => !!state[HAND_KEY[slot]]).length;
 }
 
 /**
@@ -51,9 +110,10 @@ export function getWieldingSlot(
   if (state.mainHandItemId === itemId && state.offHandItemId === itemId) {
     return 'both';
   }
-  if (state.mainHandItemId === itemId) return 'main';
-  if (state.offHandItemId === itemId) return 'off';
-  return null;
+  if (state.extraHand1ItemId === itemId && state.extraHand2ItemId === itemId) {
+    return 'bothExtra';
+  }
+  return SINGLE_HAND_SLOTS.find((s) => state[HAND_KEY[s]] === itemId) ?? null;
 }
 
 /**
@@ -76,8 +136,7 @@ export function isWieldedTwoHanded(
 ): boolean {
   if (!isTwoHanded(item)) return false;
   if (!canWieldOneHanded(item)) return true;
-  const slot = getWieldingSlot(item.id, state);
-  return slot !== 'main' && slot !== 'off';
+  return !isSingleHandSlot(getWieldingSlot(item.id, state));
 }
 
 /**
@@ -85,8 +144,8 @@ export function isWieldedTwoHanded(
  *
  * Rules:
  *  - `slot === null` removes the item from whichever slot(s) it occupies.
- *  - `slot === 'both'` (two-handed): the item occupies BOTH hands; whatever
- *    was in either slot before is evicted.
+ *  - `slot === 'both'` / `'bothExtra'` (two-handed): the item occupies that
+ *    whole pair of hands; whatever was in either of them before is evicted.
  *  - Assigning to a slot that already holds another item evicts the previous one.
  *  - Assigning an item that's already in the OTHER slot moves it.
  *  - Assigning to the slot the item already occupies is a no-op.
@@ -96,6 +155,9 @@ export function isWieldedTwoHanded(
  *    returns the state unchanged (a hand is consumed by a 2H weapon).
  *  - Assigning a Shield to `'both'` returns the state unchanged (shields are
  *    never two-handed).
+ *  - Assigning a Shield while ANOTHER shield is held returns the state
+ *    unchanged ("Pode-se usar armadura e escudo ao mesmo tempo, mas não dois
+ *    escudos"). Nothing is evicted: a sheet that already holds two stays as is.
  *  - Assigning a non-shield item that is `twoHanded === false` to a hand whose
  *    other hand contains a 2H weapon evicts the 2H from both hands implicitly
  *    (the remove step above already handles this).
@@ -109,26 +171,33 @@ export function applyWielding(
   const next: WieldingState = {
     mainHandItemId: current.mainHandItemId,
     offHandItemId: current.offHandItemId,
+    extraHand1ItemId: current.extraHand1ItemId,
+    extraHand2ItemId: current.extraHand2ItemId,
+  };
+
+  const release = (id: string): void => {
+    SINGLE_HAND_SLOTS.forEach((hand) => {
+      if (next[HAND_KEY[hand]] === id) next[HAND_KEY[hand]] = undefined;
+    });
   };
 
   if (slot === null) {
-    if (next.mainHandItemId === itemId) next.mainHandItemId = undefined;
-    if (next.offHandItemId === itemId) next.offHandItemId = undefined;
+    release(itemId);
     return next;
   }
 
   if (lookup) {
     const target = lookup(itemId);
-    const isShield = target?.group === 'Escudo';
-    if (isShield && slot === 'both') {
+    if (target?.group === 'Escudo') {
       // Shields cannot occupy both hands.
-      return current;
-    }
-    if (isShield && (slot === 'main' || slot === 'off')) {
-      // Find the item already in the OTHER hand (after removing target from any
-      // slot it currently occupies, to avoid false self-conflict).
-      const otherSlotKey = slot === 'main' ? 'offHandItemId' : 'mainHandItemId';
-      const otherId = next[otherSlotKey];
+      if (!isSingleHandSlot(slot)) return current;
+      const holdsAnotherShield = getWieldedItemIds(next).some(
+        (id) => id !== itemId && lookup(id)?.group === 'Escudo'
+      );
+      if (holdsAnotherShield) return current;
+      // Find the item already in the OTHER hand of the pair (the target itself
+      // is excluded, to avoid false self-conflict).
+      const otherId = next[HAND_KEY[HAND_PARTNER[slot]]];
       if (otherId && otherId !== itemId) {
         const other = lookup(otherId);
         if (other && isWieldedTwoHanded(other, next)) {
@@ -140,8 +209,7 @@ export function applyWielding(
   }
 
   // Remove the item from any slot it currently occupies.
-  if (next.mainHandItemId === itemId) next.mainHandItemId = undefined;
-  if (next.offHandItemId === itemId) next.offHandItemId = undefined;
+  release(itemId);
 
   if (slot === 'both') {
     // Two-handed: evict whatever else is in either slot.
@@ -150,15 +218,68 @@ export function applyWielding(
     return next;
   }
 
-  if (slot === 'main') {
-    next.mainHandItemId = itemId;
-    // Defensive: if main was previously part of a two-handed setup (both slots
-    // had the same id), the off-hand cleanup above already handled it.
-  } else {
-    next.offHandItemId = itemId;
+  if (slot === 'bothExtra') {
+    next.extraHand1ItemId = itemId;
+    next.extraHand2ItemId = itemId;
+    return next;
   }
 
+  next[HAND_KEY[slot]] = itemId;
+
   return next;
+}
+
+/**
+ * Mãos que `itemId` não pode ocupar agora, com o motivo para o tooltip:
+ *  - mão de um par tomado por arma de duas mãos;
+ *  - mão com escudo (o jogador solta o escudo primeiro);
+ *  - todas, se o próprio item é um escudo e já há OUTRO escudo em mãos.
+ * O ocupante nunca é bloqueado por si mesmo, para poder soltar ou trocar de mão.
+ */
+export function getDisabledWieldingSlots(
+  state: WieldingState,
+  lookup: (id: string) => Equipment | undefined,
+  itemId: string | undefined
+): WieldingDisabledSlots | undefined {
+  const disabled: WieldingDisabledSlots = {};
+  const nameOf = (item: Equipment): string =>
+    item.customDisplayName || item.nome;
+
+  SINGLE_HAND_SLOTS.forEach((slot) => {
+    const occupantId = state[HAND_KEY[slot]];
+    if (!occupantId || occupantId === itemId) return;
+    const occupant = lookup(occupantId);
+    if (!occupant) return;
+    if (occupantId === state[HAND_KEY[HAND_PARTNER[slot]]]) {
+      disabled[slot] = {
+        reason: `Mão ocupada por ${nameOf(
+          occupant
+        )} (duas mãos). Solte primeiro.`,
+      };
+    } else if (occupant.group === 'Escudo') {
+      disabled[slot] = {
+        reason: `Mão ocupada por ${nameOf(occupant)} (escudo). Solte primeiro.`,
+      };
+    }
+  });
+
+  if (itemId && lookup(itemId)?.group === 'Escudo') {
+    const otherShieldId = getWieldedItemIds(state).find(
+      (id) => id !== itemId && lookup(id)?.group === 'Escudo'
+    );
+    const otherShield = otherShieldId ? lookup(otherShieldId) : undefined;
+    if (otherShield) {
+      SINGLE_HAND_SLOTS.forEach((slot) => {
+        disabled[slot] = {
+          reason: `Não é possível usar dois escudos. Solte ${nameOf(
+            otherShield
+          )} primeiro.`,
+        };
+      });
+    }
+  }
+
+  return Object.keys(disabled).length > 0 ? disabled : undefined;
 }
 
 /**
@@ -231,6 +352,8 @@ export function getWornArmor<T extends Equipment>(
 export interface MigratableSheetView {
   mainHandItemId?: string;
   offHandItemId?: string;
+  extraHand1ItemId?: string;
+  extraHand2ItemId?: string;
   wornArmorId?: string;
   equipStateMigrated?: boolean;
 }
@@ -250,6 +373,8 @@ export function migrateLegacyEquipState<
   if (
     sheet.mainHandItemId !== undefined ||
     sheet.offHandItemId !== undefined ||
+    sheet.extraHand1ItemId !== undefined ||
+    sheet.extraHand2ItemId !== undefined ||
     sheet.wornArmorId !== undefined
   ) {
     return { ...sheet, equipStateMigrated: true };
@@ -307,16 +432,34 @@ export function migrateLegacyEquipState<
  * atalho silenciosamente não fazer nada, o que é pior.
  *
  * `lookup` é opcional; sem ele a regra do escudo não roda (só o fallback).
+ *
+ * `extraHands` (Quatro Braços) faz o atalho preferir um espaço livre a
+ * substituir algo: item de uma mão vai para a primeira mão vazia e arma de duas
+ * mãos para o primeiro par vazio. Sem espaço, valem as regras acima.
  */
 export function pickDefaultWieldSlot(
   state: WieldingState,
   item: Equipment,
-  lookup?: (id: string) => Equipment | undefined
+  lookup?: (id: string) => Equipment | undefined,
+  extraHands = false
 ): WieldingSlot {
   if (!item.id) return null;
   if (!isWieldable(item)) return null;
 
   const { mainHandItemId, offHandItemId } = state;
+  const isHandFree = (slot: SingleHandSlot): boolean =>
+    state[HAND_KEY[slot]] === undefined;
+  const pickTwoHandedPair = (): WieldingSlot => {
+    if (
+      extraHands &&
+      !(isHandFree('main') && isHandFree('off')) &&
+      isHandFree('extra1') &&
+      isHandFree('extra2')
+    ) {
+      return 'bothExtra';
+    }
+    return 'both';
+  };
   if (canWieldOneHanded(item)) {
     const held = getWieldingSlot(item.id, state);
     if (held !== null) return held;
@@ -330,12 +473,27 @@ export function pickDefaultWieldSlot(
     if (holdsShield(mainHandItemId) && offHandItemId === undefined) {
       return 'off';
     }
-    return 'both';
+    if (extraHands) {
+      const shieldSlot = (['extra1', 'extra2'] as SingleHandSlot[]).find(
+        (slot) =>
+          holdsShield(state[HAND_KEY[slot]]) && isHandFree(HAND_PARTNER[slot])
+      );
+      if (shieldSlot) return HAND_PARTNER[shieldSlot];
+    }
+    return pickTwoHandedPair();
   }
-  if (isTwoHanded(item)) return 'both';
+  if (isTwoHanded(item)) {
+    if (getWieldingSlot(item.id, state) === 'bothExtra') return 'bothExtra';
+    return pickTwoHandedPair();
+  }
 
   const current = getWieldingSlot(item.id, state);
   if (current !== null) return current;
+
+  if (extraHands) {
+    const freeHand = SINGLE_HAND_SLOTS.find(isHandFree);
+    if (freeHand) return freeHand;
+  }
 
   // Arma de duas mãos ocupando os dois slots: a troca começa pela principal
   // (o `applyWielding` limpa o outro slot sozinho).
@@ -376,6 +534,8 @@ export function hasMechanicalBonus(item: Equipment): boolean {
  */
 export function canSplitStack(item: Equipment): boolean {
   if (item.isAmmo) return false;
+  // Dois escudos em mãos é proibido, então nunca há "segunda cópia" empunhada.
+  if (item.group === 'Escudo') return false;
   if ((item.quantity ?? 1) < 2) return false;
   return !hasMechanicalBonus(item);
 }
@@ -459,10 +619,9 @@ export function commitWielding(
   let effectiveId = itemId;
   if (
     target &&
-    (slot === 'main' || slot === 'off') &&
+    isSingleHandSlot(slot) &&
     canSplitStack(target) &&
-    (getWieldingSlot(itemId, state) === 'main' ||
-      getWieldingSlot(itemId, state) === 'off') &&
+    isSingleHandSlot(getWieldingSlot(itemId, state)) &&
     getWieldingSlot(itemId, state) !== slot
   ) {
     const cat = target.group;
@@ -511,9 +670,7 @@ export function commitWielding(
     const sameName = list.filter(
       (it) => it.nome === target.nome && it.group === target.group
     );
-    const isWielded = (it: Equipment): boolean =>
-      it.id !== undefined &&
-      (it.id === next.mainHandItemId || it.id === next.offHandItemId);
+    const isWielded = (it: Equipment): boolean => isItemWielded(it.id, next);
 
     let mergedInto: Equipment | undefined;
     let mergedFrom: Equipment | undefined;
@@ -553,6 +710,8 @@ export function commitWielding(
   return {
     mainHandItemId: next.mainHandItemId,
     offHandItemId: next.offHandItemId,
+    extraHand1ItemId: next.extraHand1ItemId,
+    extraHand2ItemId: next.extraHand2ItemId,
     equipments,
     displayOrder,
     bagChanged,
@@ -567,15 +726,13 @@ export function pruneWielding(
   state: WieldingState,
   existingItemIds: Set<string>
 ): WieldingState {
+  const keep = (id: string | undefined): string | undefined =>
+    id && existingItemIds.has(id) ? id : undefined;
   return {
-    mainHandItemId:
-      state.mainHandItemId && existingItemIds.has(state.mainHandItemId)
-        ? state.mainHandItemId
-        : undefined,
-    offHandItemId:
-      state.offHandItemId && existingItemIds.has(state.offHandItemId)
-        ? state.offHandItemId
-        : undefined,
+    mainHandItemId: keep(state.mainHandItemId),
+    offHandItemId: keep(state.offHandItemId),
+    extraHand1ItemId: keep(state.extraHand1ItemId),
+    extraHand2ItemId: keep(state.extraHand2ItemId),
   };
 }
 

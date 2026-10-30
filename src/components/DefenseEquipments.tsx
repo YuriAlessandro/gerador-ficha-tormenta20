@@ -5,6 +5,8 @@ import DefenseItem from './DefenseItem';
 import {
   getWieldingSlot,
   WieldingSlot,
+  isItemWielded,
+  WieldingDisabledSlots,
 } from './SheetResult/BackpackModal/wielding';
 import { isProficientWithDefense } from '../functions/proficiencies';
 
@@ -14,12 +16,16 @@ interface DefenseEquipmentsProps {
   wornArmorId?: string;
   mainHandItemId?: string;
   offHandItemId?: string;
+  extraHand1ItemId?: string;
+  extraHand2ItemId?: string;
+  /** Oferece as mãos extras (poder Quatro Braços). */
+  wieldingExtraHands?: boolean;
   /** Handler to change shield wielding from this section directly. */
   onWieldingChange?: (itemId: string, slot: WieldingSlot) => void;
   /** Slot disable map per item id (e.g. 2H weapon blocking shield slots). */
   getWieldingDisabledSlots?: (
     itemId: string | undefined
-  ) => Partial<Record<'main' | 'off', { reason: string }>> | undefined;
+  ) => WieldingDisabledSlots | undefined;
   /**
    * Effective proficiency list of the sheet (class + custom − removed). When
    * provided, non-proficient armors/shields render a warning chip.
@@ -34,11 +40,19 @@ const DefenseEquipments: React.FC<DefenseEquipmentsProps> = (props) => {
     wornArmorId,
     mainHandItemId,
     offHandItemId,
+    extraHand1ItemId,
+    extraHand2ItemId,
+    wieldingExtraHands = false,
     onWieldingChange,
     getWieldingDisabledSlots,
     proficiencias,
   } = props;
-  const wieldingState = { mainHandItemId, offHandItemId };
+  const wieldingState = {
+    mainHandItemId,
+    offHandItemId,
+    extraHand1ItemId,
+    extraHand2ItemId,
+  };
 
   if (defenseEquipments.length === 0) {
     return (
@@ -82,9 +96,7 @@ const DefenseEquipments: React.FC<DefenseEquipmentsProps> = (props) => {
           equip.id !== undefined &&
           equip.id === resolvedWornId;
         const isWielded =
-          equip.group === 'Escudo' &&
-          equip.id !== undefined &&
-          (equip.id === mainHandItemId || equip.id === offHandItemId);
+          equip.group === 'Escudo' && isItemWielded(equip.id, wieldingState);
         const isShield = equip.group === 'Escudo';
         const isNonProficient = proficiencias
           ? !isProficientWithDefense(equip, proficiencias)
@@ -106,6 +118,7 @@ const DefenseEquipments: React.FC<DefenseEquipmentsProps> = (props) => {
                 ? (slot) => onWieldingChange(equip.id as string, slot)
                 : undefined
             }
+            wieldingExtraHands={wieldingExtraHands}
             wieldingDisabledSlots={
               isShield && getWieldingDisabledSlots
                 ? getWieldingDisabledSlots(equip.id)

@@ -15,6 +15,7 @@ import {
   getWieldingSlot,
   pickDefaultWieldSlot,
   WieldingSlot,
+  WieldingDisabledSlots,
 } from './SheetResult/BackpackModal/wielding';
 import { getAmmoUnits } from './SheetResult/BackpackModal/ammo';
 import { getWeaponNonProficiencyPenalty } from '../functions/proficiencies';
@@ -36,6 +37,10 @@ interface WeaponsProps {
   sheetBonuses?: SheetBonus[];
   mainHandItemId?: string;
   offHandItemId?: string;
+  extraHand1ItemId?: string;
+  extraHand2ItemId?: string;
+  /** Oferece as mãos extras (poder Quatro Braços). */
+  wieldingExtraHands?: boolean;
   onWieldingChange?: (itemId: string, slot: WieldingSlot) => void;
   /**
    * Optional disabled-slot map per item id (used when a two-handed weapon
@@ -43,7 +48,7 @@ interface WeaponsProps {
    */
   getWieldingDisabledSlots?: (
     itemId: string | undefined
-  ) => Partial<Record<'main' | 'off', { reason: string }>> | undefined;
+  ) => WieldingDisabledSlots | undefined;
   /**
    * True when at least one hand slot is currently occupied — drives the
    * "weapon not wielded" attack confirmation. Forwarded to each Weapon.
@@ -89,6 +94,9 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
     sheetBonuses,
     mainHandItemId,
     offHandItemId,
+    extraHand1ItemId,
+    extraHand2ItemId,
+    wieldingExtraHands = false,
     onWieldingChange,
     getWieldingDisabledSlots,
     wieldingTrackingActive,
@@ -110,7 +118,12 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
     );
   }
 
-  const wieldingState = { mainHandItemId, offHandItemId };
+  const wieldingState = {
+    mainHandItemId,
+    offHandItemId,
+    extraHand1ItemId,
+    extraHand2ItemId,
+  };
 
   // Resolve o item de qualquer mão para o desempate de escudo do
   // `pickDefaultWieldSlot` (o que ocupa a mão pode não ser uma arma).
@@ -148,7 +161,8 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
         defaultWieldSlot={pickDefaultWieldSlot(
           wieldingState,
           equip,
-          wieldingLookup
+          wieldingLookup,
+          wieldingExtraHands
         )}
         completeSkills={completeSkills}
         atributos={atributos}
@@ -168,6 +182,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
             ? getWieldingDisabledSlots(equip.id)
             : undefined
         }
+        wieldingExtraHands={wieldingExtraHands}
         wieldingTrackingActive={wieldingTrackingActive}
         availableAmmo={availableAmmo}
         onConsumeAmmo={onConsumeAmmo}
