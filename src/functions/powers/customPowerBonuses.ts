@@ -160,3 +160,19 @@ export function stampCustomPowerSource(
     source: { type: 'power' as const, name: powerName },
   }));
 }
+
+/**
+ * Mesma poda do poder personalizado, para os efeitos de um item criado na
+ * mochila (`Equipment.isCustom`), carimbando a origem como o item. O recálculo
+ * (`applyEquipmentBonuses`) chama de novo a cada passada — o item viaja pela
+ * nuvem e por ficha compartilhada como qualquer conteúdo de usuário.
+ */
+export function sanitizeCustomItemBonuses(
+  bonuses: SheetBonus[] | undefined,
+  itemName: string
+): SheetBonus[] {
+  return sanitizeCustomPowerBonuses(bonuses).map((bonus) => ({
+    ...bonus,
+    source: { type: 'equipment' as const, equipmentName: itemName },
+  }));
+}

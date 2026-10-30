@@ -80,6 +80,8 @@ import ItemEnchantmentsEditor, {
   EnchantmentItemType,
 } from './ItemEnchantmentsEditor';
 import { isDefenseGroup } from './equipmentCatalog';
+import CustomItemBonusesSection from './CustomItemBonusesSection';
+import { MAX_CUSTOM_POWER_BONUSES } from '../../../functions/powers/customPowerBonuses';
 import {
   buildSavedItem,
   findCatalogItem,
@@ -108,7 +110,7 @@ export interface ItemEditorDialogProps {
   ammoTypeOptions?: AmmoTypeOption[];
 }
 
-type TabKey = 'geral' | 'stats' | 'modificacoes' | 'encantamentos';
+type TabKey = 'geral' | 'stats' | 'modificacoes' | 'encantamentos' | 'efeitos';
 
 const ALL_SKILLS = Object.values(Skill);
 
@@ -207,6 +209,11 @@ function buildInitial(item: Equipment | null): ItemEditorFormState {
         damageType: e.damageType,
         source: 'user' as const,
       })),
+    // Só item criado na mochila: o snapshot base exclui os bônus derivados de
+    // melhoria/encanto, que o pipeline regenera.
+    sheetBonuses: item?.isCustom
+      ? item.baseSheetBonuses ?? item.sheetBonuses ?? []
+      : undefined,
   };
 }
 
@@ -263,6 +270,9 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
   const hasModificationsTab = modItemType !== null;
   const enchItemType = item ? enchItemTypeFor(item) : null;
   const hasEnchantmentsTab = enchItemType !== null;
+  const hasEffectsTab = !!item?.isCustom;
+  const effectsOverLimit =
+    (form.sheetBonuses?.length ?? 0) > MAX_CUSTOM_POWER_BONUSES;
 
   useEffect(() => {
     if (open) {
@@ -613,6 +623,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
           {hasEnchantmentsTab && (
             <Tab value='encantamentos' label='Encantamentos' />
           )}
+          {hasEffectsTab && <Tab value='efeitos' label='Efeitos' />}
         </Tabs>
 
         {tab === 'geral' && (
@@ -1426,10 +1437,24 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
             />
           </Stack>
         )}
+
+        {tab === 'efeitos' && hasEffectsTab && (
+          <CustomItemBonusesSection
+            group={item.group}
+            value={form.sheetBonuses ?? []}
+            onChange={(bonuses) =>
+              setForm((f) => ({ ...f, sheetBonuses: bonuses }))
+            }
+          />
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancelar</Button>
-        <Button variant='contained' onClick={handleSave}>
+        <Button
+          variant='contained'
+          onClick={handleSave}
+          disabled={effectsOverLimit}
+        >
           Salvar
         </Button>
       </DialogActions>

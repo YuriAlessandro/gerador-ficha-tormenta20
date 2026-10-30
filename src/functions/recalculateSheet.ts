@@ -91,6 +91,7 @@ import {
 } from './proficiencies';
 import { applyAttributeSubstitution } from './powers/attributeSubstitution';
 import {
+  sanitizeCustomItemBonuses,
   sanitizeCustomPowerBonuses,
   stampCustomPowerSource,
 } from './powers/customPowerBonuses';
@@ -1460,6 +1461,9 @@ function applyEquipmentBonuses(sheet: CharacterSheet): CharacterSheet {
     ...(updatedSheet.bag.equipments.Veículo || []),
     ...(updatedSheet.bag.equipments.Serviço || []),
     ...(updatedSheet.bag.equipments.Hospedagem || []),
+    // Nenhum esotérico de livro tem `sheetBonuses`; quem tem é homebrew ou item
+    // criado na mochila, e sem esta linha o efeito deles nunca era aplicado.
+    ...(updatedSheet.bag.equipments['Esotérico'] || []),
   ];
 
   // Process each equipment
@@ -1469,9 +1473,14 @@ function applyEquipmentBonuses(sheet: CharacterSheet): CharacterSheet {
     // in Step 14 from the WORN armor/shield only (see getDefenseMaterialRd), so
     // collecting them here would double-count and also grant RD from armor
     // sitting unused in the bag.
-    if (equip.sheetBonuses) {
+    // Item criado na mochila é conteúdo de usuário: poda a cada recálculo,
+    // como o poder personalizado (Step 7.1).
+    const equipBonuses = equip.isCustom
+      ? sanitizeCustomItemBonuses(equip.sheetBonuses, equip.nome)
+      : equip.sheetBonuses;
+    if (equipBonuses) {
       updatedSheet.sheetBonuses.push(
-        ...equip.sheetBonuses.filter(
+        ...equipBonuses.filter(
           (bonus) => bonus.target.type !== 'DamageReduction'
         )
       );
