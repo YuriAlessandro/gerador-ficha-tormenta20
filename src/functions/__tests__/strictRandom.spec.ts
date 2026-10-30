@@ -53,7 +53,7 @@ describe('modo estrito', () => {
         roll: rollDice(4, 6, 1, 'Z'),
         float: randomFloat('W'),
         shuffled: shuffleArray([3, 1, 2], 'V'),
-        faith: pickFaith({ Khalmyr: 0, Lena: 1 }, 'U'),
+        faith: pickFaith({ KHALMYR: 0, LENA: 1 }, 'U'),
       }),
       (gap) => gaps.push(gap)
     );
@@ -64,7 +64,7 @@ describe('modo estrito', () => {
       roll: 3,
       float: 0,
       shuffled: [3, 1, 2],
-      faith: 'Lena',
+      faith: 'LENA',
     });
     expect(gaps.map((gap) => gap.label)).toEqual([
       'X',
@@ -84,7 +84,7 @@ describe('modo estrito', () => {
     expect(gaps[2]).toMatchObject({ kind: 'roll', count: 4 });
     expect(gaps[3]).toMatchObject({ kind: 'chance' });
     expect(gaps[4]).toMatchObject({ kind: 'order' });
-    expect(gaps[5]).toMatchObject({ options: ['Lena'], picked: ['Lena'] });
+    expect(gaps[5]).toMatchObject({ options: ['LENA'], picked: ['LENA'] });
   });
 
   it('restaura o modo normal mesmo com exceção', () => {

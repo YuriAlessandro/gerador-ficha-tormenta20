@@ -174,7 +174,8 @@ const GOLEM_DESPERTO: Race = {
   setup: (race) => {
     // Gerar escolhas aleatórias
     const randomChassisId = getRandomItemFromArray(
-      GOLEM_DESPERTO_CHASSIS_NAMES
+      GOLEM_DESPERTO_CHASSIS_NAMES,
+      'Golem Desperto: chassi'
     );
     const randomEnergyId = getRandomCompatibleEnergySource(randomChassisId);
     const randomSizeId = getRandomCompatibleSize(randomChassisId);

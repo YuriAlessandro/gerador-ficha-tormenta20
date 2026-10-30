@@ -23,7 +23,7 @@ const MIN_MODIFIER_SUM = 6;
  */
 export function rollAttributePool(): number[] {
   const rolledValues = Array.from({ length: ATTRIBUTE_COUNT }, () =>
-    rollDice(4, 6, 1)
+    rollDice(4, 6, 1, 'Valor de atributo (4d6)')
   );
 
   // eslint-disable-next-line no-constant-condition
@@ -36,7 +36,7 @@ export function rollAttributePool(): number[] {
 
     rolledValues.sort((a, b) => a - b);
     rolledValues.shift();
-    rolledValues.push(rollDice(4, 6, 1));
+    rolledValues.push(rollDice(4, 6, 1, 'Valor de atributo (4d6)'));
   }
 }
 

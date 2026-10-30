@@ -64,7 +64,8 @@ const MOREAU: Race = {
   setup: (race) => {
     // Randomly select a heritage
     const heritageName = getRandomItemFromArray<MoreauHeritageName>(
-      MOREAU_HERITAGE_NAMES
+      MOREAU_HERITAGE_NAMES,
+      'Moreau: herança'
     );
     const selectedHeritage = MOREAU_HERITAGES[heritageName];
 

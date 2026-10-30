@@ -171,7 +171,10 @@ function createEffectInstance(
     switch (effect.requiresChoice) {
       case 'element':
         instance.choices = [
-          getRandomItemFromArray([...ELEMENTAL_DAMAGE_TYPES]),
+          getRandomItemFromArray(
+            [...ELEMENTAL_DAMAGE_TYPES],
+            'Golpe Pessoal: elemento'
+          ),
         ];
         break;
       case 'spell': {
@@ -181,7 +184,10 @@ function createEffectInstance(
           (spell) => spell.spellCircle === spellsCircles.c1
         );
         if (firstCircleSpells.length > 0) {
-          instance.choices = [getRandomItemFromArray(firstCircleSpells).nome];
+          instance.choices = [
+            getRandomItemFromArray(firstCircleSpells, 'Golpe Pessoal: magia')
+              .nome,
+          ];
         }
         break;
       }
@@ -232,7 +238,10 @@ function generateRandomEffects(maxCost: number): GolpePessoalEffectInstance[] {
       (effect) => effect.category === 'drawback'
     );
     if (drawbacks.length > 0) {
-      const drawback = getRandomItemFromArray(drawbacks);
+      const drawback = getRandomItemFromArray(
+        drawbacks,
+        'Golpe Pessoal: desvantagem'
+      );
       effects.push({
         effect: drawback,
         count: 1,
@@ -247,7 +256,10 @@ function generateRandomEffects(maxCost: number): GolpePessoalEffectInstance[] {
 
     if (availableEffects.length === 0) break;
 
-    const selectedEffect = getRandomItemFromArray(availableEffects);
+    const selectedEffect = getRandomItemFromArray(
+      availableEffects,
+      'Golpe Pessoal: efeito'
+    );
     const effectCost = getEffectCost(selectedEffect);
 
     if (effectCost <= remainingCost) {
@@ -265,7 +277,10 @@ function generateRandomEffects(maxCost: number): GolpePessoalEffectInstance[] {
       (effect) => effect.category !== 'drawback' && effect.cost <= maxCost + 2 // Allow some drawback compensation
     );
     if (positiveEffects.length > 0) {
-      const positiveEffect = getRandomItemFromArray(positiveEffects);
+      const positiveEffect = getRandomItemFromArray(
+        positiveEffects,
+        'Golpe Pessoal: efeito'
+      );
       effects.push(createEffectInstance(positiveEffect));
     }
   }
@@ -311,7 +326,10 @@ export function generateRandomGolpePessoal(
   const availableWeapons = getAvailableWeapons(sheet);
 
   // Select random weapon
-  const weapon = getRandomItemFromArray(availableWeapons);
+  const weapon = getRandomItemFromArray(
+    availableWeapons,
+    'Golpe Pessoal: arma'
+  );
 
   // Generate effects within cost limit
   const effects = generateRandomEffects(maxCost);

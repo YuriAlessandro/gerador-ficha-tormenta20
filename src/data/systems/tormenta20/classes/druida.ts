@@ -457,7 +457,7 @@ const DRUIDA: ClassDescription = {
       initialSpells: 2,
       spellType: 'Divine',
       qtySpellsLearnAtLevel: (level) => (level % 2 === 0 ? 1 : 0),
-      schools: pickFromArray(allSpellSchools, 3),
+      schools: pickFromArray(allSpellSchools, 3, 'Escolas de magia do Druida'),
       spellCircleAvailableAtLevel: (level) => {
         if (level < 6) return 1;
         if (level < 10) return 2;
