@@ -638,7 +638,10 @@ const ARCANISTA: ClassDescription = {
     // desserializada sem subname).
     if (!modifiedClasse.abilities) modifiedClasse.abilities = [];
     if (!modifiedClasse.periciasbasicas) modifiedClasse.periciasbasicas = [];
-    const subtype = getRandomItemFromArray(allArcanistaSubtypes);
+    const subtype = getRandomItemFromArray(
+      allArcanistaSubtypes,
+      'Caminho do Arcanista'
+    );
     modifiedClasse.subname = subtype;
     modifiedClasse.spellPath = getArcanistaSpellPath(subtype);
     modifiedClasse.abilities.push(classAbilities[subtype]);
@@ -654,13 +657,21 @@ const ARCANISTA: ClassDescription = {
         });
       }
 
-      const selectedSubType = getRandomItemFromArray(availablePaths);
+      const selectedSubType = getRandomItemFromArray(
+        availablePaths,
+        'Linhagem do Feiticeiro'
+      );
 
       if (selectedSubType.name === 'Linhagem Dracônica') {
         // Objeto novo a cada ficha: a entrada de `feiticeiroPaths` é
         // compartilhada e não pode acumular "Tipo escolhido: X".
         modifiedClasse.abilities.push(
-          buildLinhagemDraconica(getRandomItemFromArray(DRACONICA_DAMAGE_TYPES))
+          buildLinhagemDraconica(
+            getRandomItemFromArray(
+              DRACONICA_DAMAGE_TYPES,
+              'Linhagem Dracônica: tipo de dano'
+            )
+          )
         );
       } else if (selectedSubType.name === 'Linhagem Feérica') {
         modifiedClasse.periciasbasicas.push({
@@ -671,7 +682,10 @@ const ARCANISTA: ClassDescription = {
       } else if (selectedSubType.name === 'Linhagem Rubra') {
         modifiedClasse.abilities.push(selectedSubType);
       } else if (selectedSubType.name === 'Linhagem Abençoada') {
-        const deus = getRandomItemFromArray(DEUSES_MAIORES);
+        const deus = getRandomItemFromArray(
+          DEUSES_MAIORES,
+          'Linhagem Abençoada: deus'
+        );
         const linhagemAbilities = createLinhagemAbencoada(deus);
         if (modifiedClasse.spellPath) {
           modifiedClasse.spellPath = applyLinhagemAbencoadaToSpellPath(

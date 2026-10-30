@@ -112,7 +112,8 @@ function makeOriginGeneralPowerGetter(
 
     const randomPower = getNotRepeatedRandom(
       sheet.generalPowers,
-      allowedByRequirement
+      allowedByRequirement,
+      'Origem: poder geral'
     );
 
     if (randomPower) {
@@ -126,7 +127,8 @@ function makeOriginGeneralPowerGetter(
 
     const randomSkillFromOrigin = getNotRepeatedRandom(
       sheet.skills,
-      origin.pericias
+      origin.pericias,
+      'Origem: perícia'
     );
     if (randomSkillFromOrigin) {
       sheet.skills.push(randomSkillFromOrigin);
@@ -139,7 +141,8 @@ function makeOriginGeneralPowerGetter(
 
     const randomSkill = getNotRepeatedRandom(
       sheet.skills,
-      Object.values(Skill)
+      Object.values(Skill),
+      'Origem: perícia'
     );
 
     sheet.skills.push(randomSkill);
@@ -233,7 +236,11 @@ function sortDefaultBenefits(
   // Otherwise, randomly pick 2 benefits (for random generator)
   const benefits = returnAllOptions
     ? allBenefits
-    : pickFromArray<Skill | OriginPower | GeneralPower>(allBenefits, 2);
+    : pickFromArray<Skill | OriginPower | GeneralPower>(
+        allBenefits,
+        2,
+        'Benefícios da origem'
+      );
 
   return getBenefits(benefits, origin);
 }
@@ -262,7 +269,11 @@ function sortAmnesicBenefits(
   usedSkills: Skill[],
   origin: Origin
 ): OriginBenefits {
-  const newSkill = getNotRepeatedRandomSkill(usedSkills);
+  const newSkill = getNotRepeatedRandomSkill(
+    usedSkills,
+    undefined,
+    'Amnésico: perícia'
+  );
 
   return {
     skills: [newSkill],
@@ -312,10 +323,14 @@ function getBenefitsWithLimitedPower(
   }
 
   // Aleatório: apenas UM poder do tipo limitado entra no pool de sorteio.
-  const oneLimitedPower = getRandomItemFromArray(limitedPool);
+  const oneLimitedPower = getRandomItemFromArray(
+    limitedPool,
+    'Origem: poder do tipo limitado'
+  );
   const picked = pickFromArray<Skill | OriginPower | GeneralPower>(
     [...notRepeatedSkills, ...actualOriginPowers, oneLimitedPower],
-    2
+    2,
+    'Benefícios da origem'
   );
 
   const isLimited = (b: Skill | OriginPower | GeneralPower) =>
@@ -750,7 +765,7 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ],
     // T$ 2d6, "seu último salário" (JdA p. 92).
-    getMoney: () => rollDice(2, 6),
+    getMoney: () => rollDice(2, 6, 0, 'Dinheiro da origem (2d6)'),
     pericias: [Skill.ATLETISMO, Skill.JOGATINA, Skill.PILOTAGEM],
     poderes: [
       originPowers.PASSAGEM_DE_NAVIO,

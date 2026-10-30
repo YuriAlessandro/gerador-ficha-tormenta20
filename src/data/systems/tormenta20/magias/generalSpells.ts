@@ -5695,7 +5695,7 @@ export function addOrCheapenSpell(
 }
 
 function getRandomSpells(allowedSpells: Spell[], qtd: number) {
-  return pickFromArray(allowedSpells, qtd);
+  return pickFromArray(allowedSpells, qtd, 'Magias');
 }
 
 export function addOrCheapenRandomSpells(

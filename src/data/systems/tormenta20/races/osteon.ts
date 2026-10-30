@@ -1,5 +1,8 @@
 import Race from '../../../../interfaces/Race';
-import { getRandomItemFromArray } from '../../../../functions/randomUtils';
+import {
+  getRandomItemFromArray,
+  randomFloat,
+} from '../../../../functions/randomUtils';
 import {
   getRaceDisplacement,
   getRaceSize,
@@ -74,10 +77,10 @@ const OSTEON: Race = {
       (element) => element.name !== 'Golem' && element.name !== 'Osteon'
     );
 
-    const randomNumber = Math.random();
+    const randomNumber = randomFloat('Raça antiga (humano ou outra)');
     let oldRace = HUMANO;
     if (randomNumber < 0.2) {
-      oldRace = getRandomItemFromArray(validRaces);
+      oldRace = getRandomItemFromArray(validRaces, 'Raça antiga');
     }
 
     return {

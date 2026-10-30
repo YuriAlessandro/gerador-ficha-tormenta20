@@ -17,22 +17,16 @@ import CharacterSheet, {
   SheetActionHistoryEntry,
 } from '@/interfaces/CharacterSheet';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
-import {
-  ClassAbility,
-  ClassDescription,
-  ClassPower,
-  ClassPowerGrant,
-} from '@/interfaces/Class';
+import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import {
   GeneralPower,
   OriginPower,
   RequirementType,
 } from '@/interfaces/Poderes';
-import { Spell } from '@/interfaces/Spells';
+
 import { CompanionSheet } from '@/interfaces/Companion';
 import {
   getAllowedClassPowers,
-  getCharacterPowerNames,
   getForeignClassPowers,
   getOwnedGeneralPowers,
   getWaivedClassPowers,
@@ -42,63 +36,48 @@ import {
 import { getActiveWaivers } from '@/functions/powers/prerequisiteWaivers';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
-import {
-  getPowerSelectionRequirements,
-  getFilteredAvailableOptions,
-  countRequirementSelections,
-  isRequirementApplicable,
-  resolvePowerRequirements,
-  resolveLearnSkillRemainingPick,
-  ResolvedRequirement,
-} from '@/functions/powers/manualPowerSelection';
-import { ManualPowerSelections } from '@/interfaces/PowerSelections';
-import {
-  getCurrentPlateau,
-  getPlateauByLevel,
-  getDeityMaxSpellCircleFor,
-} from '@/functions/powers/general';
+import { getPowerSelectionRequirements } from '@/functions/powers/manualPowerSelection';
+
+import { getCurrentPlateau } from '@/functions/powers/general';
 import { applyPower } from '@/functions/general';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import Skill from '@/interfaces/Skills';
-import { getEffectiveAttributeModifier } from '@/functions/effectiveAttributes';
+
 import {
   getClassLevel,
   initializeClassLevels,
   findClassDescription,
   buildSpellPathFromSetup,
   serializeSpellPath,
-  applySerializedOverrides,
-  getClassSetupAbilities,
-  getBaseAbilitiesForLevelUp,
-  resolveClassSetup,
-  classSetupNeedsRecovery,
-  classNeedsFirstLevelSetup,
 } from '@/functions/multiclass';
-import {
-  partitionCrossTraditionByCircle,
-  buildSpellPool,
-  countTowardsCrossMinimum,
-  getSchoolChoiceConfig,
-} from '@/functions/spellPathUtils';
-import { getPendingAppendedSchools } from '@/functions/spells/spellSchoolEditing';
+
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
+import { createCompanion } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import {
-  countNaturalWeapons,
-  createCompanion,
-  getCompanionTrickDefinition,
-  getTrickAvailability,
-  isTrickChoiceComplete,
-} from '@/data/systems/tormenta20/herois-de-arton/companion';
-import {
-  ENGENHOQUEIRO_POWER,
-  buildEngenhocaSpellPool,
-  countEngenhocas,
-  getEngenhocaLimit,
   getEngenhocaTraditionNames,
-  getMaxEngenhocaCircle,
   getOficioEngenhoqueiroBonus,
-  hasEngenhoqueiro,
 } from '@/functions/spells/engenhoca';
+import {
+  buildLevelUpWizardContext,
+  classGrantsPowerAtLevel,
+  CONQUISTAR_PELOS_NUMEROS,
+  findPowerGrant,
+  getLevelUpAbilitiesForLevel,
+  getLevelUpEngenhocaInfo,
+  getLevelUpMergedAbilities,
+  getLevelUpRacePicks,
+  getLevelUpScalingPowers,
+  getLevelUpSpellInfo,
+  getLevelUpSteps,
+  getLevelUpSwappableOriginPowers,
+  getProjectedCompanion as projectCompanion,
+  getSelectedLevelUpPower,
+  getTreinoEspecializadoChoice,
+  isLevelUpStepComplete,
+  RaceLevelUpPick,
+  TREINO_ESPECIALIZADO,
+  TREINO_INTENSIVO,
+} from '@/functions/wizardRules/levelUpWizardRules';
 import OriginPowerSwapStep from './steps/OriginPowerSwapStep';
 import PowerSelectionStep from './steps/PowerSelectionStep';
 import LevelSpellSelectionStep from './steps/LevelSpellSelectionStep';
@@ -115,32 +94,10 @@ import {
   CompanionTrickPatch,
 } from './companionTrickSelection';
 import CompanionCreationStep from '../CharacterCreationWizard/steps/CompanionCreationStep';
-import RaceLevelUpPickStep, {
-  RaceLevelUpPick,
-} from './steps/RaceLevelUpPickStep';
+import RaceLevelUpPickStep from './steps/RaceLevelUpPickStep';
 
-/**
- * A concessão de poder da classe neste nível.
- *
- * `powerGrants` ausente = padrão de T20 (todo nível a partir do 2º concede um
- * poder da própria classe), representado por `undefined` aqui e tratado como
- * "concede, da própria classe" por quem chama.
- */
-export function findPowerGrant(
-  classDesc: ClassDescription | undefined,
-  level: number
-): ClassPowerGrant | undefined {
-  return classDesc?.powerGrants?.find((grant) => grant.level === level);
-}
-
-/** A classe concede escolha de poder neste nível? */
-export function classGrantsPowerAtLevel(
-  classDesc: ClassDescription | undefined,
-  level: number
-): boolean {
-  if (!classDesc?.powerGrants) return true;
-  return !!findPowerGrant(classDesc, level);
-}
+// Movidas para as regras puras; reexportadas para quem já importava daqui.
+export { findPowerGrant, classGrantsPowerAtLevel };
 
 interface LevelUpWizardModalProps {
   open: boolean;
@@ -150,18 +107,6 @@ interface LevelUpWizardModalProps {
   onConfirm: (levelUpSelections: LevelUpSelections[]) => void;
   onCancel: () => void;
 }
-
-// Treinador nível 5: escolha de Treino Especializado
-const TREINO_ESPECIALIZADO = 'Treino Especializado';
-const CONQUISTAR_PELOS_NUMEROS = 'Conquistar pelos Números';
-const TREINO_INTENSIVO = 'Treino Intensivo';
-
-// Escolha (pendente) de Treino Especializado feita no step 'Efeitos de
-// Habilidades' do nível atual
-const getTreinoEspecializadoChoice = (
-  sel: LevelUpSelections
-): string | undefined =>
-  sel.abilityEffectSelections?.[TREINO_ESPECIALIZADO]?.chosenOption?.[0];
 
 /**
  * O poder tem algum grupo de pré-requisitos cuja exigência de NÍVEL já está
@@ -276,60 +221,38 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     }
   }, [open, initialSheet]);
 
-  // Helper to resolve the selected power based on power choice type
-  const getSelectedPower = (
-    sel: LevelUpSelections
-  ): ClassPower | GeneralPower | undefined => {
-    if (sel.powerChoice === 'class') return sel.selectedClassPower;
-    if (sel.powerChoice === 'almaLivre') return sel.selectedAlmaLivrePower;
-    return sel.selectedGeneralPower;
-  };
-
-  // Get the selected class name and compute class level for the current level-up
-  const selectedClassName =
-    currentLevelSelection.selectedClassName || simulatedSheet.classe.name;
-  const { selectedClassSubname } = currentLevelSelection;
-  const selectedClassLevel =
-    getClassLevel(simulatedSheet, selectedClassName) + 1; // +1 because we're adding this level
-  const selectedClassDesc = findClassDescription(
+  /**
+   * Derivados do nível corrente, das regras puras do assistente
+   * (`levelUpWizardRules`), as mesmas que o motor sem sorteio usa.
+   */
+  const levelCtx = buildLevelUpWizardContext({
+    sheet: simulatedSheet,
+    initialSheet,
+    level: currentLevel,
+    selection: currentLevelSelection,
+    supplements,
+    multiclassEnabled: isMulticlassEnabled,
+  });
+  const {
     selectedClassName,
     selectedClassSubname,
-    supplements
-  );
+    selectedClassLevel,
+    selectedClassDesc,
+    sheetForCurrentLevel,
+    resolvedClassSetup,
+    isFirstLevelInNewClass,
+    recoveringLinhagemDeus,
+  } = levelCtx;
 
-  // Sheet with nivel reflecting the current level being processed
-  // (simulatedSheet.nivel lags behind on the first level-up of each session)
-  const sheetForCurrentLevel: CharacterSheet = {
-    ...simulatedSheet,
-    nivel: currentLevel,
-  };
+  const getSelectedPower = getSelectedLevelUpPower;
 
-  // Setup da classe secundária: o do nível corrente ou o gravado na ficha no
-  // 1º nível dela (o poder concedido da Linhagem Abençoada sai no 2º).
-  const resolvedClassSetup = resolveClassSetup(
-    simulatedSheet,
-    selectedClassName,
-    currentLevelSelection.classSetup
-  );
-
-  // Habilidades da classe que está subindo de nível. As injetadas no setup
-  // (linhagens do Feiticeiro) vivem na FICHA, não na entrada do registry — por
-  // isso a mescla. Fonte única do passo "Efeitos de Habilidades": detecção,
-  // render e validação.
-  const getMergedClassAbilities = (): ClassAbility[] => [
-    ...getBaseAbilitiesForLevelUp(
-      simulatedSheet.classe,
-      selectedClassDesc,
-      selectedClassName
-    ),
-    ...getClassSetupAbilities(selectedClassName, resolvedClassSetup),
-  ];
+  // Fonte única do passo "Efeitos de Habilidades": detecção, render e validação.
+  const getMergedClassAbilities = (): ClassAbility[] =>
+    getLevelUpMergedAbilities(levelCtx);
 
   // Só as que estreiam neste nível de CLASSE (importa na multiclasse).
   const getAbilitiesForCurrentLevel = (): ClassAbility[] =>
-    getMergedClassAbilities().filter(
-      (ability) => ability.nivel === selectedClassLevel
-    );
+    getLevelUpAbilitiesForLevel(levelCtx);
 
   const getSheetWithCurrentLevelAbilities = (
     baseSheet: CharacterSheet
@@ -384,42 +307,11 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     [sheetForCurrentLevel, selectedClassName, selectedClassLevel]
   );
 
-  // Companheiro com os truques pendentes da OUTRA razão (auto/power) deste
-  // nível projetados sobre os truques já refletidos no simulatedSheet — evita
-  // escolher o mesmo truque não-repetível nos dois steps do mesmo nível
   const getProjectedCompanion = (
     reason: 'auto' | 'power',
     companionIndex: number
-  ): CompanionSheet | undefined => {
-    const base = simulatedSheet.companions?.[companionIndex];
-    if (!base) return undefined;
-    const pendingFromOtherStep = (
-      currentLevelSelection.companionTrickSelections || []
-    )
-      .filter((e) => e.reason !== reason && e.companionIndex === companionIndex)
-      .map((e) => e.trick);
-    if (pendingFromOtherStep.length === 0) return base;
-    return { ...base, tricks: [...base.tricks, ...pendingFromOtherStep] };
-  };
-
-  // Multiclass: first level in a new class grants no power
-  const isFirstLevelInNewClass =
-    selectedClassLevel === 1 &&
-    selectedClassName !== simulatedSheet.classe.name;
-
-  // Classes that require user choices during first-level setup (variant-aware:
-  // ex. Magimarcialista, variante de Bardo, herda o setup de escolas; variantes
-  // com spellPath estático próprio, ex. Necromante, não exigem configuração)
-  const recoveringLinhagemDeus = classSetupNeedsRecovery(
-    simulatedSheet,
-    selectedClassName,
-    selectedClassLevel
-  );
-  const classNeedsUserSetup =
-    (isFirstLevelInNewClass &&
-      !!selectedClassDesc &&
-      classNeedsFirstLevelSetup(selectedClassDesc)) ||
-    recoveringLinhagemDeus;
+  ): CompanionSheet | undefined =>
+    projectCompanion(levelCtx, reason, companionIndex);
 
   // Get available powers for current simulated sheet
   const getAvailablePowers = (
@@ -588,699 +480,24 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   };
 
   // Get spell info for current level (uses selected class's spellPath and class level)
-  const getSpellInfo = (): {
-    shouldLearnSpells: boolean;
-    spellCount: number;
-    spellCircle: number;
-    availableSpells: Spell[];
-    crossTraditionSpellNames: Set<string>;
-    sharedTraditionSpellNames: Set<string>;
-    crossTraditionLabel: string;
-    crossTraditionLimit?: number;
-    minCrossTraditionSpells: number;
-  } | null => {
-    // Use the selected class's spellPath (for multiclass support)
-    // For first level in new class, build spellPath from setup choices
-    let spellPath;
-    if (isFirstLevelInNewClass) {
-      spellPath = buildSpellPathFromSetup(
-        selectedClassName,
-        selectedClassSubname,
-        currentLevelSelection.classSetup,
-        supplements
-      );
-    } else {
-      const activeClassDesc = selectedClassDesc || simulatedSheet.classe;
-      // Check multiclassSpellPaths for secondary caster classes (spellPath stored from setup)
-      const storedPath =
-        simulatedSheet.multiclassSpellPaths?.[selectedClassName];
-      if (storedPath && activeClassDesc.name !== simulatedSheet.classe.name) {
-        // Rebuild full SpellPath with functions from the stored serializable data
-        // O subtipo do Arcanista vem do setup gravado: sem ele o registry
-        // cai no setup() aleatório e sorteia Mago/Bruxo/Feiticeiro.
-        spellPath = buildSpellPathFromSetup(
-          storedPath.className,
-          storedPath.classSubname,
-          { ...resolvedClassSetup, spellSchools: storedPath.schools },
-          supplements
-        );
-        if (spellPath) applySerializedOverrides(spellPath, storedPath);
-      } else {
-        // simulatedSheet.classe.spellPath has setup() applied (at creation and
-        // rehydrated on load); selectedClassDesc from dataRegistry does not.
-        const isLevelingMainClass =
-          activeClassDesc.name === simulatedSheet.classe.name;
-        spellPath = isLevelingMainClass
-          ? simulatedSheet.classe.spellPath || activeClassDesc.spellPath || null
-          : activeClassDesc.spellPath || null;
-      }
-    }
-    if (!spellPath) {
-      return null;
-    }
+  const getSpellInfo = () => getLevelUpSpellInfo(levelCtx);
 
-    // Defesa: uma ficha carregada quando a classe não estava disponível
-    // (suplemento desativado, homebrew ainda não registrado) chega com o
-    // spellPath sem as funções — perdidas na serialização e não restauradas.
-    // Tenta reconstruir pelo registry (todos os suplementos) preservando os
-    // campos gravados na ficha; se não der, pula o passo de magias em vez de
-    // derrubar a tela.
-    if (typeof spellPath.qtySpellsLearnAtLevel !== 'function') {
-      const rebuilt = buildSpellPathFromSetup(
-        selectedClassName,
-        selectedClassSubname,
-        { spellSchools: spellPath.schools },
-        undefined
-      );
-      if (rebuilt) {
-        applySerializedOverrides(
-          rebuilt,
-          serializeSpellPath(spellPath, selectedClassName, selectedClassSubname)
-        );
-      }
-      spellPath = rebuilt;
-    }
-    if (
-      !spellPath ||
-      typeof spellPath.qtySpellsLearnAtLevel !== 'function' ||
-      typeof spellPath.spellCircleAvailableAtLevel !== 'function'
-    ) {
-      return null;
-    }
+  const getRaceLevelUpPicks = (): RaceLevelUpPick[] =>
+    getLevelUpRacePicks(levelCtx);
 
-    // Use CLASS level for spell progression, not character level
-    // For first level in new class via multiclass, use initialSpells
-    let spellCount;
-    if (isFirstLevelInNewClass && spellPath.initialSpells > 0) {
-      spellCount = spellPath.initialSpells;
-    } else {
-      spellCount = spellPath.qtySpellsLearnAtLevel(selectedClassLevel);
-    }
+  const getScalingPowersForLevelUp = (): GeneralPower[] =>
+    getLevelUpScalingPowers(levelCtx);
 
-    if (spellCount === 0) {
-      return null; // No spells this level
-    }
-
-    // Devoto de deus menor: a divindade limita o círculo, mesmo que o nível já
-    // desse acesso a círculos superiores.
-    const levelCircle =
-      spellPath.spellCircleAvailableAtLevel(selectedClassLevel);
-    const deityMaxCircle = getDeityMaxSpellCircleFor(
-      initialSheet.devoto?.divindade?.statusDivino,
-      spellPath.spellType
-    );
-    const spellCircle =
-      deityMaxCircle === null
-        ? levelCircle
-        : Math.min(levelCircle, deityMaxCircle);
-
-    // Poderes que destravam círculos da tradição oposta (Herança
-    // Aprimorada/Superior). Inclui a escolha PENDENTE deste level-up: Herança
-    // Superior exige nível 11 e o Feiticeiro aprende magia justamente no 11.
-    const pendingPowerName =
-      currentLevelSelection.powerChoice === 'class'
-        ? currentLevelSelection.selectedClassPower?.name
-        : currentLevelSelection.selectedGeneralPower?.name;
-    const ownedPowerNames = [
-      ...getCharacterPowerNames(simulatedSheet),
-      ...(pendingPowerName ? [pendingPowerName] : []),
-    ];
-
-    // Escola adicional escolhida NESTE nível (Xamã Místico): as magias dela já
-    // entram no pool. Sem `schools`, a classe aprende de todas — nada a somar.
-    const pendingSchools = getPendingAppendedSchools(
-      getSelectedPower(currentLevelSelection),
-      currentLevelSelection.powerEffectSelections,
-      selectedClassDesc || simulatedSheet.classe
-    );
-    if (pendingSchools.length > 0 && spellPath.schools) {
-      spellPath = {
-        ...spellPath,
-        schools: Array.from(new Set([...spellPath.schools, ...pendingSchools])),
-      };
-    }
-
-    const pool = buildSpellPool({
-      spellPath,
-      maxCircle: spellCircle,
-      supplements,
-      ownedPowerNames,
-    });
-    let poolSpells = pool.spells;
-    const { crossNamesByCircle } = pool;
-
-    // Teurgista Místico: aplica o limite POR CÍRCULO. Círculos onde o
-    // personagem já atingiu o limite têm suas magias cross removidas do pool;
-    // círculos ainda abertos continuam ofertando. `crossNames` passa a conter
-    // apenas os nomes dos círculos ainda abertos. Sem limite (Linhagem
-    // Abençoada), valem todos os nomes cross do pool.
-    let { crossNames } = pool;
-    if (spellPath.crossTraditionLimit && crossNamesByCircle.size > 0) {
-      const { removeNames, keepNames } = partitionCrossTraditionByCircle(
-        crossNamesByCircle,
-        simulatedSheet.spells.map((s) => s.nome),
-        spellPath.crossTraditionLimit
-      );
-      if (removeNames.size > 0) {
-        poolSpells = poolSpells.filter((s) => !removeNames.has(s.nome));
-      }
-      crossNames = keepNames;
-    }
-
-    // Filter out spells already known
-    const knownSpellNames = simulatedSheet.spells.map((s) => s.nome);
-    const availableSpells = poolSpells.filter(
-      (s) => !knownSpellNames.includes(s.nome)
-    );
-
-    return {
-      shouldLearnSpells: true,
-      spellCount,
-      spellCircle,
-      availableSpells,
-      crossTraditionSpellNames: crossNames,
-      sharedTraditionSpellNames: pool.sharedNames,
-      crossTraditionLabel:
-        spellPath.spellType === 'Arcane' ? 'Divina' : 'Arcana',
-      crossTraditionLimit: spellPath.crossTraditionLimit,
-      // Linhagem Abençoada: uma das magias iniciais tem que ser divina. Só no
-      // 1º nível da classe, como na criação.
-      minCrossTraditionSpells: isFirstLevelInNewClass
-        ? spellPath.crossTraditionRules?.minInitialSpells ?? 0
-        : 0,
-    };
-  };
-
-  // Check if selected power needs effect selections
-  const needsPowerEffectSelections = (): boolean => {
-    const power =
-      currentLevelSelection.powerChoice === 'class'
-        ? currentLevelSelection.selectedClassPower
-        : currentLevelSelection.selectedGeneralPower;
-
-    if (!power) return false;
-
-    const requirements = getPowerSelectionRequirements(power);
-    return requirements !== null && requirements.requirements.length > 0;
-  };
-
-  // Check if class abilities for this level need effect selections
-  const needsAbilityEffectSelections = (): boolean =>
-    getAbilitiesForCurrentLevel().some((ability) => {
-      const requirements = getPowerSelectionRequirements(ability);
-      // Requisitos de outro caminho (Vassalo Soldado x Governante) não pedem
-      // nada — sem o filtro o passo aparecia vazio.
-      return (requirements?.requirements ?? []).some((requirement) =>
-        isRequirementApplicable(requirement, sheetForCurrentLevel)
-      );
-    });
-
-  // Habilidades de raça que concedem novas escolhas ("picks") ao subir de nível
-  // (config `levelUp` na ação `chooseFromOptions`). Apenas o caso ADITIVO
-  // (`substitutes === 'none'`) é tratado aqui; a substituição por poder de
-  // classe/geral é tratada no fluxo de escolha de poder.
-  const getRaceLevelUpPicks = (): RaceLevelUpPick[] => {
-    const abilities = simulatedSheet.raca?.abilities || [];
-    const result: RaceLevelUpPick[] = [];
-    abilities.forEach((ability) => {
-      (ability.sheetActions || []).forEach((sheetAction) => {
-        const { action } = sheetAction;
-        if (
-          action.type === 'chooseFromOptions' &&
-          action.levelUp &&
-          action.levelUp.substitutes === 'none' &&
-          action.levelUp.pickPerLevelUp > 0 &&
-          action.options.length > 0
-        ) {
-          result.push({
-            optionKey: action.optionKey,
-            abilityName: ability.name,
-            pickPerLevelUp: action.levelUp.pickPerLevelUp,
-            options: action.options.map((o) => ({
-              name: o.name,
-              text: o.text,
-              repeatable: o.repeatable,
-            })),
-          });
-        }
-      });
-    });
-    return result;
-  };
-
-  // Poderes concedidos já na ficha que ganham mais perícias por patamar (ex.:
-  // Biblioteca Divina). Só relevante quando ESTE nível cruza um patamar —
-  // fora disso o poder não tem nada de novo pra oferecer.
-  const getScalingPowersForLevelUp = (): GeneralPower[] => {
-    const oldPlateau = getPlateauByLevel(simulatedSheet.nivel);
-    const newPlateau = getCurrentPlateau(sheetForCurrentLevel);
-    if (newPlateau <= oldPlateau) return [];
-
-    // Poderes concedidos por divindade (ex.: Biblioteca Divina) NÃO ficam em
-    // `generalPowers` — moram em `devoto.poderes`, um campo separado.
-    return [
-      ...(simulatedSheet.generalPowers || []),
-      ...(simulatedSheet.devoto?.poderes || []),
-    ].filter((power) =>
-      power.sheetActions?.some(
-        (sa) =>
-          sa.action.type === 'learnSkill' && sa.action.perTierAboveIniciante
-      )
-    );
-  };
-
-  /**
-   * Poderes de origem cujo texto prevê trocar o poder escolhido entre
-   * aventuras (Cosmopolita, Citadino Abastado). Gateado pelo marcador
-   * `swappableAtLevelUp` e não por "tem requisito": Futura Lenda e Duplo
-   * Feérico também escolhem, mas de forma permanente.
-   */
   const getSwappableOriginPowers = (): OriginPower[] =>
-    (simulatedSheet.origin?.powers ?? []).filter(
-      (power) =>
-        power.swappableAtLevelUp &&
-        getPowerSelectionRequirements(power) !== null
-    );
+    getLevelUpSwappableOriginPowers(levelCtx);
 
-  /**
-   * Fabricação de engenhocas neste nível (JdA p. 70), ou `null` quando o passo
-   * não se aplica: sem Engenhoqueiro (na ficha ou escolhido agora), sem vaga
-   * no limite ou sem magia para fabricar.
-   */
-  const getEngenhocaInfo = () => {
-    const pendingPower = getSelectedPower(currentLevelSelection);
-    const pendingNames = pendingPower ? [pendingPower.name] : [];
-    if (
-      !hasEngenhoqueiro(simulatedSheet) &&
-      !pendingNames.includes(ENGENHOQUEIRO_POWER)
-    ) {
-      return null;
-    }
+  const getEngenhocaInfo = () => getLevelUpEngenhocaInfo(levelCtx);
 
-    const inventorLevel =
-      selectedClassName === 'Inventor'
-        ? selectedClassLevel
-        : getClassLevel(simulatedSheet, 'Inventor');
-    const maxCircle = getMaxEngenhocaCircle(inventorLevel);
-    const slots =
-      getEngenhocaLimit(sheetForCurrentLevel, pendingNames) -
-      countEngenhocas(simulatedSheet.spells ?? []);
-    if (slots <= 0) return null;
-
-    // Magia aprendida neste mesmo nível também já é "da ficha".
-    const learnedNow = new Set(
-      (currentLevelSelection.spellsLearned ?? []).map((s) => s.nome)
-    );
-    const availableSpells = buildEngenhocaSpellPool(
-      simulatedSheet,
-      maxCircle,
-      supplements
-    )
-      .filter((spell) => !learnedNow.has(spell.nome))
-      .sort((a, b) => a.nome.localeCompare(b.nome));
-    if (availableSpells.length === 0) return null;
-
-    return {
-      availableSpells,
-      maxCircle,
-      slots,
-      money: simulatedSheet.dinheiro ?? 0,
-      maxAprimoramentoPm: Math.max(
-        0,
-        getEffectiveAttributeModifier(
-          sheetForCurrentLevel,
-          Atributo.INTELIGENCIA
-        )
-      ),
-    };
-  };
-
-  // Build steps for current level
-  const getSteps = (): string[] => {
-    const steps: string[] = [];
-    // Multiclass: add class selection step if feature is enabled (even for non-supporters)
-    if (isMulticlassEnabled) {
-      steps.push('Escolha de Classe');
-    }
-    // Multiclass: class setup step for classes needing user choices (Arcanista, Bardo, Druida)
-    if (classNeedsUserSetup) {
-      steps.push('Configuração da Classe');
-    }
-    steps.push('Ganhos do Nível');
-
-    // Multiclasse: primeiro nível de Treinador exige criação do Melhor Amigo
-    if (
-      isFirstLevelInNewClass &&
-      selectedClassName === 'Treinador' &&
-      !simulatedSheet.companions?.length
-    ) {
-      steps.push('Melhor Amigo');
-    }
-
-    // First level in a new class (multiclass) grants no power.
-    // Classes com `powerGrants` (Vassalo) só concedem poder em certos níveis —
-    // nos demais o passo não deve nem aparecer.
-    if (
-      !isFirstLevelInNewClass &&
-      classGrantsPowerAtLevel(selectedClassDesc, selectedClassLevel)
-    ) {
-      steps.push('Escolha de Poder');
-
-      if (needsPowerEffectSelections()) {
-        steps.push('Efeitos do Poder');
-      }
-    }
-
-    if (needsAbilityEffectSelections()) {
-      steps.push('Efeitos de Habilidades');
-    }
-
-    // Treinador 5: Conquistar pelos Números concede um segundo melhor amigo,
-    // que o jogador personaliza como o primeiro
-    const treinoChoice = getTreinoEspecializadoChoice(currentLevelSelection);
-    if (
-      selectedClassName === 'Treinador' &&
-      selectedClassLevel === 5 &&
-      simulatedSheet.companions?.length &&
-      treinoChoice === CONQUISTAR_PELOS_NUMEROS
-    ) {
-      steps.push('Segundo Melhor Amigo');
-    }
-
-    if (getRaceLevelUpPicks().length > 0) {
-      steps.push('Escolhas de Raça');
-    }
-
-    if (getScalingPowersForLevelUp().length > 0) {
-      steps.push('Perícias por Patamar');
-    }
-
-    if (getSwappableOriginPowers().length > 0) {
-      steps.push('Benefício da Origem');
-    }
-
-    const spellInfo = getSpellInfo();
-    if (spellInfo && spellInfo.shouldLearnSpells) {
-      steps.push('Seleção de Magias');
-    }
-
-    if (getEngenhocaInfo()) {
-      steps.push('Engenhocas');
-    }
-
-    // Treinador: truque do parceiro nos níveis 4, 7, 10, 13, 16, 19
-    // Treino Intensivo: truque extra nos níveis 5 e 11 (a escolha pendente do
-    // próprio nível 5 também conta, antes de ser refletida no sheet simulado)
-    const COMPANION_TRICK_LEVELS = [4, 7, 10, 13, 16, 19];
-    const hasTreinoIntensivo =
-      simulatedSheet.companions?.[0]?.treinoIntensivo ||
-      (selectedClassName === 'Treinador' &&
-        selectedClassLevel === 5 &&
-        treinoChoice === TREINO_INTENSIVO);
-    const allTrickLevels = hasTreinoIntensivo
-      ? [...COMPANION_TRICK_LEVELS, 5, 11]
-      : COMPANION_TRICK_LEVELS;
-    if (
-      selectedClassName === 'Treinador' &&
-      allTrickLevels.includes(selectedClassLevel) &&
-      simulatedSheet.companions?.length
-    ) {
-      steps.push('Truque do Melhor Amigo');
-    }
-
-    // Treinador: poder "Ensinar Truque" concede um truque adicional ao melhor amigo
-    if (
-      currentLevelSelection.powerChoice === 'class' &&
-      currentLevelSelection.selectedClassPower?.name === 'Ensinar Truque' &&
-      simulatedSheet.companions?.length
-    ) {
-      steps.push('Truque do Melhor Amigo (Ensinar Truque)');
-    }
-
-    return steps;
-  };
-
-  const steps = getSteps();
-
-  /**
-   * Toda escolha exigida foi feita? Compartilhado pelos passos "Efeitos do
-   * Poder" e "Efeitos de Habilidades", que derivam os requisitos do MESMO
-   * `resolvePowerRequirements` que o `PowerEffectSelectionStep` usa para
-   * desenhar os seletores — assim não existe requisito que trave o botão
-   * "Próximo" sem ter onde escolher.
-   */
-  const areRequirementsSatisfied = (
-    requirements: ResolvedRequirement[],
-    allSelections: ManualPowerSelections
-  ): boolean =>
-    requirements.every(({ selectionKey, ownerName, requirement: req }) => {
-      const { type } = req;
-      const effectSelections = allSelections[selectionKey] || {};
-
-      // Requisição declarada opcional (ex.: Arma Amada) nunca bloqueia
-      if (req.optional) return true;
-
-      // Golpe Pessoal usa um construtor próprio e tem availableOptions vazio
-      // por design — exige que um build tenha sido montado pelo usuário.
-      if (type === 'buildGolpePessoal') {
-        return !!effectSelections.golpePessoalBuild;
-      }
-
-      // Check available options - if none available, consider requirement satisfied
-      const availableOptions = getFilteredAvailableOptions(
-        req,
-        sheetForCurrentLevel
-      );
-      if (availableOptions.length === 0) return true;
-
-      // If fewer options than required, adjust the effective pick count.
-      // `resolveLearnSkillRemainingPick` escala o piso declarado pelo patamar
-      // atual e subtrai o que o histórico já concedeu (Biblioteca Divina e
-      // similares); para os demais tipos devolve `pick`.
-      const effectivePick = Math.min(
-        resolveLearnSkillRemainingPick(
-          req,
-          getCurrentPlateau(sheetForCurrentLevel),
-          sheetForCurrentLevel,
-          ownerName
-        ),
-        availableOptions.length
-      );
-
-      const count = countRequirementSelections(
-        req,
-        effectSelections,
-        sheetForCurrentLevel.atributos[Atributo.INTELIGENCIA]?.value ?? 0
-      );
-      // Tipo não contável: não bloquear o assistente
-      if (count === null) return true;
-
-      return count >= effectivePick;
-    });
+  const steps = getLevelUpSteps(levelCtx);
 
   // Validate current step completion
-  const isStepComplete = (stepIndex: number): boolean => {
-    const stepName = steps[stepIndex];
-
-    switch (stepName) {
-      case 'Escolha de Classe':
-        return !!currentLevelSelection.selectedClassName;
-
-      case 'Configuração da Classe': {
-        const setup = currentLevelSelection.classSetup;
-        if (!setup) return false;
-        if (selectedClassName === 'Arcanista') {
-          if (!setup.arcanistaSubtype) return false;
-          if (setup.arcanistaSubtype === 'Feiticeiro') {
-            if (!setup.feiticeiroLinhagem) return false;
-            if (
-              setup.feiticeiroLinhagem === 'Linhagem Dracônica' &&
-              !setup.draconicaDamageType
-            )
-              return false;
-            if (
-              setup.feiticeiroLinhagem === 'Linhagem Abençoada' &&
-              !setup.linhagemAbencoadaDeus
-            )
-              return false;
-          }
-          return true;
-        }
-        const schoolChoice = selectedClassDesc
-          ? getSchoolChoiceConfig(selectedClassDesc)
-          : null;
-        if (schoolChoice) {
-          return setup.spellSchools?.length === schoolChoice.count;
-        }
-        return true;
-      }
-
-      case 'Ganhos do Nível':
-        return true;
-
-      case 'Escolha de Poder':
-        return (
-          (currentLevelSelection.powerChoice === 'class' &&
-            currentLevelSelection.selectedClassPower !== undefined) ||
-          (currentLevelSelection.powerChoice === 'general' &&
-            currentLevelSelection.selectedGeneralPower !== undefined) ||
-          (currentLevelSelection.powerChoice === 'almaLivre' &&
-            currentLevelSelection.selectedAlmaLivrePower !== undefined)
-        );
-
-      case 'Efeitos do Poder': {
-        const power = getSelectedPower(currentLevelSelection);
-
-        if (!power) return false;
-
-        // Get selections keyed by power name
-        const allEffectSelections =
-          currentLevelSelection.powerEffectSelections || {};
-
-        // Mesma coleta que o `PowerEffectSelectionStep` usa para desenhar os
-        // seletores — inclui as escolhas exigidas pelos poderes concedidos, que
-        // moram sob o nome do poder concedido.
-        const requirements = resolvePowerRequirements(
-          power,
-          allEffectSelections
-        );
-
-        return areRequirementsSatisfied(requirements, allEffectSelections);
-      }
-
-      // Passo opcional: quem não quer trocar segue direto. Uma troca começada
-      // pela metade é descartada no apply (exige `powers` preenchido).
-      case 'Benefício da Origem':
-        return true;
-
-      case 'Perícias por Patamar': {
-        const allEffectSelections =
-          currentLevelSelection.powerEffectSelections || {};
-        return getScalingPowersForLevelUp().every((power) => {
-          const requirements = resolvePowerRequirements(
-            power,
-            allEffectSelections
-          );
-          return areRequirementsSatisfied(requirements, allEffectSelections);
-        });
-      }
-
-      case 'Efeitos de Habilidades': {
-        // Treinador 5: a escolha de Treino Especializado é obrigatória — sem
-        // ela, o chooseFromOptions sorteia uma opção aleatória no apply.
-        // Explícito porque a checagem genérica abaixo dá o requisito por
-        // satisfeito quando a lista de opções vem vazia.
-        if (
-          selectedClassName === 'Treinador' &&
-          selectedClassLevel === 5 &&
-          !getTreinoEspecializadoChoice(currentLevelSelection)
-        ) {
-          return false;
-        }
-
-        // Mesmas habilidades que o passo desenha. Sem isso, pular o passo fazia
-        // o `applyPower` SORTEAR a escolha em silêncio (era assim que o poder
-        // concedido da Linhagem Abençoada saía aleatório).
-        const allEffectSelections =
-          currentLevelSelection.abilityEffectSelections || {};
-
-        return getAbilitiesForCurrentLevel().every((ability) =>
-          areRequirementsSatisfied(
-            resolvePowerRequirements(ability, allEffectSelections),
-            allEffectSelections
-          )
-        );
-      }
-
-      case 'Escolhas de Raça': {
-        const picks = getRaceLevelUpPicks();
-        const chosen = currentLevelSelection.levelUpOptionPicks || {};
-        return picks.every(
-          (pick) =>
-            (chosen[pick.optionKey] || []).length === pick.pickPerLevelUp
-        );
-      }
-
-      case 'Seleção de Magias': {
-        const spellInfo = getSpellInfo();
-        if (!spellInfo) return true;
-
-        const learned = currentLevelSelection.spellsLearned || [];
-        const crossCount = countTowardsCrossMinimum(
-          learned,
-          spellInfo.crossTraditionSpellNames,
-          spellInfo.sharedTraditionSpellNames,
-          spellInfo.spellCount,
-          spellInfo.minCrossTraditionSpells
-        );
-        return (
-          learned.length === spellInfo.spellCount &&
-          crossCount >= spellInfo.minCrossTraditionSpells
-        );
-      }
-
-      // Opcional: zero engenhocas é válido. Só trava acima do limite ou sem T$.
-      case 'Engenhocas': {
-        const info = getEngenhocaInfo();
-        if (!info) return true;
-        const fabricadas = currentLevelSelection.engenhocasFabricadas ?? [];
-        return (
-          fabricadas.length <= info.slots &&
-          (currentLevelSelection.engenhocasCost ?? 0) <= info.money
-        );
-      }
-
-      case 'Truque do Melhor Amigo':
-      case 'Truque do Melhor Amigo (Ensinar Truque)': {
-        const reason: 'auto' | 'power' =
-          stepName === 'Truque do Melhor Amigo (Ensinar Truque)'
-            ? 'power'
-            : 'auto';
-        const entry = currentLevelSelection.companionTrickSelections?.find(
-          (e) => e.reason === reason
-        );
-        if (!entry) return false;
-        const companion = getProjectedCompanion(reason, entry.companionIndex);
-        if (!companion) return false;
-        const trickDef = getCompanionTrickDefinition(entry.trick.name);
-        if (!trickDef) return false;
-        const { available } = getTrickAvailability(
-          trickDef,
-          selectedClassLevel,
-          companion.companionType,
-          companion.size,
-          companion.tricks,
-          countNaturalWeapons(companion.companionType, companion.tricks),
-          false
-        );
-        if (!available) return false;
-        if (trickDef.subChoiceType === 'spell') return !!entry.spell;
-        return isTrickChoiceComplete(entry.trick);
-      }
-
-      case 'Melhor Amigo':
-      case 'Segundo Melhor Amigo': {
-        const {
-          companionType,
-          companionSize,
-          companionWeaponDamageType,
-          companionSpiritEnergyType,
-          companionSkills,
-          companionTricks,
-        } = currentLevelSelection;
-        if (!companionType || !companionSize || !companionWeaponDamageType)
-          return false;
-        if (companionType === 'Espírito' && !companionSpiritEnergyType)
-          return false;
-        if (!companionSkills || companionSkills.length !== 3) return false;
-        if (!companionTricks || companionTricks.length !== 2) return false;
-        return companionTricks.every(isTrickChoiceComplete);
-      }
-
-      default:
-        return false;
-    }
-  };
+  const isStepComplete = (stepIndex: number): boolean =>
+    isLevelUpStepComplete(levelCtx, steps[stepIndex]);
 
   // Get current step content
   const getStepContent = (stepIndex: number): React.ReactNode => {

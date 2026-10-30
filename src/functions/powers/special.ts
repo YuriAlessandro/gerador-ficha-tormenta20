@@ -14,6 +14,7 @@ import {
   getNotRepeatedRandom,
   getRandomItemFromArray,
   pickFromArray,
+  randomFloat,
 } from '../randomUtils';
 import { getPowersAllowedByRequirements } from '../powers';
 import { applyPower } from '../general';
@@ -83,7 +84,11 @@ export function applyHumanoVersatil(
   if (hasManualSkills) {
     firstSkill = manualSelections.skills![0] as Skill;
   } else {
-    firstSkill = getNotRepeatedRandom(sheet.skills, Object.values(Skill));
+    firstSkill = getNotRepeatedRandom(
+      sheet.skills,
+      Object.values(Skill),
+      'Versátil: perícia'
+    );
   }
   sheet.skills.push(firstSkill);
   sheet.humanoVersatilSkill = firstSkill;
@@ -106,12 +111,13 @@ export function applyHumanoVersatil(
       value: `Perícia treinada (${secondSkill})`,
     });
   } else {
-    const shouldGetSkill = Math.random() > 0.5;
+    const shouldGetSkill = randomFloat('Versátil: perícia ou poder') > 0.5;
 
     if (shouldGetSkill) {
       const randomSecondSkill = getNotRepeatedRandom(
         sheet.skills,
-        Object.values(Skill)
+        Object.values(Skill),
+        'Versátil: segunda perícia'
       );
       sheet.skills.push(randomSecondSkill);
       sheet.humanoVersatilChoice = { type: 'skill', value: randomSecondSkill };
@@ -123,7 +129,8 @@ export function applyHumanoVersatil(
       const allowedPowers = getPowersAllowedByRequirements(sheet);
       const randomPower = getNotRepeatedRandom(
         sheet.generalPowers,
-        allowedPowers
+        allowedPowers,
+        'Versátil: poder geral'
       );
       sheet.generalPowers.push(randomPower);
       sheet.humanoVersatilChoice = { type: 'power', value: randomPower.name };
@@ -210,9 +217,14 @@ export function applyLefouDeformidade(
     }
   } else {
     const allSkills = Object.values(Skill);
-    const shouldGetTwoSkills = Math.random() < 0.5;
+    const shouldGetTwoSkills =
+      randomFloat('Deformidade: uma ou duas perícias') < 0.5;
 
-    const pickedSkills = pickFromArray(allSkills, shouldGetTwoSkills ? 2 : 1);
+    const pickedSkills = pickFromArray(
+      allSkills,
+      shouldGetTwoSkills ? 2 : 1,
+      'Deformidade: perícias'
+    );
     sheet.lefouDeformidadeSkills = pickedSkills.map((s) => s as string);
 
     pickedSkills.forEach((randomSkill) => {
@@ -231,7 +243,8 @@ export function applyLefouDeformidade(
       const allowedPowers = Object.values(tormentaPowers);
       const randomPower = getNotRepeatedRandom(
         sheet.generalPowers,
-        allowedPowers
+        allowedPowers,
+        'Deformidade: poder da Tormenta'
       );
       sheet.generalPowers.push(randomPower);
       sheet.lefouDeformidadePower = randomPower.name;
@@ -336,11 +349,13 @@ export function applyOsteonMemoriaPostuma(
         });
       } else {
         // Random fallback
-        const shouldGetSkill = Math.random() > 0.5;
+        const shouldGetSkill =
+          randomFloat('Memória Póstuma: perícia ou poder') > 0.5;
         if (shouldGetSkill) {
           const randomSkill = getNotRepeatedRandom(
             _sheet.skills,
-            Object.values(Skill)
+            Object.values(Skill),
+            'Memória Póstuma: perícia'
           );
           _sheet.skills.push(randomSkill);
           _sheet.osteonMemoriaPostumaChoice = {
@@ -355,7 +370,8 @@ export function applyOsteonMemoriaPostuma(
           const allowedPowers = getPowersAllowedByRequirements(_sheet);
           const randomPower = getNotRepeatedRandom(
             _sheet.generalPowers,
-            allowedPowers
+            allowedPowers,
+            'Memória Póstuma: poder geral'
           );
           _sheet.generalPowers.push(randomPower);
           _sheet.osteonMemoriaPostumaChoice = {
@@ -391,7 +407,10 @@ export function applyOsteonMemoriaPostuma(
         }
       } else if (selectable.length > 0) {
         // Random fallback
-        const randomAbility = getRandomItemFromArray(selectable);
+        const randomAbility = getRandomItemFromArray(
+          selectable,
+          'Memória Póstuma: habilidade da raça antiga'
+        );
         _sheet.raca.abilities?.push(randomAbility.ability);
         _sheet.osteonMemoriaPostumaChoice = {
           type: 'raceAbility',
@@ -522,11 +541,13 @@ export function applyYidishanNaturezaOrganica(
   } else if (_sheet.raca.oldRace) {
     // RANDOM fallback
     if (_sheet.raca.oldRace.name === HUMANO.name) {
-      const shouldGetSkill = Math.random() > 0.5;
+      const shouldGetSkill =
+        randomFloat('Natureza Orgânica: perícia ou poder') > 0.5;
       if (shouldGetSkill) {
         const randomSkill = getNotRepeatedRandom(
           _sheet.skills,
-          Object.values(Skill)
+          Object.values(Skill),
+          'Natureza Orgânica: perícia'
         );
         _sheet.skills.push(randomSkill);
         _sheet.yidishanNaturezaChoice = { type: 'skill', value: randomSkill };
@@ -538,7 +559,8 @@ export function applyYidishanNaturezaOrganica(
         const allowedPowers = getPowersAllowedByRequirements(_sheet);
         const randomPower = getNotRepeatedRandom(
           _sheet.generalPowers,
-          allowedPowers
+          allowedPowers,
+          'Natureza Orgânica: poder geral'
         );
         _sheet.generalPowers.push(randomPower);
         _sheet.yidishanNaturezaChoice = {
@@ -553,7 +575,10 @@ export function applyYidishanNaturezaOrganica(
     } else {
       const selectable = getSelectableRaceAbilities(_sheet.raca.oldRace);
       if (selectable.length > 0) {
-        const randomAbility = getRandomItemFromArray(selectable);
+        const randomAbility = getRandomItemFromArray(
+          selectable,
+          'Natureza Orgânica: habilidade da raça antiga'
+        );
         _sheet.raca.abilities?.push(randomAbility.ability);
         _sheet.yidishanNaturezaChoice = {
           type: 'raceAbility',
@@ -697,13 +722,15 @@ export function applyMeioElfoAmbicaoHerdada(
     }
   } else {
     // Random selection for initial generation
-    const shouldGetGeneralPower = Math.random() > 0.5;
+    const shouldGetGeneralPower =
+      randomFloat('Ambição Herdada: poder geral ou de origem') > 0.5;
 
     if (shouldGetGeneralPower) {
       const allowedPowers = getPowersAllowedByRequirements(sheet);
       const randomPower = getNotRepeatedRandom(
         sheet.generalPowers,
-        allowedPowers
+        allowedPowers,
+        'Ambição Herdada: poder geral'
       );
       sheet.generalPowers.push(randomPower);
       sheet.meioElfoAmbicaoType = 'generalPower';
@@ -715,7 +742,10 @@ export function applyMeioElfoAmbicaoHerdada(
     } else {
       // Get a random origin power
       const allOriginPowers = Object.values(originPowers);
-      const randomOriginPower = getRandomItemFromArray(allOriginPowers);
+      const randomOriginPower = getRandomItemFromArray(
+        allOriginPowers,
+        'Ambição Herdada: poder de origem'
+      );
       const alreadyInOrigin = isInOriginPowers(sheet, randomOriginPower.name);
       if (sheet.origin && !alreadyInOrigin) {
         sheet.origin.powers.push(randomOriginPower);
@@ -756,9 +786,17 @@ export function applyQareenResistenciaElemental(
     const found = QAREEN_ELEMENTS.find(
       (e) => e.damageType === sheet.qareenElement
     );
-    element = found || getRandomItemFromArray(QAREEN_ELEMENTS);
+    element =
+      found ||
+      getRandomItemFromArray(
+        QAREEN_ELEMENTS,
+        'Resistência Elemental: elemento'
+      );
   } else {
-    element = getRandomItemFromArray(QAREEN_ELEMENTS);
+    element = getRandomItemFromArray(
+      QAREEN_ELEMENTS,
+      'Resistência Elemental: elemento'
+    );
   }
 
   sheet.qareenElement = element.damageType;
@@ -938,7 +976,11 @@ export function applyMashinChassi(
   if (hasManualSkills) {
     firstSkill = manualSelections.skills![0] as Skill;
   } else {
-    firstSkill = getNotRepeatedRandom(sheet.skills, Object.values(Skill));
+    firstSkill = getNotRepeatedRandom(
+      sheet.skills,
+      Object.values(Skill),
+      'Chassi: perícia'
+    );
   }
   sheet.skills.push(firstSkill);
   sheet.mashinChassiSkill = firstSkill;
@@ -975,12 +1017,13 @@ export function applyMashinChassi(
       value: `Perícia treinada (${secondSkill})`,
     });
   } else {
-    const shouldGetSkill = Math.random() > 0.5;
+    const shouldGetSkill = randomFloat('Chassi: perícia ou maravilha') > 0.5;
 
     if (shouldGetSkill) {
       const randomSecondSkill = getNotRepeatedRandom(
         sheet.skills,
-        Object.values(Skill)
+        Object.values(Skill),
+        'Chassi: segunda perícia'
       );
       sheet.skills.push(randomSecondSkill);
       sheet.mashinChassiChoice = { type: 'skill', value: randomSecondSkill };
@@ -993,7 +1036,10 @@ export function applyMashinChassi(
         (marvel) => !sheet.generalPowers.some((gp) => gp.name === marvel.name)
       );
       if (availableMarvels.length > 0) {
-        const randomMarvel = getRandomItemFromArray(availableMarvels);
+        const randomMarvel = getRandomItemFromArray(
+          availableMarvels,
+          'Chassi: maravilha'
+        );
         sheet.generalPowers.push(randomMarvel);
         sheet.mashinChassiChoice = { type: 'power', value: randomMarvel.name };
         substeps.push({
@@ -1003,7 +1049,8 @@ export function applyMashinChassi(
       } else {
         const fallbackSkill = getNotRepeatedRandom(
           sheet.skills,
-          Object.values(Skill)
+          Object.values(Skill),
+          'Chassi: perícia'
         );
         sheet.skills.push(fallbackSkill);
         sheet.mashinChassiChoice = { type: 'skill', value: fallbackSkill };

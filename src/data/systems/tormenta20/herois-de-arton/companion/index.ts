@@ -26,6 +26,10 @@ import COMPANION_TRICKS, {
 } from './companionTricks';
 import { Spell } from '../../../../../interfaces/Spells';
 import { findInnateSpell, getInnateSpellOptions } from './innateSpells';
+import {
+  getRandomItemFromArray,
+  randomFloat,
+} from '../../../../../functions/randomUtils';
 
 export {
   COMPANION_TRICKS,
@@ -649,11 +653,11 @@ export function generateRandomCompanion(
     'Monstro',
     'Morto-Vivo',
   ];
-  const type = types[Math.floor(Math.random() * types.length)];
+  const type = getRandomItemFromArray(types, 'Parceiro: tipo');
 
   // Tamanho aleatório
   const sizes: CompanionSize[] = ['Pequeno', 'Médio', 'Grande'];
-  const size = sizes[Math.floor(Math.random() * sizes.length)];
+  const size = getRandomItemFromArray(sizes, 'Parceiro: tamanho');
 
   // Tipo de dano aleatório
   const damageTypes: NaturalWeaponDamageType[] = [
@@ -661,22 +665,27 @@ export function generateRandomCompanion(
     'Impacto',
     'Perfuração',
   ];
-  const weaponDamageType =
-    damageTypes[Math.floor(Math.random() * damageTypes.length)];
+  const weaponDamageType = getRandomItemFromArray(
+    damageTypes,
+    'Parceiro: tipo de dano da arma natural'
+  );
 
   // Energia espiritual aleatória (se Espírito)
   let spiritEnergyType: SpiritEnergyType | undefined;
   if (type === 'Espírito') {
-    spiritEnergyType = Math.random() < 0.5 ? 'Positiva' : 'Negativa';
+    spiritEnergyType =
+      randomFloat('Parceiro: energia do espírito') < 0.5
+        ? 'Positiva'
+        : 'Negativa';
   }
 
   // 3 perícias aleatórias
   const availableSkills = [...COMPANION_AVAILABLE_SKILLS];
   const skills: Skill[] = [];
   for (let i = 0; i < 3; i += 1) {
-    const idx = Math.floor(Math.random() * availableSkills.length);
-    skills.push(availableSkills[idx]);
-    availableSkills.splice(idx, 1);
+    const skill = getRandomItemFromArray(availableSkills, 'Parceiro: perícia');
+    skills.push(skill);
+    availableSkills.splice(availableSkills.indexOf(skill), 1);
   }
 
   // Truques: escolher de acordo com o nível
@@ -701,7 +710,7 @@ export function generateRandomCompanion(
 
     if (available.length === 0) break;
 
-    const trick = available[Math.floor(Math.random() * available.length)];
+    const trick = getRandomItemFromArray(available, 'Parceiro: truque');
     const trickEntry: CompanionTrick = { name: trick.name };
 
     // Gerar sub-choices aleatórias para truques que exigem
@@ -714,11 +723,15 @@ export function generateRandomCompanion(
           Atributo.SABEDORIA,
           Atributo.CARISMA,
         ];
-        const primary =
-          validAttrs[Math.floor(Math.random() * validAttrs.length)];
+        const primary = getRandomItemFromArray(
+          validAttrs,
+          'Parceiro: atributo do truque'
+        );
         const secondaryPool = validAttrs.filter((a) => a !== primary);
-        const secondary =
-          secondaryPool[Math.floor(Math.random() * secondaryPool.length)];
+        const secondary = getRandomItemFromArray(
+          secondaryPool,
+          'Parceiro: atributo do truque'
+        );
         trickEntry.choices = { primary, secondary };
       } else if (trick.subChoiceType === 'movement') {
         const existingMovements = tricks
@@ -730,28 +743,33 @@ export function generateRandomCompanion(
         );
         const chosen =
           movementOptions.length > 0
-            ? movementOptions[
-                Math.floor(Math.random() * movementOptions.length)
-              ]
+            ? getRandomItemFromArray(
+                movementOptions,
+                'Parceiro: deslocamento especial'
+              )
             : 'Escalada';
         trickEntry.choices = { type: chosen };
       } else if (trick.subChoiceType === 'spell') {
         // Magia Inata: sorteia uma magia de 1º círculo (arcana ou divina)
         const spellOptions = getInnateSpellOptions();
-        const chosen =
-          spellOptions[Math.floor(Math.random() * spellOptions.length)];
+        const chosen = getRandomItemFromArray(
+          spellOptions,
+          'Parceiro: Magia Inata'
+        );
         if (chosen) trickEntry.choices = { spell: chosen.nome };
       } else if (trick.subChoiceType === 'element') {
         trickEntry.choices = {
-          element:
-            SOPRO_ELEMENTS[Math.floor(Math.random() * SOPRO_ELEMENTS.length)],
+          element: getRandomItemFromArray(
+            SOPRO_ELEMENTS,
+            'Parceiro: elemento do sopro'
+          ),
         };
       } else if (trick.subChoiceType === 'maneuver') {
         trickEntry.choices = {
-          maneuver:
-            COMPANION_MANEUVERS[
-              Math.floor(Math.random() * COMPANION_MANEUVERS.length)
-            ],
+          maneuver: getRandomItemFromArray(
+            COMPANION_MANEUVERS,
+            'Parceiro: manobra'
+          ),
         };
       }
     }
