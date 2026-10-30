@@ -370,6 +370,15 @@ const Changelog: React.FC = () => {
                   exigem essas habilidades ficam disponíveis. Trocar de origem
                   desfaz tudo o que a habilidade concedeu.
                 </li>
+                <li>
+                  <strong>Correção:</strong> O <strong>Bardo</strong> agora só
+                  aprende <strong>magias arcanas</strong> das três escolas
+                  escolhidas, como no livro, também ao subir de nível, na ficha
+                  aleatória e na multiclasse. Antes, a lista ao subir de nível
+                  mostrava magias divinas dessas escolas. Magias divinas
+                  continuam liberadas pelo poder{' '}
+                  <strong>Aumentar Repertório</strong>.
+                </li>
               </ul>
 
               <h3>4.36</h3>
