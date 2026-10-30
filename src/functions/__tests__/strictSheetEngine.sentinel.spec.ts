@@ -34,10 +34,12 @@ beforeEach(() => {
   vi.spyOn(Math, 'random').mockImplementation(forbid('Math.random'));
   // O lodash guarda a própria referência de Math.random ao carregar, então o
   // spy acima não o pega: os sorteios dele são proibidos à parte.
-  vi.spyOn(_, 'shuffle').mockImplementation(forbid('_.shuffle'));
-  vi.spyOn(_, 'sample').mockImplementation(forbid('_.sample'));
-  vi.spyOn(_, 'sampleSize').mockImplementation(forbid('_.sampleSize'));
-  vi.spyOn(_, 'random').mockImplementation(forbid('_.random'));
+  // As assinaturas sobrecarregadas do lodash confundem o tipo do spy; o
+  // alvo é tratado como um registro de funções.
+  const lodash = _ as unknown as Record<string, () => unknown>;
+  ['shuffle', 'sample', 'sampleSize', 'random'].forEach((name) => {
+    vi.spyOn(lodash, name).mockImplementation(forbid(`_.${name}`));
+  });
 });
 
 afterEach(() => {
