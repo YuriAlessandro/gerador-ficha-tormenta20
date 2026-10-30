@@ -87,6 +87,27 @@ describe('modo estrito', () => {
     expect(gaps[5]).toMatchObject({ options: ['LENA'], picked: ['LENA'] });
   });
 
+  it('marca como forçada a escolha que não dependia de nada', () => {
+    const gaps: RandomGap[] = [];
+    runWithoutRandomness(
+      () => {
+        getRandomItemFromArray(['único'], 'uma opção');
+        pickFromArray(['a', 'b'], 2, 'pede todas');
+        pickFromArray(['a', 'b', 'c'], 2, 'escolha de verdade');
+        getRandomItemFromArray(['a', 'b'], 'duas opções');
+        rollDice(1, 6, 0, 'dado');
+      },
+      (gap) => gaps.push(gap)
+    );
+    expect(gaps.map((gap) => [gap.label, gap.forced ?? false])).toEqual([
+      ['uma opção', true],
+      ['pede todas', true],
+      ['escolha de verdade', false],
+      ['duas opções', false],
+      ['dado', false],
+    ]);
+  });
+
   it('restaura o modo normal mesmo com exceção', () => {
     expect(() =>
       runWithoutRandomness(

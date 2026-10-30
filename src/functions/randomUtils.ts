@@ -33,6 +33,12 @@ export interface RandomGap {
   picked?: string[];
   /** Quantos itens seriam sorteados, ou quantos dados rolados. */
   count?: number;
+  /**
+   * O resultado não dependia de escolha: havia uma opção só (ou a quantidade
+   * pedida cobria todas). Registrada assim mesmo, para quem consome decidir se
+   * conta como lacuna.
+   */
+  forced?: boolean;
 }
 
 /** Rótulo de um ponto de sorteio que não declarou o que sorteia. */
@@ -96,8 +102,16 @@ const describeOption = (option: unknown): string => {
   return '?';
 };
 
-const recordGap = (gap: RandomGap): void => {
+/** Escolha (ou ordem) cujo resultado não dependia de nada? */
+const isForced = (gap: RandomGap): boolean => {
+  if (gap.kind !== 'choice' && gap.kind !== 'order') return false;
+  const distinct = new Set(gap.options ?? []).size;
+  return gap.kind === 'order' ? distinct <= 1 : distinct <= (gap.count ?? 1);
+};
+
+const recordGap = (rawGap: RandomGap): void => {
   if (!strictCollector) return;
+  const gap = isForced(rawGap) ? { ...rawGap, forced: true } : rawGap;
   strictCollector.calls += 1;
   if (strictCollector.calls > STRICT_RANDOM_CALL_LIMIT) {
     throw new StrictRandomLimitError();

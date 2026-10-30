@@ -61,6 +61,8 @@ export interface SheetGap {
   /** Valor provisório usado no lugar do sorteio (só 'engine'). */
   picked?: string[];
   count?: number;
+  /** Só 'engine': havia uma opção só; o resultado não dependia de escolha. */
+  forced?: boolean;
 }
 
 export interface StrictSheetInput {
@@ -114,6 +116,7 @@ const fromEngine =
       options: gap.options,
       picked: gap.picked,
       count: gap.count,
+      ...(gap.forced ? { forced: true } : {}),
     });
   };
 
