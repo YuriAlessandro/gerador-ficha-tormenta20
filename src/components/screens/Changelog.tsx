@@ -210,6 +210,15 @@ const Changelog: React.FC = () => {
                   a corpo ou à distância e pode trocar.
                 </li>
                 <li>
+                  <strong>Novo:</strong> Quem tem o poder{' '}
+                  <strong>Quatro Braços</strong> agora pode empunhar até{' '}
+                  <strong>quatro itens</strong>: a Mochila, os Ataques e a
+                  Defesa oferecem também a <strong>Mão Extra 1</strong> e a{' '}
+                  <strong>Mão Extra 2</strong>, e uma arma de duas mãos pode
+                  ocupar o par extra. Itens nessas mãos contam na Defesa, nos
+                  bônus e no PDF. Sugestão de usuário!
+                </li>
+                <li>
                   <strong>Melhoria:</strong> O{' '}
                   <strong>guia de contribuição</strong> do projeto no GitHub foi
                   atualizado: versões do Node e do npm, instalação igual à do
@@ -394,6 +403,13 @@ const Changelog: React.FC = () => {
                   <strong>habilidades de raça</strong> existentes, como{' '}
                   <strong>Sentidos Élficos</strong>. Antes, só apareciam poderes
                   gerais e de classe.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Não dá mais para empunhar{' '}
+                  <strong>dois escudos</strong> ao mesmo tempo, como diz o
+                  livro. Antes, um escudo em cada mão somava os dois na Defesa.
+                  Fichas que já estão assim não mudam até você trocar os itens
+                  de mão.
                 </li>
               </ul>
 
