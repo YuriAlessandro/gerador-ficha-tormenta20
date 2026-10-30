@@ -43,7 +43,10 @@ import {
   resolveFundamentalistChoice,
 } from './powers/fundamentalista';
 import { normalizeDeityName } from './deityName';
-import { migrateLegacyEquipState } from '../components/SheetResult/BackpackModal/wielding';
+import {
+  isItemWielded,
+  migrateLegacyEquipState,
+} from '../components/SheetResult/BackpackModal/wielding';
 import { stampUsedSupplements } from './contentSources';
 import {
   getClassBaseSkills,
@@ -5891,9 +5894,8 @@ export const applyStatModifiers = (
   // Material especial em armadura/escudo EQUIPADO (ex.: Adamante). Só o item de
   // fato equipado contribui — itens na mochila não dão RD.
   const equippedShields = sheet.bag.equipments.Escudo || [];
-  const wornShield = equippedShields.find(
-    (shield) =>
-      shield.id === sheet.mainHandItemId || shield.id === sheet.offHandItemId
+  const wornShield = equippedShields.find((shield) =>
+    isItemWielded(shield.id, sheet)
   );
   [
     ...(wornArmor ? getDefenseMaterialRd(wornArmor, hasHeavyArmor) : []),

@@ -12,6 +12,7 @@ import CharacterSheet, { SheetBonus } from '../interfaces/CharacterSheet';
 import Equipment from '../interfaces/Equipment';
 import { equipamentoAventureiro } from '../data/systems/tormenta20/equipamentos-gerais';
 import { getSheetWornArmor } from './wornArmor';
+import { isItemWielded } from '../components/SheetResult/BackpackModal/wielding';
 
 export const HOLY_SYMBOL_NAME = 'Símbolo sagrado';
 export const INSCRITO_MOD_NAME = 'Inscrito';
@@ -39,10 +40,7 @@ function isInscritoActive(sheet: CharacterSheet, item: Equipment): boolean {
     return !!item.id && getSheetWornArmor(sheet)?.id === item.id;
   }
   if (item.group === 'Escudo') {
-    return (
-      !!item.id &&
-      (item.id === sheet.mainHandItemId || item.id === sheet.offHandItemId)
-    );
+    return isItemWielded(item.id, sheet);
   }
   return true;
 }

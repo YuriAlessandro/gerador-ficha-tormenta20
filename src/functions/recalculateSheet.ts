@@ -117,7 +117,13 @@ import {
 } from './holySymbol';
 import { getDefenseMaterialRd } from './itemEnhancements/materialEffects';
 import { injectConjuradoraSpells } from './itemEnhancements/injectConjuradoraSpells';
-import { migrateLegacyEquipState } from '../components/SheetResult/BackpackModal/wielding';
+import {
+  countOccupiedHands,
+  getWieldedItemIds,
+  isItemWielded,
+  migrateLegacyEquipState,
+  sheetHasFourArms,
+} from '../components/SheetResult/BackpackModal/wielding';
 
 import {
   applyRaceAbilities,
@@ -769,19 +775,11 @@ const injectEstiloDeUmaArmaBonuses = (
   );
   if (!hasPower) return sheet;
 
-  const { mainHandItemId, offHandItemId } = sheet;
-
-  // Arma de duas mãos ocupa as duas mãos (mesmo id nos dois slots) → não vale.
-  if (mainHandItemId && mainHandItemId === offHandItemId) return sheet;
-
-  // Exatamente uma mão ocupada e a outra vazia.
-  let occupiedId: string | undefined;
-  if (mainHandItemId && !offHandItemId) {
-    occupiedId = mainHandItemId;
-  } else if (offHandItemId && !mainHandItemId) {
-    occupiedId = offHandItemId;
-  }
-  if (!occupiedId) return sheet;
+  // Exatamente uma mão ocupada e as demais vazias: arma de duas mãos ocupa duas
+  // (mesmo id nos dois slots) e um item em mão extra também tira o "nada na
+  // outra" de quem tem Quatro Braços.
+  if (countOccupiedHands(sheet) !== 1) return sheet;
+  const [occupiedId] = getWieldedItemIds(sheet);
 
   // O item empunhado precisa ser uma arma corpo a corpo (escudos ficam em
   // `Escudo`, então não casam aqui).
@@ -830,13 +828,9 @@ const injectEstiloDeArmaEEscudoBonuses = (
   );
   if (!hasPower) return sheet;
 
-  const { mainHandItemId, offHandItemId } = sheet;
-
   // Precisa ter um escudo empunhado em uma das mãos.
-  const hasShieldWielded = (sheet.bag.equipments.Escudo || []).some(
-    (shield) =>
-      shield.id !== undefined &&
-      (shield.id === mainHandItemId || shield.id === offHandItemId)
+  const hasShieldWielded = (sheet.bag.equipments.Escudo || []).some((shield) =>
+    isItemWielded(shield.id, sheet)
   );
   if (!hasShieldWielded) return sheet;
 
@@ -2040,6 +2034,13 @@ export function recalculateSheet(
     }
   }
 
+  // Sem Quatro Braços não há mãos extras. Limpar aqui, depois da remoção de
+  // poderes acima, impede que um escudo numa delas continue dando Defesa.
+  if (!sheetHasFourArms(updatedSheet)) {
+    updatedSheet.extraHand1ItemId = undefined;
+    updatedSheet.extraHand2ItemId = undefined;
+  }
+
   // Step 0.5: Synthesize history entries for removed powers so that
   // getGeneralPower actions from source abilities don't re-execute
   if (removedPowerNames.length > 0) {
@@ -2706,10 +2707,8 @@ export function recalculateSheet(
   // 2 leve e escudos). Só o item de fato equipado contribui — armaduras na
   // mochila não dão RD. `wornArmorItem` vem do Step 9.
   const equippedShields = updatedSheet.bag.equipments.Escudo || [];
-  const wornShield = equippedShields.find(
-    (shield) =>
-      shield.id === updatedSheet.mainHandItemId ||
-      shield.id === updatedSheet.offHandItemId
+  const wornShield = equippedShields.find((shield) =>
+    isItemWielded(shield.id, updatedSheet)
   );
   [
     ...(wornArmorItem ? getDefenseMaterialRd(wornArmorItem, heavyArmor) : []),

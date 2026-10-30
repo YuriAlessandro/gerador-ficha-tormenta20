@@ -873,6 +873,19 @@ export interface SheetOptionalRules {
 }
 
 // TODO: Once all type errors are fixed, change this into a proper class with constructor and stuff.
+export type ManeuverId =
+  | 'agarrar'
+  | 'atropelar'
+  | 'derrubar'
+  | 'desarmar'
+  | 'empurrar'
+  | 'quebrar';
+
+export interface EnabledManeuver {
+  id: ManeuverId;
+  weaponId?: string;
+}
+
 export default interface CharacterSheet {
   id: string;
   nome: string;
@@ -921,6 +934,10 @@ export default interface CharacterSheet {
   // (preserves backwards compatibility for sheets created before this feature).
   mainHandItemId?: string;
   offHandItemId?: string;
+  // Par extra de mãos (poder de raça Quatro Braços). Mesmas regras do par acima:
+  // o mesmo id nos dois campos significa arma de duas mãos.
+  extraHand1ItemId?: string;
+  extraHand2ItemId?: string;
   // Currently worn armor (Equipment.id reference). When undefined and there is
   // exactly 1 armor in the bag, that armor implicitly applies (legacy compat).
   // When undefined with ≥2 armors, NONE applies — the sheet shows a banner
@@ -957,6 +974,12 @@ export default interface CharacterSheet {
   // personagem tende a viver num modo — um em campanha, gastando consumíveis,
   // outro em fase de compras.
   backpackAutoDeductMoney?: boolean;
+  /**
+   * Manobras de combate ativadas na lista de Ataques, com a arma escolhida para
+   * cada uma (`weaponId` ausente = arma padrão, ver `resolveManeuverWeapon`).
+   * Ao esvaziar, volta a `undefined`, como `unwornClothingIds`.
+   */
+  enabledManeuvers?: EnabledManeuver[];
   devoto?: CharacterReligion;
   origin:
     | {

@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            29/10/2026 (v4.37).
+            30/10/2026 (v4.37).
           </p>
 
           <p>
@@ -192,6 +192,14 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>Novo:</strong> As <strong>manobras de combate</strong>{' '}
+                  agora podem ser ativadas na lista de ataques. Na engrenagem da
+                  seção Ataques, escolha entre Agarrar, Atropelar, Derrubar,
+                  Desarmar, Empurrar e Quebrar. Cada linha rola o teste com a
+                  arma escolhida e já soma tamanho, Equilibrada e poderes como
+                  Derrubar Aprimorado.
+                </li>
+                <li>
                   <strong>Novo:</strong> A extensão do Fichas de Nimb para o{' '}
                   <strong>Roll20</strong> agora importa <strong>ameaças</strong>
                   . Na janela de importação, a nova aba <strong>Ameaças</strong>{' '}
@@ -200,6 +208,27 @@ const Changelog: React.FC = () => {
                   PM, Defesa, resistências, perícias, ataques, habilidades e
                   magias. Antes de importar, você confere se cada ataque é corpo
                   a corpo ou à distância e pode trocar.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Quem tem o poder{' '}
+                  <strong>Quatro Braços</strong> agora pode empunhar até{' '}
+                  <strong>quatro itens</strong>: a Mochila, os Ataques e a
+                  Defesa oferecem também a <strong>Mão Extra 1</strong> e a{' '}
+                  <strong>Mão Extra 2</strong>, e uma arma de duas mãos pode
+                  ocupar o par extra. Itens nessas mãos contam na Defesa, nos
+                  bônus e no PDF. Sugestão de usuário!
+                </li>
+                <li>
+                  <strong>Novo:</strong> As <strong>Builds</strong> agora
+                  mostram <strong>avisos de regras</strong> no editor e na
+                  página: nome de poder ou magia que não está nos livros, poder
+                  repetido, poderes a mais no nível, magia que a classe não
+                  alcança e poder de outra classe. Os avisos só informam: a
+                  build sempre salva. No editor, dá para corrigir com um clique
+                  (<strong>Trocar por</strong> e{' '}
+                  <strong>Remover deste nível</strong>) e marcar o que é
+                  intencional como <strong>Vem de outra fonte</strong>, que some
+                  da página pública.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> O{' '}
@@ -386,6 +415,13 @@ const Changelog: React.FC = () => {
                   <strong>habilidades de raça</strong> existentes, como{' '}
                   <strong>Sentidos Élficos</strong>. Antes, só apareciam poderes
                   gerais e de classe.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Não dá mais para empunhar{' '}
+                  <strong>dois escudos</strong> ao mesmo tempo, como diz o
+                  livro. Antes, um escudo em cada mão somava os dois na Defesa.
+                  Fichas que já estão assim não mudam até você trocar os itens
+                  de mão.
                 </li>
               </ul>
 

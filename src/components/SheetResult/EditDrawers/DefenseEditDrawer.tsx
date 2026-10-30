@@ -29,7 +29,10 @@ import {
 } from '@/functions/recalculateSheet';
 import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
 import { DefenseEquipment } from '@/interfaces/Equipment';
-import { getWornArmor } from '@/components/SheetResult/BackpackModal/wielding';
+import {
+  getWornArmor,
+  isItemWielded,
+} from '@/components/SheetResult/BackpackModal/wielding';
 import NumberField from '@/components/common/NumberField';
 import { usesCharismaForDefense } from '@/functions/learnedClassAbility';
 
@@ -104,9 +107,7 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
     sheet.wornArmorId
   );
   const wieldedShields = (sheet.bag.equipments.Escudo || []).filter(
-    (shield: DefenseEquipment) =>
-      shield.id !== undefined &&
-      (shield.id === sheet.mainHandItemId || shield.id === sheet.offHandItemId)
+    (shield: DefenseEquipment) => isItemWielded(shield.id, sheet)
   );
 
   // Check if the character has heavy armor WORN (an unequipped heavy armor in
