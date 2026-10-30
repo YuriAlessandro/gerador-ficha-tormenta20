@@ -213,6 +213,21 @@ const Changelog: React.FC = () => {
                   )
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> O{' '}
+                  <strong>item personalizado</strong> da mochila agora pode ter{' '}
+                  <strong>efeitos na ficha</strong>, como +1 numa perícia, bônus
+                  de dano, Defesa, PV ou PM. Dá para criar o item com o efeito
+                  na hora, no meio da sessão, e ajustá-lo depois pela nova aba{' '}
+                  <strong>Efeitos</strong> do editor de item. Peças de{' '}
+                  <strong>Vestuário</strong> só dão o efeito enquanto estiverem
+                  vestidas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Itens <strong>esotéricos</strong>{' '}
+                  com efeitos (vindos de homebrew ou criados na mochila) agora
+                  aplicam esses bônus na ficha. Antes, eles eram ignorados.
+                </li>
+                <li>
                   <strong>Correção:</strong> A <strong>Besta Leve</strong> volta
                   a ser uma arma de <strong>uma mão</strong>, como no livro, e
                   pode ser empunhada junto com um escudo.
