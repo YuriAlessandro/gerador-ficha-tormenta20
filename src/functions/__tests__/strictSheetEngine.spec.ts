@@ -10,6 +10,7 @@ import SelectedOptions from '../../interfaces/SelectedOptions';
 import { WizardSelections } from '../../interfaces/WizardSelections';
 import { SupplementId } from '../../types/supplement.types';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
+import { spellsCircle1 } from '../../data/systems/tormenta20/magias/generalSpells';
 import { expandOficioInBasicas } from '../../data/systems/tormenta20/pericias';
 import GUERREIRO from '../../data/systems/tormenta20/classes/guerreiro';
 import EQUIPAMENTOS, {
@@ -166,6 +167,37 @@ describe('buildSheetWithoutRandomness', () => {
       selections: withLevels([2, 3, 4]),
     });
     expect(result.sheet?.nivel).toBe(3);
+  });
+
+  it('devolve a ficha de cada nível, a do alvo igual à final', () => {
+    const result = run({ nivel: 4, selections: withLevels([2, 3, 4]) });
+    expect(result.levels.map((entry) => entry.level)).toEqual([1, 2, 3, 4]);
+    expect(result.levels.map((entry) => entry.sheet.nivel)).toEqual([
+      1, 2, 3, 4,
+    ]);
+    expect(result.levels[3].sheet).toBe(result.sheet);
+    expect(
+      result.levels[1].sheet.classPowers?.map((power) => power.name)
+    ).toContain(simplePowers[0].name);
+  });
+
+  it('descarta engenhocas de nível sem o passo "Engenhocas", como o assistente', () => {
+    const engenhoca = {
+      ...spellsCircle1.adagaMental,
+      engenhoca: { forma: 'empunhada' as const },
+    };
+    const selections = withLevels([2]);
+    selections.levelUpSelections = selections.levelUpSelections?.map((sel) => ({
+      ...sel,
+      engenhocasFabricadas: [engenhoca],
+      engenhocasCost: 100,
+    }));
+    const withStale = run({ nivel: 2, selections });
+    const clean = run({ nivel: 2, selections: withLevels([2]) });
+    expect(withStale.sheet?.spells.map((spell) => spell.nome)).not.toContain(
+      engenhoca.nome
+    );
+    expect(withStale.sheet?.dinheiro).toBe(clean.sheet?.dinheiro);
   });
 
   it('não deixa o modo estrito ligado', () => {

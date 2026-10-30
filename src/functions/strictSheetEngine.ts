@@ -38,6 +38,7 @@ import {
 import {
   buildLevelUpWizardContext,
   getLevelUpGaps,
+  getLevelUpSteps,
 } from './wizardRules/levelUpWizardRules';
 import { WizardAccess, WizardStepGap } from './wizardRules/types';
 
@@ -75,9 +76,22 @@ export interface StrictSheetInput {
   targetLevel?: number;
 }
 
+/** A ficha como ficou ao fim de um nível. */
+export interface StrictLevelSheet {
+  level: number;
+  sheet: CharacterSheet;
+}
+
 export interface StrictSheetResult {
   /** A ficha montada, ou `null` se o motor lançou exceção. */
   sheet: CharacterSheet | null;
+  /**
+   * A ficha ao fim de cada nível montado (1 = criação), para avaliar
+   * violações nível a nível. A do nível alvo é a mesma de `sheet` (com o
+   * recálculo final); as anteriores são as que `applyManualLevelUp` devolveu.
+   * Até onde chegou, se o motor lançou exceção.
+   */
+  levels: StrictLevelSheet[];
   gaps: SheetGap[];
   /** Mensagem da exceção, quando houve. */
   error?: string;
@@ -124,6 +138,7 @@ export function buildSheetWithoutRandomness(
 ): StrictSheetResult {
   const { selectedOptions, selections, raceCustomization, access } = input;
   const gaps: SheetGap[] = [];
+  const levels: StrictLevelSheet[] = [];
   const targetLevel = Math.min(
     MAX_LEVEL,
     input.targetLevel ?? getDefaultTargetLevel(selectedOptions, selections)
@@ -152,8 +167,9 @@ export function buildSheetWithoutRandomness(
       fromEngine(1, gaps)
     );
     level1Sheet.bag = new Bag(level1Sheet.bag?.equipments);
+    levels.push({ level: 1, sheet: level1Sheet });
 
-    if (targetLevel <= 1) return { sheet: level1Sheet, gaps };
+    if (targetLevel <= 1) return { sheet: level1Sheet, levels, gaps };
 
     let sheet = level1Sheet;
     for (let level = 2; level <= targetLevel; level += 1) {
@@ -174,44 +190,57 @@ export function buildSheetWithoutRandomness(
       }
 
       const levelSelection = selection;
-      withoutRandomness(() =>
-        getLevelUpGaps(
-          buildLevelUpWizardContext({
-            sheet: before,
-            initialSheet: level1Sheet,
-            level,
-            selection: levelSelection,
-            supplements,
-            multiclassEnabled: access.multiclass,
-          })
-        )
-      ).forEach((gap) => gaps.push(fromWizard(gap)));
+      const levelCtx = withoutRandomness(() =>
+        buildLevelUpWizardContext({
+          sheet: before,
+          initialSheet: level1Sheet,
+          level,
+          selection: levelSelection,
+          supplements,
+          multiclassEnabled: access.multiclass,
+        })
+      );
+      withoutRandomness(() => getLevelUpGaps(levelCtx)).forEach((gap) =>
+        gaps.push(fromWizard(gap))
+      );
+      const levelSteps = withoutRandomness(() => getLevelUpSteps(levelCtx));
 
-      // O assistente completa a classe de cada nível antes de confirmar.
+      // Como o assistente ao confirmar o nível: a classe vem preenchida, e
+      // engenhocas de um nível sem o passo "Engenhocas" (escolhidas antes de
+      // trocar o poder Engenhoqueiro) não seguem junto.
       const finalSelection: LevelUpSelections = {
         ...selection,
         selectedClassName: selection.selectedClassName || before.classe.name,
         selectedClassSubname:
           selection.selectedClassSubname || before.classe.subname,
+        ...(levelSteps.includes('Engenhocas')
+          ? {}
+          : { engenhocasFabricadas: undefined, engenhocasCost: undefined }),
       };
       const sheetBefore = sheet;
       sheet = runWithoutRandomness(
         () => applyManualLevelUp(sheetBefore, finalSelection),
         fromEngine(level, gaps)
       );
+      if (level < targetLevel) levels.push({ level, sheet });
     }
 
     // Igual ao MainScreen: PV/PM atuais voltam ao máximo no recálculo.
-    sheet.currentPV = undefined;
-    sheet.currentPM = undefined;
+    const lastSheet: CharacterSheet = {
+      ...sheet,
+      currentPV: undefined,
+      currentPM: undefined,
+    };
     const finalSheet = runWithoutRandomness(
-      () => recalculateSheet(sheet),
+      () => recalculateSheet(lastSheet),
       fromEngine(targetLevel, gaps)
     );
-    return { sheet: finalSheet, gaps };
+    levels.push({ level: targetLevel, sheet: finalSheet });
+    return { sheet: finalSheet, levels, gaps };
   } catch (error) {
     return {
       sheet: null,
+      levels,
       gaps,
       error: error instanceof Error ? error.message : String(error),
     };
