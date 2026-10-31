@@ -17,26 +17,12 @@ import CharacterSheet, {
   SheetActionHistoryEntry,
 } from '@/interfaces/CharacterSheet';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
-import { ClassAbility, ClassPower } from '@/interfaces/Class';
-import {
-  GeneralPower,
-  OriginPower,
-  RequirementType,
-} from '@/interfaces/Poderes';
+import { ClassAbility } from '@/interfaces/Class';
+import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 
 import { CompanionSheet } from '@/interfaces/Companion';
-import {
-  getAllowedClassPowers,
-  getForeignClassPowers,
-  getOwnedGeneralPowers,
-  getWaivedClassPowers,
-  isPowerAvailable,
-  resolveClassPowerCatalog,
-} from '@/functions/powers';
-import { getActiveWaivers } from '@/functions/powers/prerequisiteWaivers';
-import { dataRegistry } from '@/data/registry';
+import { getOwnedGeneralPowers, isPowerAvailable } from '@/functions/powers';
 import { SupplementId } from '@/types/supplement.types';
-import { getPowerSelectionRequirements } from '@/functions/powers/manualPowerSelection';
 
 import { getCurrentPlateau } from '@/functions/powers/general';
 import { applyPower } from '@/functions/general';
@@ -46,7 +32,6 @@ import Skill from '@/interfaces/Skills';
 import {
   getClassLevel,
   initializeClassLevels,
-  findClassDescription,
   buildSpellPathFromSetup,
   serializeSpellPath,
 } from '@/functions/multiclass';
@@ -65,6 +50,9 @@ import {
   getLevelUpAbilitiesForLevel,
   getLevelUpEngenhocaInfo,
   getLevelUpMergedAbilities,
+  getLevelUpPowerOptions,
+  getLevelUpSheetWithAbilities,
+  LevelUpPowerOptions,
   getLevelUpRacePicks,
   getLevelUpScalingPowers,
   getLevelUpSpellInfo,
@@ -107,30 +95,6 @@ interface LevelUpWizardModalProps {
   onConfirm: (levelUpSelections: LevelUpSelections[]) => void;
   onCancel: () => void;
 }
-
-/**
- * O poder tem algum grupo de pré-requisitos cuja exigência de NÍVEL já está
- * cumprida?
- *
- * Usado para decidir quais poderes de classe reprovados ainda vale a pena
- * listar como "Indisponível": os travados só pelo nível ficam de fora, senão a
- * lista de um personagem de 2º nível viraria o catálogo inteiro da classe até
- * o 20º. Grupo sem requisito de NÍVEL conta como alcançável.
- */
-const hasReachableLevelRequirement = (
-  power: ClassPower,
-  classLevel: number
-): boolean => {
-  const groups = power.requirements;
-  if (!groups || groups.length === 0) return true;
-
-  return groups.some((group) =>
-    group.every(
-      (rule) =>
-        rule.type !== RequirementType.NIVEL || (rule.value ?? 0) <= classLevel
-    )
-  );
-};
 
 const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   open,
@@ -256,48 +220,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
   const getSheetWithCurrentLevelAbilities = (
     baseSheet: CharacterSheet
-  ): CharacterSheet => {
-    const abilitiesThisLevel = getAbilitiesForCurrentLevel();
-    if (abilitiesThisLevel.length === 0) return baseSheet;
-
-    let nextSheet = baseSheet;
-
-    abilitiesThisLevel.forEach((ability) => {
-      const requirements = getPowerSelectionRequirements(ability);
-      if (requirements !== null) return;
-
-      const [abilitySheet] = applyPower(nextSheet, {
-        ...ability,
-        sourceClassName: selectedClassName,
-      });
-      if (abilitySheet) {
-        nextSheet = {
-          ...abilitySheet,
-          classe: {
-            ...abilitySheet.classe,
-            abilities: nextSheet.classe.abilities,
-          },
-        };
-      }
-    });
-
-    const knownAbilityNames = new Set(
-      (nextSheet.classe.abilities || []).map((ability) => ability.name)
-    );
-    const projectedAbilities = abilitiesThisLevel.filter(
-      (ability) => !knownAbilityNames.has(ability.name)
-    );
-
-    if (projectedAbilities.length === 0) return nextSheet;
-
-    return {
-      ...nextSheet,
-      classe: {
-        ...nextSheet.classe,
-        abilities: [...nextSheet.classe.abilities, ...projectedAbilities],
-      },
-    };
-  };
+  ): CharacterSheet => getLevelUpSheetWithAbilities(levelCtx, baseSheet);
 
   // O cálculo acima faz um `cloneDeep` da ficha por habilidade (via
   // `applyPower`); memoizado para não rodar duas vezes no mesmo render
@@ -317,167 +240,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   const getAvailablePowers = (
     sheetForPowerSelection: CharacterSheet,
     { allowAll = false }: { allowAll?: boolean } = {}
-  ): {
-    classPowers: ClassPower[];
-    generalPowers: GeneralPower[];
-    unavailableClassPowers: string[];
-    unavailableGeneralPowers: string[];
-    /**
-     * A ficha contra a qual os poderes foram filtrados. Sai junto para o passo
-     * reavaliar os requisitos com ela: em multiclasse ela difere da ficha de
-     * seleção (leva a classe escolhida e suas proficiências), e avaliar com a
-     * outra faria as duas pontas discordarem sobre o mesmo poder.
-     */
-    sheetForFiltering: CharacterSheet;
-  } => {
-    // Get class with merged supplement powers from registry
-    // Use the SELECTED class for power filtering (multiclass support)
-    const classNameForPowers = selectedClassName;
-    const classWithSupplementPowers = dataRegistry.getClassByName(
-      classNameForPowers,
-      supplements
-    );
-
-    // Create a sheet with the selected class powers for filtering
-    const classForFiltering = classWithSupplementPowers || selectedClassDesc;
-    const sheetForFiltering: CharacterSheet = classForFiltering
-      ? {
-          ...sheetForPowerSelection,
-          classe: {
-            ...sheetForPowerSelection.classe,
-            name: classNameForPowers,
-            powers: classForFiltering.powers,
-            proficiencias:
-              sheetForPowerSelection.classe.proficiencias ||
-              classForFiltering.proficiencias ||
-              [],
-          },
-        }
-      : sheetForPowerSelection;
-
-    // Get class powers using the selected class's powers.
-    // Sempre usar getAllowedClassPowers na lista manual: a ponderação do
-    // Inventor (getWeightedInventorClassPowers) expande a lista com entradas
-    // duplicadas, o que só faz sentido em sorteio aleatório — numa seleção
-    // manual geraria poderes repetidos. Cobre Inventor e suas variantes
-    // (ex.: Alquimista) via sheetForFiltering.classe.powers.
-    // Concessão declarada pela classe (Vassalo): os poderes vêm do catálogo de
-    // OUTRA classe, avaliados no nível do personagem. Sem declaração, vale o
-    // catálogo da própria classe, como em toda classe padrão.
-    const grant = findPowerGrant(selectedClassDesc, selectedClassLevel);
-    const classPowers = grant
-      ? getForeignClassPowers(
-          sheetForFiltering,
-          grant.fromClasses,
-          sheetForPowerSelection.nivel,
-          grant.excludePowers
-        )
-      : getAllowedClassPowers(sheetForFiltering, {
-          classLevel: selectedClassLevel,
-        });
-
-    // Poder de classe reprovado por pré-requisito continua na lista, apenas
-    // desabilitado e com o requisito à mostra — igual ao tratamento dos poderes
-    // gerais logo abaixo. Antes ele simplesmente sumia, sem nenhum sinal do
-    // motivo: foi assim que a substituição de Ofício do Artesão Criativo
-    // falhando em silêncio chegou como "não dá pra pegar, tem que pôr manual".
-    const allowedClassPowerNames = new Set(classPowers.map((p) => p.name));
-    const knownClassPowerNames = new Set(
-      (sheetForFiltering.classPowers || []).map((p) => p.name)
-    );
-    const unavailableClassPowers: string[] = [];
-    const fullClassCatalog: ClassPower[] = grant
-      ? // Numa concessão emprestada o catálogo completo é o das classes de
-        // origem, avaliado no nível do PERSONAGEM; avaliar contra o da ficha
-        // listaria poder de outra classe. `className` carimbado aqui também, e
-        // não só nos disponíveis: sem ele o agrupamento cai no nome da classe
-        // da FICHA, e um poder de Cavaleiro que o Vassalo não alcança aparecia
-        // sob "Poder de Vassalo".
-        grant.fromClasses.flatMap((className) =>
-          (
-            findClassDescription(className, undefined, supplements)?.powers ??
-            []
-          ).map((power) => ({ ...power, className }))
-        )
-      : // Entram na varredura também os poderes de OUTRA classe alcançados por
-        // um waiver (ex.: Domínio do Medo), que não estão no catálogo da classe.
-        [
-          ...resolveClassPowerCatalog(sheetForFiltering),
-          ...getWaivedClassPowers(
-            sheetForFiltering,
-            getActiveWaivers(sheetForFiltering)
-          ),
-        ];
-    const levelForCut = grant
-      ? sheetForPowerSelection.nivel
-      : selectedClassLevel;
-    const blockedClassPowers = fullClassCatalog.filter((power) => {
-      if (allowedClassPowerNames.has(power.name)) return false;
-      // Já conhecido e não repetível some, como sempre — quem sinaliza isso é
-      // o chip "Já Conhecido" dos poderes que continuam na lista.
-      if (knownClassPowerNames.has(power.name) && !power.canRepeat) {
-        return false;
-      }
-      // Com o filtro desligado o corte de nível sai também: meio-quebrar a regra
-      // (liberar atributo/perícia mas não nível) confunde mais que quebrar
-      // inteiro. Desligado, segue escondendo o catálogo até o 20º nível.
-      if (!allowAll && !hasReachableLevelRequirement(power, levelForCut)) {
-        return false;
-      }
-      unavailableClassPowers.push(power.name);
-      return true;
-    });
-
-    // Use dataRegistry to get powers from all active supplements.
-    // Inclui os 5 tipos de poderes gerais, mais os poderes de raça (ex.: Glamour)
-    // que o personagem qualifica — poderes de raça só aparecem para quem atende
-    // ao requisito de raça, evitando poluir a lista com poderes de outras raças.
-    const allPowers = dataRegistry.getPowersBySupplements(supplements);
-    const allGeneralPowers = [
-      ...allPowers.COMBATE,
-      ...allPowers.CONCEDIDOS,
-      ...allPowers.DESTINO,
-      ...allPowers.MAGIA,
-      ...allPowers.TORMENTA,
-      ...allPowers.RACA.filter((power) =>
-        isPowerAvailable(sheetForFiltering, power)
-      ),
-    ];
-
-    // Track which powers are unavailable (requirements not met)
-    const existingGeneralPowers = getOwnedGeneralPowers(sheetForFiltering);
-    const unavailableGeneralPowers: string[] = [];
-    const generalPowers = allGeneralPowers.filter((power) => {
-      const isRepeatedPower = existingGeneralPowers.find(
-        (existingPower) => existingPower.name === power.name
-      );
-
-      if (isRepeatedPower && !power.allowSeveralPicks) {
-        return true; // Keep in list; isPowerKnown handles disable in UI
-      }
-
-      if (!isPowerAvailable(sheetForFiltering, power)) {
-        unavailableGeneralPowers.push(power.name);
-      }
-      return true; // Always include
-    });
-
-    // Sort powers alphabetically
-    const sortedClassPowers = [...classPowers, ...blockedClassPowers].sort(
-      (a, b) => a.name.localeCompare(b.name, 'pt-BR')
-    );
-    const sortedGeneralPowers = [...generalPowers].sort((a, b) =>
-      a.name.localeCompare(b.name, 'pt-BR')
-    );
-
-    return {
-      classPowers: sortedClassPowers,
-      generalPowers: sortedGeneralPowers,
-      unavailableClassPowers,
-      unavailableGeneralPowers,
-      sheetForFiltering,
-    };
-  };
+  ): LevelUpPowerOptions =>
+    getLevelUpPowerOptions(levelCtx, sheetForPowerSelection, { allowAll });
 
   // Get spell info for current level (uses selected class's spellPath and class level)
   const getSpellInfo = () => getLevelUpSpellInfo(levelCtx);

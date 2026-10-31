@@ -5,6 +5,8 @@ import { getPowerSelectionRequirements } from '../powers/manualPowerSelection';
 import {
   buildLevelUpWizardContext,
   getLevelUpGaps,
+  getLevelUpPowerOptions,
+  getLevelUpSheetWithAbilities,
   getLevelUpSteps,
 } from '../wizardRules/levelUpWizardRules';
 import SelectedOptions from '../../interfaces/SelectedOptions';
@@ -118,6 +120,35 @@ describe('getLevelUpSteps', () => {
     ).toContain('Escolha de Classe');
     expect(gapSteps(selection, { multiclassEnabled: true })).not.toContain(
       'Escolha de Classe'
+    );
+  });
+});
+
+describe('getLevelUpPowerOptions', () => {
+  it('lista os poderes do passo "Escolha de Poder", com os reprovados à parte', () => {
+    const ctx = ctxFor({ level: 2, powerChoice: 'class' });
+    const options = getLevelUpPowerOptions(
+      ctx,
+      getLevelUpSheetWithAbilities(ctx)
+    );
+    const general = options.generalPowers.map((p) => p.name);
+    const classPowers = options.classPowers.map((p) => p.name);
+    // Trespassar exige Ataque Poderoso: aparece, mas indisponível.
+    expect(general).toContain('Trespassar');
+    expect(options.unavailableGeneralPowers).toContain('Trespassar');
+    const simple = simpleGuerreiroPower().name;
+    expect(classPowers).toContain(simple);
+    expect(options.unavailableClassPowers).not.toContain(simple);
+    expect(options.sheetForFiltering.classe.name).toBe('Guerreiro');
+  });
+
+  it('com "fora dos requisitos" o corte de nível sai da lista de classe', () => {
+    const ctx = ctxFor({ level: 2, powerChoice: 'class' });
+    const sheet = getLevelUpSheetWithAbilities(ctx);
+    const strict = getLevelUpPowerOptions(ctx, sheet);
+    const all = getLevelUpPowerOptions(ctx, sheet, { allowAll: true });
+    expect(all.classPowers.length).toBeGreaterThanOrEqual(
+      strict.classPowers.length
     );
   });
 });
