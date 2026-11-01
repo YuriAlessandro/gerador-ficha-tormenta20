@@ -26,6 +26,7 @@ export interface FeatureFlags {
   guidedTours: FeatureFlag;
   gmCompendium: FeatureFlag;
   itemShops: FeatureFlag;
+  buildsV2: FeatureFlag;
 }
 
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
@@ -87,4 +88,8 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   // (`maxShopsPerTable`); `supporterOnly` trava a criação para apoiadores.
   // Comprar é sempre livre. Default desligado até o rollout.
   itemShops: { enabled: false, supporterOnly: false },
+  // Builds v2: editor e telas novas das builds. Admin e Dev veem sempre
+  // (`useBuildsV2Access`); a flag abre para os demais. Default desligado até o
+  // beta (depois, ligada com `supporterOnly` para os apoiadores).
+  buildsV2: { enabled: false, supporterOnly: true },
 };
