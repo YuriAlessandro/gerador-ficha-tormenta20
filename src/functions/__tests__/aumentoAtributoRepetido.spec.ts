@@ -116,6 +116,36 @@ describe('Aumento de Atributo escolhido mais de uma vez', () => {
     expect(increaseEntries(after)).toHaveLength(2);
   });
 
+  test('remover 1 de 2 ganhos ao subir de nível desfaz o último aumento', () => {
+    // O assistente de subir de nível força a aplicação (`forceApply`), então
+    // fichas com dois aumentos registrados existem independente do fix acima.
+    const before = sheetWithOneIncrease();
+    const withSecond = {
+      ...before,
+      classPowers: [...(before.classPowers ?? []), cloneDeep(AUMENTO)],
+    };
+    const [twice] = applyPower(
+      withSecond,
+      AUMENTO,
+      { attributes: [Atributo.DESTREZA] },
+      true
+    );
+    expect(attr(twice, Atributo.DESTREZA)).toBe(
+      attr(before, Atributo.DESTREZA) + 1
+    );
+
+    const after = recalculateSheet(
+      { ...twice, classPowers: (twice.classPowers ?? []).slice(0, 1) },
+      twice
+    );
+
+    expect(attr(after, Atributo.DESTREZA)).toBe(
+      attr(before, Atributo.DESTREZA)
+    );
+    expect(attr(after, Atributo.FORCA)).toBe(attr(before, Atributo.FORCA));
+    expect(increaseEntries(after)).toHaveLength(1);
+  });
+
   test('remover 1 de 2 desfaz só o último aumento', () => {
     const before = sheetWithOneIncrease();
     const twice = recalculateSheet(
