@@ -91,6 +91,13 @@ const Changelog: React.FC = () => {
                   Devotado, Inscrito é adicionado junto; ao remover Inscrito,
                   Devotado sai também.
                 </li>
+                <li>
+                  <strong>Correção:</strong> o poder racial{' '}
+                  <strong>Citadino</strong> (Heróis de Arton) agora soma +2 em
+                  Atuação, Diplomacia, Enganação, Intimidação e Jogatina. Antes
+                  o bônus só aparecia na descrição. Fichas já salvas com o poder
+                  também passam a somar.
+                </li>
               </ul>
 
               <h3>4.37</h3>
