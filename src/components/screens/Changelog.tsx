@@ -98,6 +98,16 @@ const Changelog: React.FC = () => {
                   o bônus só aparecia na descrição. Fichas já salvas com o poder
                   também passam a somar.
                 </li>
+                <li>
+                  <strong>Correção:</strong> o poder{' '}
+                  <strong>Aumento de Atributo</strong> escolhido mais de uma vez
+                  pelo editor de poderes (ou em fichas aleatórias de nível alto)
+                  agora dá o +1 de cada escolha. Antes o poder aparecia
+                  repetido, mas só o primeiro aumentava o atributo. Remover uma
+                  das cópias também desfaz só o aumento dela. Fichas que já
+                  ficaram sem o bônus: remova a cópia a mais e adicione de novo,
+                  escolhendo o atributo.
+                </li>
               </ul>
 
               <h3>4.37</h3>
