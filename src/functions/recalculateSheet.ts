@@ -767,6 +767,32 @@ const injectDeusMenorPmBonus = (sheet: CharacterSheet): CharacterSheet => {
   return updatedSheet;
 };
 
+/**
+ * Arma do "empunhando uma arma corpo a corpo em uma das mãos e nada na outra"
+ * (Estilo de Uma Arma, Ataque Preciso). `undefined` se a condição não vale.
+ */
+const getOneHandedMeleeWeapon = (
+  sheet: CharacterSheet
+): Equipment | undefined => {
+  // Exatamente uma mão ocupada e as demais vazias: arma de duas mãos ocupa duas
+  // (mesmo id nos dois slots) e um item em mão extra também tira o "nada na
+  // outra" de quem tem Quatro Braços.
+  if (countOccupiedHands(sheet) !== 1) return undefined;
+  const [occupiedId] = getWieldedItemIds(sheet);
+
+  // O item empunhado precisa ser uma arma corpo a corpo (escudos ficam em
+  // `Escudo`, então não casam aqui).
+  const weapon = (sheet.bag.equipments.Arma || []).find(
+    (w) => w.id === occupiedId
+  );
+  if (!weapon || !isWeaponMelee(weapon)) return undefined;
+  // "(exceto ataques desarmados)" — o Ataque Desarmado e as armas naturais
+  // desarmadas também moram em `Arma`.
+  if (weapon.weaponTags?.includes('desarmado')) return undefined;
+
+  return weapon;
+};
+
 const injectEstiloDeUmaArmaBonuses = (
   sheet: CharacterSheet
 ): CharacterSheet => {
@@ -775,21 +801,8 @@ const injectEstiloDeUmaArmaBonuses = (
   );
   if (!hasPower) return sheet;
 
-  // Exatamente uma mão ocupada e as demais vazias: arma de duas mãos ocupa duas
-  // (mesmo id nos dois slots) e um item em mão extra também tira o "nada na
-  // outra" de quem tem Quatro Braços.
-  if (countOccupiedHands(sheet) !== 1) return sheet;
-  const [occupiedId] = getWieldedItemIds(sheet);
-
-  // O item empunhado precisa ser uma arma corpo a corpo (escudos ficam em
-  // `Escudo`, então não casam aqui).
-  const weapon = (sheet.bag.equipments.Arma || []).find(
-    (w) => w.id === occupiedId
-  );
-  if (!weapon || !isWeaponMelee(weapon)) return sheet;
-  // "(exceto ataques desarmados)" — o Ataque Desarmado e as armas naturais
-  // desarmadas também moram em `Arma`.
-  if (weapon.weaponTags?.includes('desarmado')) return sheet;
+  const weapon = getOneHandedMeleeWeapon(sheet);
+  if (!weapon) return sheet;
 
   const updatedSheet = _.cloneDeep(sheet);
   updatedSheet.sheetBonuses.push(
@@ -806,6 +819,44 @@ const injectEstiloDeUmaArmaBonuses = (
         meleeOnly: true,
       },
       modifier: { type: 'Fixed', value: 2 },
+    }
+  );
+
+  return updatedSheet;
+};
+
+/**
+ * Ataque Preciso: mesma condição de empunhadura do Estilo de Uma Arma, com +2
+ * na margem de ameaça e +1 no multiplicador de crítico da arma.
+ */
+const injectAtaquePrecisoBonuses = (sheet: CharacterSheet): CharacterSheet => {
+  const hasPower = (sheet.generalPowers || []).some(
+    (p) => p.name === 'Ataque Preciso'
+  );
+  if (!hasPower) return sheet;
+
+  const weapon = getOneHandedMeleeWeapon(sheet);
+  if (!weapon) return sheet;
+
+  const updatedSheet = _.cloneDeep(sheet);
+  updatedSheet.sheetBonuses.push(
+    {
+      source: { type: 'power', name: 'Ataque Preciso' },
+      target: {
+        type: 'WeaponThreatMargin',
+        weaponName: weapon.nome,
+        meleeOnly: true,
+      },
+      modifier: { type: 'Fixed', value: 2 },
+    },
+    {
+      source: { type: 'power', name: 'Ataque Preciso' },
+      target: {
+        type: 'WeaponCriticalMultiplier',
+        weaponName: weapon.nome,
+        meleeOnly: true,
+      },
+      modifier: { type: 'Fixed', value: 1 },
     }
   );
 
@@ -2439,10 +2490,12 @@ export function recalculateSheet(
     }
   });
 
-  // Step 8.5: Inject Estilo de Uma Arma bonuses (condicional à empunhadura).
+  // Step 8.5: Inject Estilo de Uma Arma / Ataque Preciso bonuses (condicional
+  // à empunhadura).
   // Precisa rodar APÓS sheetBonuses estarem populados e ANTES dos Steps 9-10
   // (Defesa), 13 (armas) e 14 (RD), que consomem os bônus injetados.
   updatedSheet = injectEstiloDeUmaArmaBonuses(updatedSheet);
+  updatedSheet = injectAtaquePrecisoBonuses(updatedSheet);
   updatedSheet = injectEstiloDeArmaEEscudoBonuses(updatedSheet);
   updatedSheet = injectHeavyArmorPowerBonuses(updatedSheet);
   // Depois dos demais: a Carapaça Kappa inspeciona se algo mais já soma
