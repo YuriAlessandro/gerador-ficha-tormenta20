@@ -84,6 +84,13 @@ const Changelog: React.FC = () => {
                   multiplicador de crítico, assim como o Estilo de Uma Arma já
                   fazia com a Defesa e o ataque.
                 </li>
+                <li>
+                  <strong>Correção:</strong> a melhoria{' '}
+                  <strong>Devotado</strong> (Deuses de Arton) agora exige a
+                  melhoria <strong>Inscrito</strong>, como no livro. Ao escolher
+                  Devotado, Inscrito é adicionado junto; ao remover Inscrito,
+                  Devotado sai também.
+                </li>
               </ul>
 
               <h3>4.37</h3>
