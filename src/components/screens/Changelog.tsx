@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            30/10/2026 (v4.37).
+            06/11/2026 (v4.38).
           </p>
 
           <p>
@@ -74,6 +74,18 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.38</h3>
+              <ul>
+                <li>
+                  <strong>Correção:</strong> o poder{' '}
+                  <strong>Ataque Preciso</strong> agora é aplicado na ficha
+                  automaticamente: empunhando uma arma corpo a corpo em uma mão
+                  e nada na outra, a arma recebe +2 na margem de ameaça e +1 no
+                  multiplicador de crítico, assim como o Estilo de Uma Arma já
+                  fazia com a Defesa e o ataque.
+                </li>
+              </ul>
+
               <h3>4.37</h3>
 
               <Typography variant='body1' sx={{ mt: 2 }}>
