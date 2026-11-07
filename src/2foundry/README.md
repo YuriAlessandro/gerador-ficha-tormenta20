@@ -16,15 +16,27 @@ precisa sair exatamente no schema da versão alvo.
 
 | Parte da ficha                                        | No Foundry                                                                                   |
 | ----------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Atributos, perícias treinadas, ofícios                | `system.atributos`, `system.pericias` (ofícios sem chave própria viram `ofi1`…`ofi9`)        |
+| Atributos                                             | `system.atributos.*.base` (já com a raça); o delta temporário sai como efeito ligado         |
+| Raça                                                  | um item `race` zerado, só para ocupar o slot da ficha (ver abaixo)                           |
+| Perícias treinadas, ofícios                           | `system.pericias` (ofícios sem chave própria viram `ofi1`…`ofi9`); `outros` fecha o total    |
 | PV e PM (máximo, atual, temporário)                   | `system.attributes.pv/pm`, com o cálculo manual ligado (`flags.tormenta20.lvlconfig.manual`) |
 | Defesa                                                | base + atributo; o Foundry soma armadura/escudo equipados e `outros` fecha a conta           |
 | Deslocamentos, sentidos, tamanho, carga, dinheiro, RD | `system.attributes.*`, `system.tracos.*`, `system.dinheiro`                                  |
 | Proficiências                                         | `system.tracos.profArmas/profArmaduras`                                                      |
 | Classe(s)                                             | um item `classe` por classe (multiclasse)                                                    |
 | Poderes de todas as origens (`collectSheetPowers`)    | itens `poder` com o texto, as rolagens e os efeitos da ficha                                 |
-| Magias                                                | itens `magia`; cada aprimoramento é um efeito de uso com o custo em PM                       |
+| Magias (inclusive a lista derivada do Usurpar)        | itens `magia` com a CD da ficha; cada aprimoramento é um efeito de uso com o custo em PM     |
 | Mochila                                               | itens `arma` (ataque, dano, crítico), `equipamento`, `consumivel` e `tesouro`                |
+| Favoritos                                             | armas em mãos, magias e poderes com rolagem (`flags.tormenta20.favorito`)                    |
+
+O item `race` é necessário mesmo vazio: sem ele, o cabeçalho da ficha mostra um
+link "Raça" que abre o compêndio, e a raça arrastada de lá grava
+`atributos.*.racial` e recria os poderes raciais — somando a raça de novo sobre
+um `base` que já a inclui. Por isso ele vai com atributos zerados e sem
+`grants`/`skills`.
+
+A frente da ficha em abas só lista itens favoritados; sem a flag ela parece
+vazia mesmo com tudo importado.
 
 ## Automações
 
@@ -70,11 +82,38 @@ ficha já usa para calcular seus totais:
 - **Aprimoramentos de magia** — efeitos de uso com o custo em PM; os que têm
   bônus de dano estruturado alteram a rolagem.
 
+- **Camada de atributo efetivo** — `atributosTemporarios` (ver
+  `functions/effectiveAttributes.ts`) sai como efeitos **ligados** no ator: o
+  ajuste manual (`bonusAtributos`) em "Ajuste manual de atributos" e o resto
+  (efeitos customizados, Forma Selvagem…) em "Efeitos ativos da ficha",
+  descontado o que os ativáveis ligados já cobrem. Assim os atributos do Foundry
+  batem com os que a ficha mostra, e o jogador desliga quando o estado acabar.
+
+Defesa, carga e perícias fecham com os totais da ficha: o exportador reproduz o
+que o Foundry deriva (meio nível, atributo já com os efeitos ligados, treino,
+efeitos, `@pda` dos itens vestidos, `@tamanho`) e põe a diferença no `outros`
+(no `base`, para a carga). Opções de mundo que mudam a conta
+(`progressiveDefense`) descasam esses totais.
+
 Os valores são resolvidos na exportação (nível e atributos atuais). Subir de
 nível no Foundry não os recalcula: é reexportar a ficha.
 
 O que não tem dado estruturado na ficha (bônus restritos a uma arma específica,
 efeitos puramente descritivos) vai só como texto.
+
+## Compatibilidade entre versões do sistema
+
+O alvo é a 1.6.6, mas o JSON importa da 1.6.2 em diante: os modelos de item não
+mudaram nesse intervalo, e o que é novo as versões antigas descartam.
+
+- Armas saem sempre com o atributo de ataque explícito: a 1.6.6 passou a trocar
+  Força por Destreza também em arma ágil quando a mesa liga a Acuidade
+  automática, e em branco o resultado dependeria da versão.
+- Até a 1.6.5, o diálogo de uso quebra quando a descrição do efeito tem mais de
+  um elemento raiz — efeito de uso usa `textToSingleBlockHtml`.
+- `enableAutoUpgrades` sai no topo (até 1.6.4) e em `upgrades` (1.6.5+). Os
+  conjuntos de melhorias da 1.6.5 ficam vazios de propósito: o sistema puxaria
+  do compêndio bônus que já estão nos números exportados.
 
 ## Acompanhando versões novas do sistema
 

@@ -1,9 +1,17 @@
 import { isHeavyArmor } from '../../data/systems/tormenta20/equipamentos';
-import { getEffectiveWeaponCategory } from '../../functions/proficiencies';
+import {
+  getEffectiveWeaponCategory,
+  getSheetProficiencias,
+  getWeaponNonProficiencyPenalty,
+} from '../../functions/proficiencies';
 import {
   getWeaponPurpose,
   normalizeReach,
 } from '../../functions/weaponPurpose';
+import {
+  getWeaponSkill,
+  resolveAttackAttribute,
+} from '../../functions/weaponSkill';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Equipment, {
   BagEquipments,
@@ -12,6 +20,7 @@ import Equipment, {
   WeaponAttribute,
   WeaponCategory,
 } from '../../interfaces/Equipment';
+import Skill from '../../interfaces/Skills';
 import { isRecord } from '../effects';
 import { ATTRIBUTE_KEYS, toDamageTypeKey } from '../enums';
 import { foundryId, textToHtml } from '../normalize';
@@ -136,8 +145,47 @@ function toAbilityFormula(attribute: WeaponAttribute | undefined): string {
   return key ? `@${key}` : '';
 }
 
+/**
+ * `'1d10/1d12'` → dano de uma mão e de duas (propriedade `ada`, o sistema troca
+ * pelo `adaptavel` empunhada com as duas mãos); `'1d6/1d6'` → arma dupla
+ * (`dup`). Sem barra, o dano é um só.
+ */
+export function splitWeaponDamage(dano: string | undefined): {
+  dice: string;
+  adaptable?: string;
+  double: boolean;
+} {
+  const [first = '', second] = (dano ?? '').split('/').map((p) => p.trim());
+  if (!second) return { dice: first, double: false };
+  if (second === first) return { dice: first, double: true };
+  return { dice: first, adaptable: second, double: false };
+}
+
+/**
+ * Atributo do teste de ataque, sempre explícito: o override da arma ou o da
+ * perícia na ficha. Em branco, o sistema decide sozinho — e a 1.6.6 troca para
+ * Destreza em arma leve ou ágil quando a mesa liga a Acuidade automática, o que
+ * a ficha não faz.
+ */
+function getAttackAttributeKey(
+  sheet: CharacterSheet,
+  weapon: Equipment
+): string {
+  const override = toAbilityFormula(resolveAttackAttribute(weapon)).slice(1);
+  if (override) return override;
+  const skillName = getWeaponSkill(weapon);
+  const skillAttribute = sheet.completeSkills?.find(
+    (skill) => skill.name === skillName
+  )?.modAttr;
+  if (skillAttribute) return ATTRIBUTE_KEYS[skillAttribute];
+  return skillName === Skill.PONTARIA ? 'des' : 'for';
+}
+
 /** Rolagens de ataque e dano da arma. */
-function buildWeaponRolls(weapon: Equipment): FoundryRoll[] {
+function buildWeaponRolls(
+  sheet: CharacterSheet,
+  weapon: Equipment
+): FoundryRoll[] {
   const purpose = getWeaponPurpose(weapon);
   const isRanged = purpose === 'firing';
 
@@ -156,10 +204,11 @@ function buildWeaponRolls(weapon: Equipment): FoundryRoll[] {
   // Perícia de ataque escolhida pelo jogador no editor da arma (ex.: Atuação).
   const customSkill = weapon.customSkill && FOUNDRY_SKILLS[weapon.customSkill];
   if (customSkill) attack.parts[1][0] = customSkill;
-  if (weapon.attackAttribute && weapon.attackAttribute !== 'Nenhum') {
-    attack.parts[1][1] = toAbilityFormula(weapon.attackAttribute).slice(1);
-  }
-  attack.parts[2] = [String(weapon.atkBonus ?? 0), '', ''];
+  attack.parts[1][1] = getAttackAttributeKey(sheet, weapon);
+  const attackBonus =
+    (weapon.atkBonus ?? 0) +
+    getWeaponNonProficiencyPenalty(weapon, getSheetProficiencias(sheet));
+  attack.parts[2] = [String(attackBonus), '', ''];
 
   const damage: FoundryRoll = {
     name: 'Dano',
@@ -172,8 +221,9 @@ function buildWeaponRolls(weapon: Equipment): FoundryRoll[] {
     versatil: '',
     adaptavel: '',
   };
-  const dice = weapon.dano?.trim();
+  const { dice, adaptable } = splitWeaponDamage(weapon.dano);
   if (dice && dice !== '-') damage.parts[0][0] = dice;
+  if (adaptable) damage.adaptavel = adaptable;
   // 'Corte/Perfuração' → o primeiro tipo; o sistema guarda um por parte.
   const damageType = toDamageTypeKey(weapon.tipo?.split(/\/| ou /)[0]);
   if (damageType) damage.parts[0][1] = damageType;
@@ -199,7 +249,7 @@ function applyWeapon(
   item: FoundryItem
 ): void {
   const { system } = item;
-  system.rolls = buildWeaponRolls(weapon);
+  system.rolls = buildWeaponRolls(sheet, weapon);
 
   const { criticoM, criticoX } = parseCritical(weapon.critico);
   system.criticoM = criticoM;
@@ -220,9 +270,12 @@ function applyWeapon(
   if (weapon.twoHanded) system.empunhadura = 'duas';
   else system.empunhadura = tags.includes('leve') ? 'leve' : 'uma';
 
+  const damage = splitWeaponDamage(weapon.dano);
   const properties = tags
     .map((tag) => WEAPON_PROPERTY_KEYS[tag])
     .filter(Boolean);
+  if (damage.adaptable) properties.push('ada');
+  if (damage.double) properties.push('dup');
   if (properties.length > 0) {
     system.propriedades = Object.fromEntries(
       properties.map((key) => [key, true])
@@ -238,6 +291,8 @@ function applyWeapon(
     (weapon.id === sheet.mainHandItemId || weapon.id === sheet.offHandItemId);
   if (!isHeld) system.equipado = 0;
   else system.equipado = weapon.twoHanded ? 2 : 1;
+  // A frente da ficha em abas só lista favoritos: as armas em mãos.
+  if (isHeld) item.flags = { tormenta20: { favorito: true } };
 }
 
 /**
@@ -334,7 +389,12 @@ function buildEquipmentItem(
   const hasEnhancements =
     (equipment.modifications?.length ?? 0) > 0 ||
     (equipment.enchantments?.length ?? 0) > 0;
-  if (hasEnhancements) system.enableAutoUpgrades = false;
+  // A chave mudou de lugar na 1.6.5 (`upgrades.enableAutoUpgrades`); as
+  // versões anteriores leem a do topo. Cada uma descarta a que não conhece.
+  if (hasEnhancements) {
+    system.enableAutoUpgrades = false;
+    system.upgrades = { enableAutoUpgrades: false };
+  }
 
   if (item.type === 'arma') applyWeapon(sheet, equipment, item);
   else if (isDefenseEquipment(equipment)) {
