@@ -448,6 +448,20 @@ export default interface Equipment {
    */
   overrideKey?: string;
 
+  /**
+   * Onde o item está, quando NÃO está com o personagem: id de um recipiente da
+   * mochila (Alforje, Carroça…) ou `'stash'` (guardado fora da aventura).
+   * `undefined` = com você. Só o que está com você conta na carga — ver
+   * `functions/bagStorage.ts`.
+   */
+  storedIn?: string;
+
+  /**
+   * Capacidade, em espaços, de um recipiente criado pelo usuário/homebrew. Os
+   * do catálogo (Alforje, veículos) saem de `CONTAINER_CAPACITY_BY_NAME`.
+   */
+  containerCapacity?: number;
+
   // Supplement information (for items from supplements)
   supplementId?: string;
   supplementName?: string;
