@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            06/11/2026 (v4.38).
+            07/11/2026 (v4.38).
           </p>
 
           <p>
@@ -76,6 +76,28 @@ const Changelog: React.FC = () => {
             <AccordionDetails>
               <h3>4.38</h3>
               <ul>
+                <li>
+                  <strong>Novo:</strong> agora dá para separar os itens da{' '}
+                  <strong>mochila</strong> por local. Pelo novo botão de bagagem
+                  em cada item, você leva o item para o <strong>Alforje</strong>{' '}
+                  (até 10 espaços, carregados pela montaria), para um{' '}
+                  <strong>veículo</strong> (Carroça, Carruagem, Canoa, Balão
+                  goblin e os veículos de Heróis de Arton, cada um com sua
+                  capacidade) ou deixa <strong>guardado</strong> fora da
+                  aventura. O que não está com você não conta na sua carga, e
+                  cada local mostra quantos espaços estão ocupados. Dá para
+                  mover só parte de uma pilha, como 3 de 10 rações.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> a exportação para o{' '}
+                  <strong>Foundry VTT</strong> (sistema Tormenta20 1.6.6,
+                  importável a partir da 1.6.2) agora traz atributos, perícias,
+                  Defesa e carga batendo com a ficha, sem somar a raça duas
+                  vezes. Ajustes temporários de atributo vão como efeitos
+                  ligados, as magias saem com a CD da ficha (inclusive as do
+                  Usurpar), e armas empunhadas, magias e poderes com rolagem já
+                  aparecem na frente da ficha do Foundry.
+                </li>
                 <li>
                   <strong>Correção:</strong> o poder{' '}
                   <strong>Ataque Preciso</strong> agora é aplicado na ficha
