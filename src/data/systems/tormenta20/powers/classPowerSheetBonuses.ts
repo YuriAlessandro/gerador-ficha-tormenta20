@@ -83,3 +83,23 @@ export const PELE_DE_ACO_SHEET_BONUSES: SheetBonus[] = [
     },
   },
 ];
+
+/**
+ * Mago Vermelho (Bardo, Heróis de Arton): "Se estiver empunhando uma arma leve
+ * ou ágil, você soma o círculo máximo de magias que pode lançar nos testes de
+ * ataque e nas rolagens de dano com ela." O "empunhando" é por arma: o bônus
+ * só aparece nas armas leves/ágeis (`lightOrAgileOnly`), como no Esgrimista.
+ * A mão livre para lançar magias é só texto.
+ */
+export const MAGO_VERMELHO_SHEET_BONUSES: SheetBonus[] = [
+  {
+    source: { type: 'power', name: 'Mago Vermelho' },
+    target: { type: 'WeaponAttack', lightOrAgileOnly: true },
+    modifier: { type: 'ScaledValue', base: { kind: 'spellCircle' } },
+  },
+  {
+    source: { type: 'power', name: 'Mago Vermelho' },
+    target: { type: 'WeaponDamage', lightOrAgileOnly: true },
+    modifier: { type: 'ScaledValue', base: { kind: 'spellCircle' } },
+  },
+];
