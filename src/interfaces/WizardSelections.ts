@@ -77,6 +77,9 @@ export interface LevelUpSelections {
   originPowerSwaps?: ManualPowerSelections;
   // Magias aprendidas (se aplicável)
   spellsLearned?: Spell[];
+  // "Escolha uma magia" do poder deste nível (Foco em Magia), por nome do
+  // poder: a lista COMPLETA da fonte, que substitui a da ficha.
+  spellModifierChoices?: Record<string, string[]>;
   // Engenhocas fabricadas neste nível (Inventor com Engenhoqueiro): magias já
   // com `engenhoca` preenchido.
   engenhocasFabricadas?: Spell[];

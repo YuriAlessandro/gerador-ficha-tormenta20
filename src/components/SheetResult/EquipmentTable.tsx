@@ -13,6 +13,24 @@ import { useContainerWidth } from '@/hooks/useContainerWidth';
 import { getSupplementInitials } from '@/functions/equipmentDisplay';
 import RollButton from '../RollButton';
 import { CATEGORY_ORDER, itemTypeStyles } from './BackpackModal/itemTypeStyles';
+import WieldingControl from './BackpackModal/WieldingControl';
+import {
+  getWieldingSlot,
+  isWieldable,
+  WieldingDisabledSlots,
+  WieldingSlot,
+  WieldingState,
+} from './BackpackModal/wielding';
+
+/** Empunhar direto da tabela (varinhas, esotéricos, escudos, armas). */
+export interface EquipmentTableWielding {
+  state: WieldingState;
+  extraHands: boolean;
+  onChange: (itemId: string, slot: WieldingSlot) => void;
+  getDisabledSlots?: (
+    itemId: string | undefined
+  ) => WieldingDisabledSlots | undefined;
+}
 
 interface EquipmentTableProps {
   /** Itens já na ordem manual definida na Mochila. */
@@ -20,6 +38,8 @@ interface EquipmentTableProps {
   characterName: string;
   /** Aviso informativo por item (ex.: fundamentalista fora da arma preferida). */
   getItemWarning?: (item: Equipment) => string | undefined;
+  /** Ausente = ficha só-leitura, sem botão de empunhar. */
+  wielding?: EquipmentTableWielding;
 }
 
 interface EquipmentGroup {
@@ -138,7 +158,18 @@ const EquipmentRow: React.FC<{
   compact: boolean;
   characterName: string;
   warning?: string;
-}> = ({ item, stats, gridTemplate, compact, characterName, warning }) => {
+  wieldingSlot: WieldingSlot;
+  wielding?: EquipmentTableWielding;
+}> = ({
+  item,
+  stats,
+  gridTemplate,
+  compact,
+  characterName,
+  warning,
+  wieldingSlot,
+  wielding,
+}) => {
   const spaces = getItemSpaces(item);
   // `—` significa "espaço não definido", não "zero": um item que o jogador
   // zerou de propósito precisa mostrar 0, senão a edição parece não ter salvo.
@@ -146,8 +177,20 @@ const EquipmentRow: React.FC<{
   const countLabel = getCountLabel(item);
   const supplement = getSupplementInitials(item.supplementName);
 
+  const wieldControl =
+    wielding && item.id && isWieldable(item) ? (
+      <WieldingControl
+        item={item}
+        currentSlot={wieldingSlot}
+        onChange={(slot) => wielding.onChange(item.id as string, slot)}
+        disabledSlots={wielding.getDisabledSlots?.(item.id)}
+        extraHands={wielding.extraHands}
+      />
+    ) : null;
+
   const nameCell = (
     <Box sx={NAME_LINE_SX}>
+      {wieldControl}
       <Typography variant='body2' sx={{ fontWeight: 500 }}>
         {item.customDisplayName || item.nome}
       </Typography>
@@ -256,6 +299,7 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({
   items,
   characterName,
   getItemWarning,
+  wielding,
 }) => {
   const [containerRef, containerWidth] = useContainerWidth<HTMLDivElement>();
 
@@ -377,6 +421,10 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({
                 compact={compact}
                 characterName={characterName}
                 warning={getItemWarning?.(item)}
+                wieldingSlot={
+                  wielding ? getWieldingSlot(item.id, wielding.state) : null
+                }
+                wielding={wielding}
               />
             ))}
           </Box>

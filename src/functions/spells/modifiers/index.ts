@@ -25,5 +25,12 @@ export type {
 export { applySpellEffectModifiers, hasSpellEffectModifiers } from './effects';
 export type { EffectOptionLike } from './effects';
 export { collectSheetSpellModifiers } from './collect';
-export { toggleSpellModifierChoice } from './choices';
+export {
+  toggleSpellModifierChoice,
+  getSheetSpellChoices,
+  getSpellChoiceOptions,
+  setSpellModifierChoices,
+} from './choices';
+export type { SpellChoiceOption } from './choices';
+export type { ResolvedSpellChoice } from './collect';
 export { spellMatchesFilter, getSpellCircle } from './match';

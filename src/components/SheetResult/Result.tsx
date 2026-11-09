@@ -204,7 +204,7 @@ import PowersDisplay from './PowersDisplay';
 import CompanionSheetModal from './CompanionSheetModal';
 import CompanionCreationDialog from './CompanionCreationDialog';
 import CompanionEditDialog from './CompanionEditDialog';
-import EquipmentTable from './EquipmentTable';
+import EquipmentTable, { EquipmentTableWielding } from './EquipmentTable';
 import CarryLoadSummary from './CarryLoadSummary';
 import {
   SheetSectionAction,
@@ -2003,6 +2003,31 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet.enabledManeuvers, saveEnabledManeuvers]
   );
 
+  // Empunhar pela tabela de equipamentos: varinhas e esotéricos não têm
+  // linha de ataque, e "para usar um esotérico, você precisa empunhá-lo".
+  const equipmentWielding = useMemo<EquipmentTableWielding | undefined>(
+    () =>
+      onSheetUpdate
+        ? {
+            state: {
+              mainHandItemId: currentSheet.mainHandItemId,
+              offHandItemId: currentSheet.offHandItemId,
+              extraHand1ItemId: currentSheet.extraHand1ItemId,
+              extraHand2ItemId: currentSheet.extraHand2ItemId,
+            },
+            extraHands: sheetHasFourArms(currentSheet),
+            onChange: handleQuickWieldChange,
+            getDisabledSlots: computeWieldingDisabled,
+          }
+        : undefined,
+    [
+      onSheetUpdate,
+      currentSheet,
+      handleQuickWieldChange,
+      computeWieldingDisabled,
+    ]
+  );
+
   const weaponsDiv = useMemo(() => {
     const wieldingTrackingActive = getWieldedItemIds(currentSheet).length > 0;
     const hasArremessador = (currentSheet.raca?.abilities ?? []).some(
@@ -3204,6 +3229,7 @@ const Result: React.FC<ResultProps> = (props) => {
               items={equipamentosOrdered}
               characterName={nome}
               getItemWarning={getFundamentalistWeaponWarning}
+              wielding={equipmentWielding}
             />
             <Box
               sx={{

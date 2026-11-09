@@ -617,7 +617,9 @@ export const esotericos: Equipment[] = [
     descricao:
       'Este cetro possui uma pedra preciosa em sua ponta: esmeralda (ácido), topázio (eletricidade), rubi (fogo) ou safira (frio). Quando lança uma magia que causa dano do tipo da pedra, o dano aumenta em um dado do mesmo tipo.',
     spaces: parseSpaces(1),
-    // A pedra é escolhida marcando uma magia que causa dano do tipo dela.
+    // Item genérico (tabelas de tesouro, fichas antigas): a pedra é escolhida
+    // marcando uma magia que causa dano do tipo dela. Na loja, as variantes
+    // "Cetro elemental de <tipo>" já vêm com a pedra.
     spellChoice: {
       of: 'damageType',
       count: { type: 'fixed', value: 1 },
@@ -631,6 +633,82 @@ export const esotericos: Equipment[] = [
           rolls: 'damage',
           extraDice: 1,
           damageTypes: 'chosen',
+        },
+      },
+    ],
+  },
+  {
+    nome: 'Cetro elemental de ácido',
+    group: 'Esotérico',
+    preco: parsePrice('T$ 750'),
+    descricao:
+      'Este cetro possui uma esmeralda em sua ponta. Quando lança uma magia que causa dano de ácido, o dano aumenta em um dado do mesmo tipo.',
+    spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { damageTypes: ['ácido'] },
+        effect: {
+          type: 'RollBonus',
+          rolls: 'damage',
+          extraDice: 1,
+          damageTypes: ['ácido'],
+        },
+      },
+    ],
+  },
+  {
+    nome: 'Cetro elemental de eletricidade',
+    group: 'Esotérico',
+    preco: parsePrice('T$ 750'),
+    descricao:
+      'Este cetro possui um topázio em sua ponta. Quando lança uma magia que causa dano de eletricidade, o dano aumenta em um dado do mesmo tipo.',
+    spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { damageTypes: ['eletricidade'] },
+        effect: {
+          type: 'RollBonus',
+          rolls: 'damage',
+          extraDice: 1,
+          damageTypes: ['eletricidade'],
+        },
+      },
+    ],
+  },
+  {
+    nome: 'Cetro elemental de fogo',
+    group: 'Esotérico',
+    preco: parsePrice('T$ 750'),
+    descricao:
+      'Este cetro possui um rubi em sua ponta. Quando lança uma magia que causa dano de fogo, o dano aumenta em um dado do mesmo tipo.',
+    spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { damageTypes: ['fogo'] },
+        effect: {
+          type: 'RollBonus',
+          rolls: 'damage',
+          extraDice: 1,
+          damageTypes: ['fogo'],
+        },
+      },
+    ],
+  },
+  {
+    nome: 'Cetro elemental de frio',
+    group: 'Esotérico',
+    preco: parsePrice('T$ 750'),
+    descricao:
+      'Este cetro possui uma safira em sua ponta. Quando lança uma magia que causa dano de frio, o dano aumenta em um dado do mesmo tipo.',
+    spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { damageTypes: ['frio'] },
+        effect: {
+          type: 'RollBonus',
+          rolls: 'damage',
+          extraDice: 1,
+          damageTypes: ['frio'],
         },
       },
     ],

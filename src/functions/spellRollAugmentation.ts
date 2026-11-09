@@ -530,7 +530,13 @@ export function applyRollBonus(
 
   const total = newAccumulator();
   addGroups(total, parsed.diceGroups, parsed.modifier + bonus);
-  const perDieNote = perDie ? ` (${perDie > 0 ? '+' : ''}${perDie}/dado)` : '';
+  // "+4 (+1 × 4 dados)": é +1 PONTO por dado, não um dado a mais — o antigo
+  // "(+1/dado)" era lido como "+1 dado".
+  const perDieNote = perDie
+    ? ` (${perDie > 0 ? '+' : ''}${perDie} × ${diceCount} ${
+        diceCount === 1 ? 'dado' : 'dados'
+      }${flat ? `, ${flat > 0 ? '+' : ''}${flat}` : ''})`
+    : '';
   const bonusSummary = `${bonus > 0 ? '+' : ''}${bonus}${perDieNote}`;
 
   return {
