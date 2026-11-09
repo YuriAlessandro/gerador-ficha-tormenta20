@@ -42,6 +42,13 @@ export interface SpellModifierFilter {
   damaging?: boolean;
   /** Só magias que permitem teste de resistência. */
   resisted?: boolean;
+  /** Só magias com área (Magia Dividida). */
+  area?: boolean;
+  /**
+   * Só magias com rolagem de dano de um destes tipos ("magias que causam dano
+   * de fogo"). Tipos em minúsculas; ver `getRollDamageType`.
+   */
+  damageTypes?: string[];
   /**
    * Só se o personagem tem esta classe (principal, variante ou multiclasse
    * conjuradora) — "magias de bardo".
@@ -69,6 +76,17 @@ export type SpellModifierEffect =
       /** Soma um atributo (Urro Divino: Constituição, mínimo +1). */
       flatAttribute?: Atributo;
       flatAttributeMin?: number;
+      /**
+       * Dados extras iguais ao primeiro dado da rolagem (Cetro elemental: "o
+       * dano aumenta em um dado do mesmo tipo").
+       */
+      extraDice?: number;
+      /**
+       * Só rolagens de dano destes tipos (Aspecto do Inverno: "dano de frio
+       * causa +1 por dado"). `'chosen'` = os tipos escolhidos para a fonte
+       * (escolha `of: 'damageType'`, Cetro elemental).
+       */
+      damageTypes?: string[] | 'chosen';
     }
   /**
    * Quantos esotéricos a magia pode usar ao mesmo tempo (padrão 1; Esoterismo,
@@ -121,7 +139,24 @@ export type SpellModifierEffect =
    * Efeito ativo da magia: PV temporários iguais a `multiplier` × o bônus de
    * `kind` concedido (Égide da Fé, Bênção Fortalecedora).
    */
-  | { type: 'EffectTempPV'; kind: SpellEffectBonusKind; multiplier: number };
+  | { type: 'EffectTempPV'; kind: SpellEffectBonusKind; multiplier: number }
+  /**
+   * Aprimoramento novo para as magias do filtro (Proeminência Solar, Explosão
+   * Fulgente: "+1 PM: criaturas que falhem na resistência ficam em chamas").
+   */
+  | { type: 'ExtraAprimoramento'; addPm: number; text: string }
+  /**
+   * Limite de PM gastos na magia (JdA p. 224: nível na classe da magia).
+   * `value` e `attribute` somam (Orbe cristalina: +1; Magia Ilimitada:
+   * atributo-chave); `multiplier` vale depois (Celebrar Ritual: dobro).
+   */
+  | {
+      type: 'PmLimit';
+      value?: number;
+      /** `'key'` = atributo-chave da magia. */
+      attribute?: Atributo | 'key';
+      multiplier?: number;
+    };
 
 export interface SpellModifier {
   filter?: SpellModifierFilter;
@@ -149,8 +184,15 @@ export interface SpellModifierChoiceSpec {
    * escola de magia específica"). A escola é marcada a partir de qualquer
    * magia dela.
    */
-  of?: 'spell' | 'school';
+  of?: SpellChoiceOf;
 }
+
+/**
+ * O que a escolha registra: a magia, a escola dela, ou o tipo de dano dela
+ * (Cetro elemental: a pedra define o tipo; marca-se a partir de uma magia que
+ * causa dano desse tipo).
+ */
+export type SpellChoiceOf = 'spell' | 'school' | 'damageType';
 
 /** Entidade de dados que pode declarar modificadores de magia. */
 export interface HasSpellModifiers {

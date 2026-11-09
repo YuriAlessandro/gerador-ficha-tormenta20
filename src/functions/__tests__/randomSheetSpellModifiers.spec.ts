@@ -4,7 +4,11 @@ import { dataRegistry } from '../../data/registry';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import { SupplementId } from '../../types/supplement.types';
 import { SCHOOL_LABELS } from '../../components/SpellPicker/schoolLabels';
-import { computeSpellPmCost, resolveSpellCast } from '../spells/modifiers';
+import {
+  computeSpellPmCost,
+  getSpellCircle,
+  resolveSpellCast,
+} from '../spells/modifiers';
 import { getSpellBasePm } from '../spells/engenhoca';
 
 /**
@@ -40,6 +44,17 @@ function assertSpellInvariants(sheet: CharacterSheet, label: string): void {
     if (base >= 1 && cost < 1) {
       throw new Error(
         `${label}: ${spell.nome} custa ${cost} PM (base ${base})`
+      );
+    }
+    // Magia de círculo que a classe já libera cabe no limite (JdA p. 224);
+    // a de poder acima disso pode passar ("sempre pode usar a habilidade em
+    // seu custo mínimo").
+    const classCircle =
+      sheet.classe.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) ?? 0;
+    const fromClass = getSpellCircle(spell) <= classCircle;
+    if (fromClass && profile.pmLimit !== undefined && cost > profile.pmLimit) {
+      throw new Error(
+        `${label}: ${spell.nome} custa ${cost} PM, limite ${profile.pmLimit}`
       );
     }
     profile.spellChoices.forEach((slot) => {

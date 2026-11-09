@@ -246,6 +246,12 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     }
     return castProfile ?? resolveSpellCast(undefined, spell);
   }, [castProfile, resolveProfile, chosenEsoterics, activeCastOptions, spell]);
+  // Aprimoramentos da magia + os acrescentados por poderes e itens
+  // (Proeminência Solar). Os índices das seleções valem sobre esta lista.
+  const aprimoramentos = useMemo(
+    () => [...(spell.aprimoramentos ?? []), ...profile.extraAprimoramentos],
+    [spell.aprimoramentos, profile.extraAprimoramentos]
+  );
   // Limite 1: clicar troca. Limite maior (Esoterismo): clicar soma, e o mais
   // antigo sai quando passa do limite.
   const toggleEsoteric = useCallback(
@@ -287,35 +293,35 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   const hasTruqueSelected = useMemo(() => {
     let found = false;
     selections.forEach((count, index) => {
-      const aprimoramento = spell.aprimoramentos?.[index];
+      const aprimoramento = aprimoramentos[index];
       if (aprimoramento && count > 0 && isTruque(aprimoramento)) {
         found = true;
       }
     });
     return found;
-  }, [selections, spell.aprimoramentos]);
+  }, [selections, aprimoramentos]);
 
   const hasNonTruqueSelected = useMemo(() => {
     let found = false;
     selections.forEach((count, index) => {
-      const aprimoramento = spell.aprimoramentos?.[index];
+      const aprimoramento = aprimoramentos[index];
       if (aprimoramento && count > 0 && !isTruque(aprimoramento)) {
         found = true;
       }
     });
     return found;
-  }, [selections, spell.aprimoramentos]);
+  }, [selections, aprimoramentos]);
 
   const aprimoramentoCost = useMemo(() => {
     let total = 0;
     selections.forEach((count, index) => {
-      const aprimoramento = spell.aprimoramentos?.[index];
+      const aprimoramento = aprimoramentos[index];
       if (aprimoramento && count > 0) {
         total += aprimoramento.addPm * count;
       }
     });
     return total;
-  }, [selections, spell.aprimoramentos]);
+  }, [selections, aprimoramentos]);
 
   const aprimoramentoPmDelta = castCheck?.aprimoramentoPmDelta ?? 0;
 
@@ -363,18 +369,27 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
 
   const effectivePM = currentPM + (tempPM ?? 0);
   const insufficientPM = effectivePM < totalPMCost;
+  // Limite de PM gastos (JdA p. 224). Engenhoca tem o próprio teto. "Você
+  // sempre pode usar a habilidade em seu custo mínimo": o limite nunca fica
+  // abaixo do custo da magia sem aprimoramentos (magia de 2º círculo vinda de
+  // poder num personagem de 1º nível).
+  const pmLimit =
+    basePmOverride === undefined && profile.pmLimit !== undefined
+      ? Math.max(profile.pmLimit, computeSpellPmCost(basePM, costProfile))
+      : undefined;
+  const pmOverLimit = pmLimit !== undefined && totalPMCost > pmLimit;
 
   // Aprimoramentos ativos, no formato consumido pelo motor de aumento.
   const activeSelections = useMemo<AprimoramentoSelection[]>(() => {
     const result: AprimoramentoSelection[] = [];
     selections.forEach((count, index) => {
-      const aprimoramento = spell.aprimoramentos?.[index];
+      const aprimoramento = aprimoramentos[index];
       if (aprimoramento && count > 0) {
         result.push({ aprimoramento, count });
       }
     });
     return result;
-  }, [selections, spell.aprimoramentos]);
+  }, [selections, aprimoramentos]);
 
   // Rolagens aumentadas automaticamente pelos aprimoramentos ativos.
   // Depois, os bônus de poderes/itens (ex.: Mago Branco, +1 PV por dado de
@@ -675,7 +690,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     // Na falha do teste não há efeito a oferecer — a magia não aconteceu.
     const castAugments: CastAugment[] = [];
     selections.forEach((count, index) => {
-      const aprimoramento = spell.aprimoramentos?.[index];
+      const aprimoramento = aprimoramentos[index];
       if (aprimoramento && count > 0) {
         castAugments.push({
           text: aprimoramento.text,
@@ -1020,7 +1035,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
 
             <SpellAreaGuideSection spell={spell} isMobile={isMobile} />
 
-            {spell.aprimoramentos && spell.aprimoramentos.length > 0 && (
+            {aprimoramentos && aprimoramentos.length > 0 && (
               <>
                 <Divider />
                 <Box>
@@ -1033,7 +1048,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                   >
                     Aprimoramentos
                   </Typography>
-                  {spell.aprimoramentos.map((apr, idx) =>
+                  {aprimoramentos.map((apr, idx) =>
                     renderAprimoramento(apr, idx)
                   )}
                   {aprimoramentoOverLimit && (
@@ -1077,7 +1092,10 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                       }
                       label={
                         <Typography variant='body2' sx={{ pt: 0.75 }}>
-                          <strong>+{option.addPm} PM:</strong> {option.label}{' '}
+                          {option.addPm > 0 && (
+                            <strong>+{option.addPm} PM: </strong>
+                          )}
+                          {option.label}{' '}
                           <Typography
                             component='span'
                             variant='caption'
@@ -1281,6 +1299,16 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                   {insufficientPM && ' (PM insuficiente!)'}
                 </Typography>
               )}
+              {pmLimit !== undefined && (
+                <Typography
+                  variant='body2'
+                  color={pmOverLimit ? 'error' : 'text.secondary'}
+                >
+                  {pmOverLimit
+                    ? `Passa do limite de ${pmLimit} PM por magia.`
+                    : `Limite de ${pmLimit} PM por magia.`}
+                </Typography>
+              )}
             </Box>
 
             {castCheck && (
@@ -1349,7 +1377,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
             onClick={handleCast}
             startIcon={<CasinoIcon />}
             color={insufficientPM && shouldSpendPM ? 'warning' : 'primary'}
-            disabled={aprimoramentoOverLimit}
+            disabled={aprimoramentoOverLimit || pmOverLimit}
           >
             {castCheck?.actionLabel ?? 'Usar magia'} com {totalPMCost} PM
           </Button>

@@ -155,6 +155,17 @@ const DRUIDA: ClassDescription = {
           modifier: { type: 'Fixed', value: 5 },
         },
       ],
+      spellModifiers: [
+        {
+          filter: { damageTypes: ['frio'] },
+          effect: {
+            type: 'RollBonus',
+            rolls: 'damage',
+            perDie: 1,
+            damageTypes: ['frio'],
+          },
+        },
+      ],
     },
     {
       name: 'Aspecto do Outono',

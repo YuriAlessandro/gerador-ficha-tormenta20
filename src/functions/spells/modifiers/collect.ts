@@ -1,6 +1,7 @@
 import type CharacterSheet from '../../../interfaces/CharacterSheet';
 import type Equipment from '../../../interfaces/Equipment';
 import type {
+  SpellChoiceOf,
   SpellModifier,
   SpellModifierChoiceSpec,
   SpellModifierFilter,
@@ -20,7 +21,7 @@ export interface ResolvedSpellChoice {
   max: number;
   /** Magias (ou escolas) marcadas pelo jogador, cortadas em `max`. */
   chosen: string[];
-  of: 'spell' | 'school';
+  of: SpellChoiceOf;
   eligible?: SpellModifierFilter;
 }
 

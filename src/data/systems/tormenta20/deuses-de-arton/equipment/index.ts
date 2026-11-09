@@ -448,7 +448,15 @@ export const religiousEsoteric: Equipment[] = [
     nome: 'Contas de oração',
     group: 'Esotérico',
     preco: parsePrice('T$ 500'),
+    descricao:
+      'Várias pequenas esferas, miçangas ou conchas presas por um cordão, que ajudam o devoto a contar suas orações. Aumenta seu limite de PM para magias divinas em +1.',
     spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { tradition: 'divine' },
+        effect: { type: 'PmLimit', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Estola',

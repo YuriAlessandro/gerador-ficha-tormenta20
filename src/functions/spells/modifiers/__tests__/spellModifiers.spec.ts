@@ -11,6 +11,9 @@ import {
 import ARCANISTA from '../../../../data/systems/tormenta20/classes/arcanista';
 import DRUIDA from '../../../../data/systems/tormenta20/classes/druida';
 import { augmentSpellRolls } from '../../../spellRollAugmentation';
+import { getRollDamageType } from '../../damageTypes';
+import { GeneralPowerType } from '../../../../interfaces/Poderes';
+import { Atributo } from '../../../../data/systems/tormenta20/atributos';
 import { applyPower } from '../../../general';
 import {
   applySpellEffectModifiers,
@@ -449,7 +452,14 @@ describe('fase C: escolher magias (spellChoice)', () => {
     const sheet = foco(1);
     const before = resolveSpellCast(sheet, BOLA_DE_FOGO);
     expect(before.spellChoices).toEqual([
-      { source: 'Foco em Magia', chosen: false, of: 'spell', used: 0, max: 1 },
+      {
+        source: 'Foco em Magia',
+        chosen: false,
+        of: 'spell',
+        value: 'Bola de Fogo',
+        used: 0,
+        max: 1,
+      },
     ]);
     expect(before.pmReduction).toBe(0);
 
@@ -474,6 +484,7 @@ describe('fase C: escolher magias (spellChoice)', () => {
       source: 'Foco em Magia',
       chosen: false,
       of: 'spell',
+      value: 'Curar Ferimentos',
       used: 1,
       max: 2,
     });
@@ -686,5 +697,158 @@ describe('Esoterismo: dois esotéricos ao mesmo tempo', () => {
     const profile = resolveSpellCast(sheetWith(false), ARMADURA_ARCANA, ON);
     expect(profile.castOptions).toEqual([]);
     expect(profile.esoterics).toHaveLength(1);
+  });
+});
+
+describe('tipo de dano das rolagens', () => {
+  const SOPRO_DAS_UIVANTES = spellsCircle2.soproDasUivantes;
+  const esoterico = (nome: string): Equipment =>
+    ({ id: nome, nome, group: 'Esotérico' } as Equipment);
+
+  it('lê o tipo do campo ou do rótulo; rótulo com dois tipos fica sem', () => {
+    expect(getRollDamageType({ label: 'Dano de Fogo' })).toBe('fogo');
+    expect(getRollDamageType({ label: 'Dano Psíquico' })).toBe('psíquico');
+    expect(
+      getRollDamageType({ label: 'Dano de Ácido por rodada (aprimoramento)' })
+    ).toBe('ácido');
+    expect(getRollDamageType({ label: 'Dano', damageType: 'Trevas' })).toBe(
+      'trevas'
+    );
+    expect(
+      getRollDamageType({ label: 'Dano Misto (fogo/eletricidade)' })
+    ).toBeUndefined();
+    expect(getRollDamageType({ label: 'Cura' })).toBeUndefined();
+  });
+
+  it('Aspecto do Inverno: +1 por dado só na rolagem de frio', () => {
+    const sheet = withClassPowers(['Aspecto do Inverno']);
+    const profile = resolveSpellCast(sheet, SOPRO_DAS_UIVANTES);
+    const rolls = applySpellRollModifiers(
+      augmentSpellRolls(SOPRO_DAS_UIVANTES.rolls ?? [], []),
+      profile
+    );
+    expect(rolls.find((r) => /frio/i.test(r.label))?.dice).toBe('4d6+4');
+    expect(rolls.find((r) => /impacto/i.test(r.label))?.dice).toBe('2d6');
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).typedDamage).toEqual([]);
+  });
+
+  it('Cetro elemental: a pedra é escolhida por uma magia e soma um dado', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.bag.equipments.Esotérico = [esoterico('Cetro elemental')];
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).spellChoices[0]).toMatchObject(
+      { of: 'damageType', value: 'fogo', chosen: false }
+    );
+    // Magia sem dano dos quatro tipos não oferece a escolha.
+    expect(
+      resolveSpellCast(sheet, spellsCircle1.sono).spellChoices
+    ).toHaveLength(0);
+
+    sheet.spellModifierChoices = toggleSpellModifierChoice(
+      sheet,
+      'Cetro elemental',
+      BOLA_DE_FOGO
+    );
+    expect(sheet.spellModifierChoices).toEqual({ 'Cetro elemental': ['fogo'] });
+    const rolls = applySpellRollModifiers(
+      augmentSpellRolls(BOLA_DE_FOGO.rolls ?? [], []),
+      resolveSpellCast(sheet, BOLA_DE_FOGO)
+    );
+    expect(rolls[0].dice).toBe('7d6');
+    // Frio não ganha com a pedra de fogo.
+    expect(
+      resolveSpellCast(sheet, SOPRO_DAS_UIVANTES).typedDamage
+    ).toHaveLength(0);
+  });
+
+  it('Proeminência Solar: aprimoramento novo em magia de fogo com resistência', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = [
+      {
+        name: 'Proeminência Solar',
+        description: '',
+        type: GeneralPowerType.CONCEDIDOS,
+        requirements: [],
+      },
+    ];
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).extraAprimoramentos).toEqual([
+      expect.objectContaining({ addPm: 1, source: 'Proeminência Solar' }),
+    ]);
+    expect(
+      resolveSpellCast(sheet, SOPRO_DAS_UIVANTES).extraAprimoramentos
+    ).toEqual([]);
+  });
+});
+
+describe('limite de PM (JdA p. 224)', () => {
+  const arcanista = (nivel: number): CharacterSheet => {
+    const sheet = createMockCharacterSheet();
+    sheet.nivel = nivel;
+    sheet.classLevels = undefined;
+    sheet.classe = {
+      ...sheet.classe,
+      name: 'Arcanista',
+      spellPath: {
+        initialSpells: 3,
+        spellType: 'Arcane',
+        qtySpellsLearnAtLevel: () => 1,
+        spellCircleAvailableAtLevel: () => 1,
+        keyAttribute: Atributo.INTELIGENCIA,
+      },
+    };
+    sheet.atributos[Atributo.INTELIGENCIA] = {
+      name: Atributo.INTELIGENCIA,
+      value: 4,
+    };
+    return sheet;
+  };
+
+  it('é o nível na classe da magia', () => {
+    expect(resolveSpellCast(arcanista(5), BOLA_DE_FOGO).pmLimit).toBe(5);
+  });
+
+  it('sem ficha não há limite', () => {
+    expect(resolveSpellCast(undefined, BOLA_DE_FOGO).pmLimit).toBeUndefined();
+  });
+
+  it('Magia Ilimitada soma o atributo-chave (exemplo do livro: 5 + Int 4 = 9)', () => {
+    const sheet = arcanista(5);
+    sheet.generalPowers = [
+      {
+        name: 'Magia Ilimitada',
+        description: '',
+        type: GeneralPowerType.MAGIA,
+        requirements: [],
+      },
+    ];
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).pmLimit).toBe(9);
+  });
+
+  it('Orbe cristalina: +1 só em magia arcana', () => {
+    const sheet = arcanista(5);
+    sheet.bag.equipments.Esotérico = [
+      { id: 'orbe', nome: 'Orbe cristalina', group: 'Esotérico' } as Equipment,
+    ];
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).pmLimit).toBe(6);
+    expect(resolveSpellCast(sheet, CURAR_FERIMENTOS).pmLimit).toBe(5);
+  });
+
+  it('Celebrar Ritual: opção de lançamento que dobra o limite', () => {
+    const sheet = arcanista(8);
+    sheet.generalPowers = [
+      {
+        name: 'Celebrar Ritual',
+        description: '',
+        type: GeneralPowerType.MAGIA,
+        requirements: [],
+      },
+    ];
+    const profile = resolveSpellCast(sheet, BOLA_DE_FOGO);
+    expect(profile.pmLimit).toBe(8);
+    const ritual = profile.castOptions[0];
+    expect(ritual.addPm).toBe(0);
+    expect(
+      resolveSpellCast(sheet, BOLA_DE_FOGO, { castOptions: [ritual.key] })
+        .pmLimit
+    ).toBe(16);
   });
 });

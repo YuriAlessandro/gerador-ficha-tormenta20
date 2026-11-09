@@ -1,23 +1,47 @@
 import type CharacterSheet from '../../../interfaces/CharacterSheet';
+import type { Atributo } from '../../../data/systems/tormenta20/atributos';
 import type { DiceRoll } from '../../../interfaces/DiceRoll';
-import type { Spell } from '../../../interfaces/Spells';
+import type { Aprimoramento, Spell } from '../../../interfaces/Spells';
 import type {
+  SpellChoiceOf,
   SpellEffectBonusKind,
   SpellModifierEffect,
 } from '../../../interfaces/SpellModifiers';
 import {
+  addRollDice,
   applyRollBonus,
   AugmentedRoll,
   isHealingRollLabel,
   maximizeRoll,
 } from '../../spellRollAugmentation';
+import { getRollDamageType } from '../damageTypes';
 import { getSpellBasePm } from '../engenhoca';
+import { getSpellKeyAttribute, getSpellPmLimitBase } from '../pmLimit';
 import { collectSheetSpellModifiers } from './collect';
-import { choiceValueOf, isDamageRollLabel, spellMatchesFilter } from './match';
+import {
+  choiceValueOf,
+  choiceValuesOf,
+  isDamageRollLabel,
+  spellMatchesFilter,
+} from './match';
 
 interface RollBonusTotal {
   perDie: number;
   flat: number;
+}
+
+/** Bônus de dano que depende do tipo da rolagem ou soma dados. */
+export interface TypedDamageBonus {
+  /** Ausente = qualquer rolagem de dano. */
+  damageTypes?: string[];
+  perDie: number;
+  flat: number;
+  extraDice: number;
+}
+
+/** Aprimoramento que um poder ou item acrescenta à magia. */
+export interface ExtraAprimoramento extends Aprimoramento {
+  source: string;
 }
 
 /**
@@ -34,6 +58,16 @@ export interface SpellCastProfile {
   pmHalve: boolean;
   healing: RollBonusTotal;
   damage: RollBonusTotal;
+  /** Bônus de dano por tipo e dados extras (Aspecto do Inverno, Cetro). */
+  typedDamage: TypedDamageBonus[];
+  /** Aprimoramentos acrescentados (Proeminência Solar, Explosão Fulgente). */
+  extraAprimoramentos: ExtraAprimoramento[];
+  /**
+   * Máximo de PM gastos no lançamento (JdA p. 224), já com bônus (Orbe
+   * cristalina, Magia Ilimitada) e multiplicador (Celebrar Ritual). Ausente
+   * sem ficha.
+   */
+  pmLimit?: number;
   /** Rolagens extras (Costela de lich), com id estável por fonte. */
   extraRolls: DiceRoll[];
   /** Somado à CD para resistir à magia. */
@@ -87,7 +121,9 @@ export interface SpellChoiceSlot {
   source: string;
   /** A magia (ou a escola dela, se `of: 'school'`) está escolhida. */
   chosen: boolean;
-  of: 'spell' | 'school';
+  of: SpellChoiceOf;
+  /** O que marcar esta magia registra (o nome, a escola ou o tipo de dano). */
+  value?: string;
   used: number;
   max: number;
 }
@@ -144,6 +180,8 @@ export function resolveSpellCast(
     pmHalve: false,
     healing: { perDie: 0, flat: 0 },
     damage: { perDie: 0, flat: 0 },
+    typedDamage: [],
+    extraAprimoramentos: [],
     extraRolls: [],
     dcBonus: 0,
     aprimoramentoPm: 0,
@@ -172,8 +210,11 @@ export function resolveSpellCast(
     if (!spellMatchesFilter(spell, choice.eligible, sheet)) return;
     profile.spellChoices.push({
       source: choice.source,
-      chosen: choice.chosen.includes(choiceValueOf(spell, choice.of)),
+      chosen: choiceValuesOf(spell, choice.of, choice.eligible).some((v) =>
+        choice.chosen.includes(v)
+      ),
       of: choice.of,
+      value: choiceValueOf(spell, choice.of, choice.eligible),
       used: choice.chosen.length,
       max: choice.max,
     });
@@ -192,6 +233,19 @@ export function resolveSpellCast(
   profile.esotericOptions = Array.from(
     new Set(matching.filter((m) => m.esoteric).map((m) => m.source))
   );
+
+  const chosenOf = new Map<string, string[]>();
+  collected.forEach(({ choice }) => {
+    if (choice) chosenOf.set(choice.source, choice.chosen);
+  });
+  const attributeValue = (attribute: string | undefined): number => {
+    if (!sheet || !attribute) return 0;
+    const key =
+      attribute === 'key' ? getSpellKeyAttribute(sheet, spell) : attribute;
+    return key ? sheet.atributos?.[key as Atributo]?.value ?? 0 : 0;
+  };
+  let pmLimitBonus = 0;
+  let pmLimitMultiplier = 1;
 
   const applyEffect = (
     effect: SpellModifierEffect,
@@ -217,8 +271,6 @@ export function resolveSpellCast(
         note(`Custo pela metade (${source})`);
         break;
       case 'RollBonus': {
-        const total =
-          effect.rolls === 'healing' ? profile.healing : profile.damage;
         const fromAttribute = effect.flatAttribute
           ? Math.max(
               effect.flatAttributeMin ?? -Infinity,
@@ -226,13 +278,36 @@ export function resolveSpellCast(
             )
           : 0;
         const flat = (effect.flat ?? 0) + fromAttribute;
-        total.perDie += effect.perDie ?? 0;
-        total.flat += flat;
-        const text = describeRollBonus(
-          effect.rolls === 'healing' ? 'cura' : 'dano',
-          effect.perDie,
-          flat
-        );
+        const damageTypes =
+          effect.damageTypes === 'chosen'
+            ? chosenOf.get(source) ?? []
+            : effect.damageTypes;
+        const typed =
+          effect.rolls === 'damage' && (!!damageTypes || !!effect.extraDice);
+        if (typed) {
+          profile.typedDamage.push({
+            damageTypes,
+            perDie: effect.perDie ?? 0,
+            flat,
+            extraDice: effect.extraDice ?? 0,
+          });
+        } else {
+          const total =
+            effect.rolls === 'healing' ? profile.healing : profile.damage;
+          total.perDie += effect.perDie ?? 0;
+          total.flat += flat;
+        }
+        let what = effect.rolls === 'healing' ? 'cura' : 'dano';
+        if (damageTypes?.length) what = `dano de ${damageTypes.join('/')}`;
+        const parts = [describeRollBonus(what, effect.perDie, flat)];
+        if (effect.extraDice) {
+          parts.push(
+            `+${effect.extraDice} ${
+              effect.extraDice === 1 ? 'dado' : 'dados'
+            } de ${what}`
+          );
+        }
+        const text = parts.filter(Boolean).join(' e ');
         if (text) note(`${text} (${source})`);
         break;
       }
@@ -281,6 +356,22 @@ export function resolveSpellCast(
           multiplier: effect.multiplier,
         });
         break;
+      case 'ExtraAprimoramento':
+        profile.extraAprimoramentos.push({
+          addPm: effect.addPm,
+          text: `${effect.text} (${source})`,
+          source,
+        });
+        break;
+      case 'PmLimit': {
+        const added = (effect.value ?? 0) + attributeValue(effect.attribute);
+        pmLimitBonus += added;
+        if (effect.multiplier) {
+          pmLimitMultiplier = Math.max(pmLimitMultiplier, effect.multiplier);
+        }
+        if (added) note(`${sign(added)} no limite de PM (${source})`);
+        break;
+      }
       case 'CastOption': {
         const raisesEsotericLimit = (effect.effects ?? []).some(
           (sub) => sub.type === 'EsotericLimit'
@@ -333,6 +424,10 @@ export function resolveSpellCast(
       `+${profile.aprimoramentoPm} PM para aprimoramentos (${aprimoramentoSource})`
     );
   }
+  if (sheet) {
+    profile.pmLimit =
+      (getSpellPmLimitBase(sheet, spell) + pmLimitBonus) * pmLimitMultiplier;
+  }
   profile.pmReduction = bestNonCumulative + cumulative;
   if (bestSource) profile.pmReductionSources.push(bestSource);
   profile.pmReductionSources.push(...cumulativeSources);
@@ -375,7 +470,7 @@ export function applySpellRollModifiers(
   rolls: AugmentedRoll[],
   profile: Pick<
     SpellCastProfile,
-    'healing' | 'damage' | 'maximize' | 'damageTypeOverride'
+    'healing' | 'damage' | 'typedDamage' | 'maximize' | 'damageTypeOverride'
   >
 ): AugmentedRoll[] {
   return rolls.map((roll) => {
@@ -387,7 +482,21 @@ export function applySpellRollModifiers(
         profile.healing.flat
       );
     } else if (isDamageRollLabel(roll.label, roll.damageType)) {
-      result = applyRollBonus(roll, profile.damage.perDie, profile.damage.flat);
+      // Tipo ORIGINAL da rolagem: a troca de tipo vem depois.
+      const rollType = getRollDamageType(roll);
+      const typed = (profile.typedDamage ?? []).filter(
+        (bonus) =>
+          !bonus.damageTypes ||
+          (!!rollType && bonus.damageTypes.includes(rollType))
+      );
+      typed.forEach((bonus) => {
+        if (bonus.extraDice) result = addRollDice(result, bonus.extraDice);
+      });
+      const perDie =
+        profile.damage.perDie + typed.reduce((sum, b) => sum + b.perDie, 0);
+      const flat =
+        profile.damage.flat + typed.reduce((sum, b) => sum + b.flat, 0);
+      result = applyRollBonus(result, perDie, flat);
       if (profile.damageTypeOverride) {
         result = { ...result, damageType: profile.damageTypeOverride };
       }

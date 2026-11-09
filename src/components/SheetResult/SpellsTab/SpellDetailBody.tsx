@@ -76,6 +76,11 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
     notes: [],
   };
   const reduction = profile.pmReduction;
+  // Os da magia + os acrescentados por poderes e itens (Proeminência Solar).
+  const allAprimoramentos = [
+    ...(spell.aprimoramentos ?? []),
+    ...(castProfile?.extraAprimoramentos ?? []),
+  ];
   const cost = computeSpellPmCost(baseCost, profile);
 
   return (
@@ -122,15 +127,17 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
         )}
         {(castProfile?.spellChoices ?? []).map((slot) => {
           const full = !slot.chosen && slot.used >= slot.max;
-          // Escolha de escola (Tomo hermético) é marcada a partir de uma magia.
-          const what =
-            slot.of === 'school'
-              ? `a escola ${getSchoolLabel(spell.school)}`
-              : 'esta magia';
-          const label =
-            slot.of === 'school'
-              ? `${slot.source} · ${getSchoolLabel(spell.school)}`
-              : `${slot.source} · ${slot.used}/${slot.max}`;
+          // Escola (Tomo hermético) e tipo de dano (Cetro elemental) são
+          // marcados a partir de uma magia.
+          let what = 'esta magia';
+          let label = `${slot.source} · ${slot.used}/${slot.max}`;
+          if (slot.of === 'school') {
+            what = `a escola ${getSchoolLabel(spell.school)}`;
+            label = `${slot.source} · ${getSchoolLabel(spell.school)}`;
+          } else if (slot.of === 'damageType') {
+            what = `dano de ${slot.value}`;
+            label = `${slot.source} · ${slot.value}`;
+          }
           return (
             <Tooltip
               key={slot.source}
@@ -218,12 +225,12 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
         {spell.description}
       </Typography>
 
-      {spell.aprimoramentos && spell.aprimoramentos.length > 0 && (
+      {allAprimoramentos.length > 0 && (
         <Box sx={DETAIL_SECTION_SX}>
           <Typography variant='caption' sx={DETAIL_LABEL_SX}>
             Aprimoramentos
           </Typography>
-          {spell.aprimoramentos.map((aprimoramento) => (
+          {allAprimoramentos.map((aprimoramento) => (
             <Typography
               key={`${aprimoramento.addPm}-${aprimoramento.text.substring(
                 0,

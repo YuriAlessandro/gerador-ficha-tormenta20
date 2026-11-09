@@ -543,6 +543,16 @@ const DEUSES_ARTON_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
       name: 'Proeminência Solar',
       description:
         'Suas magias que causam dano de fogo e que têm um teste de resistência recebem o seguinte aprimoramento: +1 PM: criaturas que falhem na resistência ficam em chamas e lentas até apagarem as chamas.',
+      spellModifiers: [
+        {
+          filter: { damageTypes: ['fogo'], resisted: true },
+          effect: {
+            type: 'ExtraAprimoramento',
+            addPm: 1,
+            text: 'Criaturas que falhem na resistência ficam em chamas e lentas até apagarem as chamas.',
+          },
+        },
+      ],
       type: GeneralPowerType.CONCEDIDOS,
       requirements: [[{ type: RequirementType.DEVOTO, name: 'Azgher' }]],
     },

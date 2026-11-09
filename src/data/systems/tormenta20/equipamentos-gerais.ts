@@ -599,11 +599,14 @@ export const esotericos: Equipment[] = [
     descricao:
       'O limite de PM que você pode gastar em magias arcanas e a CD para resistir a elas aumentam em +1.',
     spaces: parseSpaces(2),
-    // O +1 no limite de PM fica no texto: a ficha não valida o limite.
     spellModifiers: [
       {
         filter: { tradition: 'arcane' },
         effect: { type: 'SpellDC', value: 1 },
+      },
+      {
+        filter: { tradition: 'arcane' },
+        effect: { type: 'PmLimit', value: 1 },
       },
     ],
   },
@@ -611,7 +614,26 @@ export const esotericos: Equipment[] = [
     nome: 'Cetro elemental',
     group: 'Esotérico',
     preco: parsePrice('T$ 750'),
+    descricao:
+      'Este cetro possui uma pedra preciosa em sua ponta: esmeralda (ácido), topázio (eletricidade), rubi (fogo) ou safira (frio). Quando lança uma magia que causa dano do tipo da pedra, o dano aumenta em um dado do mesmo tipo.',
     spaces: parseSpaces(1),
+    // A pedra é escolhida marcando uma magia que causa dano do tipo dela.
+    spellChoice: {
+      of: 'damageType',
+      count: { type: 'fixed', value: 1 },
+      eligible: { damageTypes: ['ácido', 'eletricidade', 'fogo', 'frio'] },
+    },
+    spellModifiers: [
+      {
+        filter: { chosen: true },
+        effect: {
+          type: 'RollBonus',
+          rolls: 'damage',
+          extraDice: 1,
+          damageTypes: 'chosen',
+        },
+      },
+    ],
   },
   {
     nome: 'Costela de lich',
@@ -674,7 +696,15 @@ export const esotericos: Equipment[] = [
     nome: 'Orbe cristalina',
     group: 'Esotérico',
     preco: parsePrice('T$ 750'),
+    descricao:
+      'Esta esfera perfeita concentra seu poder mágico. O limite de PM que você pode gastar em magias arcanas aumenta em +1.',
     spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { tradition: 'arcane' },
+        effect: { type: 'PmLimit', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Tomo hermético',

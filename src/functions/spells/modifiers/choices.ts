@@ -1,6 +1,6 @@
 import type CharacterSheet from '../../../interfaces/CharacterSheet';
 import type { Spell } from '../../../interfaces/Spells';
-import { choiceValueOf } from './match';
+import { choiceValuesOf } from './match';
 import { resolveSpellCast } from './resolve';
 
 /**
@@ -16,13 +16,16 @@ export function toggleSpellModifierChoice(
   const slot = resolveSpellCast(sheet, spell).spellChoices.find(
     (s) => s.source === source
   );
-  if (!slot) return undefined;
-  const value = choiceValueOf(spell, slot.of);
+  const value = slot?.value;
+  if (!slot || !value) return undefined;
   const current = sheet.spellModifierChoices?.[source] ?? [];
   if (slot.chosen) {
+    // Desmarca tudo que esta magia registraria (tipo de dano: qualquer um
+    // dos tipos dela que esteja marcado).
+    const own = choiceValuesOf(spell, slot.of);
     return {
       ...sheet.spellModifierChoices,
-      [source]: current.filter((name) => name !== value),
+      [source]: current.filter((name) => !own.includes(name)),
     };
   }
   if (slot.used >= slot.max) return undefined;

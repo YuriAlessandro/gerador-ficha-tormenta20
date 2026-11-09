@@ -1,6 +1,10 @@
 import type CharacterSheet from '../../../interfaces/CharacterSheet';
 import type { Spell } from '../../../interfaces/Spells';
-import type { SpellModifierFilter } from '../../../interfaces/SpellModifiers';
+import type {
+  SpellChoiceOf,
+  SpellModifierFilter,
+} from '../../../interfaces/SpellModifiers';
+import { getSpellDamageTypes } from '../damageTypes';
 import { getSpellTradition } from '../spellTradition';
 import { isHealingRollLabel } from '../../spellRollAugmentation';
 
@@ -44,22 +48,51 @@ export function getSpellCircle(spell: Spell): number {
  * A magia passa no filtro? Campos combinam em E; listas são OU. `chosen` são
  * as magias que o jogador marcou para a fonte do modificador (`filter.chosen`).
  */
-/** O valor que uma escolha registra para a magia: o nome ou a escola. */
+/**
+ * Valores que uma escolha pode registrar a partir da magia: o nome, a escola
+ * ou os tipos de dano dela (restritos aos que `eligible` aceita).
+ */
+export function choiceValuesOf(
+  spell: Spell,
+  of: SpellChoiceOf = 'spell',
+  eligible?: SpellModifierFilter
+): string[] {
+  if (of === 'school') return [spell.school];
+  if (of === 'damageType') {
+    return getSpellDamageTypes(spell).filter(
+      (type) => !eligible?.damageTypes || eligible.damageTypes.includes(type)
+    );
+  }
+  return [spell.nome];
+}
+
+/** O valor que marcar esta magia registra (o primeiro, para tipo de dano). */
 export const choiceValueOf = (
   spell: Spell,
-  of: 'spell' | 'school' = 'spell'
-): string => (of === 'school' ? spell.school : spell.nome);
+  of: SpellChoiceOf = 'spell',
+  eligible?: SpellModifierFilter
+): string | undefined => choiceValuesOf(spell, of, eligible)[0];
 
 export function spellMatchesFilter(
   spell: Spell,
   filter: SpellModifierFilter | undefined,
   sheet?: CharacterSheet,
-  chosen?: { values: string[]; of: 'spell' | 'school' }
+  chosen?: { values: string[]; of: SpellChoiceOf }
 ): boolean {
   if (!filter) return true;
   if (
     filter.chosen &&
-    !chosen?.values.includes(choiceValueOf(spell, chosen.of))
+    !choiceValuesOf(spell, chosen?.of).some((value) =>
+      chosen?.values.includes(value)
+    )
+  ) {
+    return false;
+  }
+  if (
+    filter.damageTypes &&
+    !getSpellDamageTypes(spell).some((type) =>
+      filter.damageTypes?.includes(type)
+    )
   ) {
     return false;
   }
@@ -92,5 +125,6 @@ export function spellMatchesFilter(
   if (filter.healing && !hasHealingRoll(spell)) return false;
   if (filter.damaging && !hasDamageRoll(spell)) return false;
   if (filter.resisted && !spell.resistencia) return false;
+  if (filter.area && !spell.area) return false;
   return true;
 }

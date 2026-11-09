@@ -10,6 +10,17 @@ const magicPowers: Record<string, GeneralPower> = {
     name: 'Celebrar Ritual',
     description:
       'Você pode lançar magias como rituais. Isso dobra seu limite de PM, mas muda a execução para 1 hora (ou o dobro, o que for maior) e exige um gasto de T$ 10 por PM gasto (em incensos, oferendas...). Assim, um arcanista de 8º nível pode lançar uma magia de 16 PM gastando T$ 160.',
+    spellModifiers: [
+      {
+        effect: {
+          type: 'CastOption',
+          id: 'ritual',
+          label: 'como ritual: dobra o limite de PM (1 hora, T$ 10 por PM)',
+          addPm: 0,
+          effects: [{ type: 'PmLimit', multiplier: 2 }],
+        },
+      },
+    ],
     type: GeneralPowerType.MAGIA,
     requirements: [
       [
@@ -112,6 +123,7 @@ const magicPowers: Record<string, GeneralPower> = {
     name: 'Magia Ilimitada',
     description:
       'Você soma seu atributo-chave no limite de PM que pode gastar numa magia. Por exemplo, um arcanista de 5º nível com Int 4 e este poder pode gastar até 9 PM em cada magia.',
+    spellModifiers: [{ effect: { type: 'PmLimit', attribute: 'key' } }],
     type: GeneralPowerType.MAGIA,
     requirements: [[{ type: RequirementType.HABILIDADE, name: 'Magias' }]],
   },

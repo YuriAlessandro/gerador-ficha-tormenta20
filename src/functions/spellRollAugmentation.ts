@@ -485,6 +485,29 @@ export function isHealingRollLabel(label: string): boolean {
 }
 
 /**
+ * Soma `count` dados iguais ao primeiro dado da rolagem (Cetro elemental: "o
+ * dano aumenta em um dado do mesmo tipo"; 6d6 → 7d6).
+ */
+export function addRollDice(roll: AugmentedRoll, count: number): AugmentedRoll {
+  if (count === 0) return roll;
+  const parsed = parseDamage(roll.dice);
+  const first = parsed?.diceGroups[0];
+  if (!parsed || !first) return roll;
+  const total = newAccumulator();
+  addGroups(total, parsed.diceGroups, parsed.modifier);
+  addGroups(total, [{ count, sides: first.sides }], 0);
+  const summary = `+${count}d${first.sides}`;
+  return {
+    ...roll,
+    dice: composeNotation(total),
+    isAugmented: true,
+    addedSummary: roll.addedSummary
+      ? `${roll.addedSummary} ${summary}`
+      : summary,
+  };
+}
+
+/**
  * Soma `perDie` por dado e `flat` fixo a uma rolagem (ex.: Mago Branco, "+1
  * PV por dado de cura"). Roda DEPOIS dos aprimoramentos: os dados que eles
  * somam contam. Quem escolhe QUAIS rolagens recebem é o motor de
