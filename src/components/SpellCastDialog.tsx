@@ -45,6 +45,7 @@ import {
   computeSpellPmCost,
   resolveSpellCast,
   ResolveSpellCastOptions,
+  SpellCastContext,
   SpellCastProfile,
 } from '@/functions/spells/modifiers';
 import { Spell, Aprimoramento, CastAugment } from '../interfaces/Spells';
@@ -132,14 +133,14 @@ interface SpellCastDialogProps {
   // histórico — a ficha usa isso pra não publicar um segundo card igual.
   // `castAugments` são os aprimoramentos escolhidos — o efeito ativo da magia
   // usa para pré-selecionar o tier pago.
-  // `castEffectKeys`: efeitos ativos das opções de lançamento marcadas
-  // (Barreira Mística), oferecidos depois do efeito da própria magia.
+  // `castContext`: esotéricos/opções escolhidos e os efeitos ativos das
+  // opções marcadas (Barreira Mística), oferecidos depois do da magia.
   onCast: (
     pmSpent: number,
     spell: Spell,
     castLogged?: boolean,
     castAugments?: CastAugment[],
-    castEffectKeys?: string[]
+    castContext?: SpellCastContext
   ) => void;
   onUpdateRolls?: (spell: Spell, newRolls: DiceRoll[]) => void;
   characterName?: string;
@@ -233,18 +234,33 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   );
   const displayName = getSpellDisplayName(spell);
 
-  const [chosenEsoteric, setChosenEsoteric] = useState<string | null>(null);
+  const [chosenEsoterics, setChosenEsoterics] = useState<string[] | null>(null);
   // Opções de lançamento marcadas (Magia Pungente, Urro Divino…).
   const [activeCastOptions, setActiveCastOptions] = useState<string[]>([]);
   const profile = useMemo(() => {
-    if (resolveProfile && (chosenEsoteric || activeCastOptions.length > 0)) {
+    if (resolveProfile && (chosenEsoterics || activeCastOptions.length > 0)) {
       return resolveProfile({
-        esoteric: chosenEsoteric ?? undefined,
+        esoterics: chosenEsoterics ?? undefined,
         castOptions: activeCastOptions,
       });
     }
     return castProfile ?? resolveSpellCast(undefined, spell);
-  }, [castProfile, resolveProfile, chosenEsoteric, activeCastOptions, spell]);
+  }, [castProfile, resolveProfile, chosenEsoterics, activeCastOptions, spell]);
+  // Limite 1: clicar troca. Limite maior (Esoterismo): clicar soma, e o mais
+  // antigo sai quando passa do limite.
+  const toggleEsoteric = useCallback(
+    (name: string) => {
+      const current = profile.esoterics;
+      if (profile.esotericLimit <= 1) {
+        setChosenEsoterics([name]);
+      } else if (current.includes(name)) {
+        setChosenEsoterics(current.filter((n) => n !== name));
+      } else {
+        setChosenEsoterics([...current, name].slice(-profile.esotericLimit));
+      }
+    },
+    [profile.esoterics, profile.esotericLimit]
+  );
   const toggleCastOption = useCallback((key: string) => {
     setActiveCastOptions((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
@@ -423,7 +439,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
         ])
       );
       setActiveCheckToggles(new Set());
-      setChosenEsoteric(null);
+      setChosenEsoterics(null);
       setActiveCastOptions([]);
     }
   }, [open, spell.rolls, extraRollKey]);
@@ -673,7 +689,13 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
       : profile.castOptions
           .filter((option) => option.active && option.activeEffectKey)
           .map((option) => option.activeEffectKey as string);
-    onCast(pmSpent, spell, castLogged, castAugments, castEffectKeys);
+    onCast(pmSpent, spell, castLogged, castAugments, {
+      effectKeys: castEffectKeys,
+      resolveOptions: {
+        esoterics: profile.esoterics,
+        castOptions: activeCastOptions,
+      },
+    });
 
     onClose();
   }, [
@@ -906,30 +928,37 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                   />
                 ))}
               </Stack>
-              {resolveProfile && profile.esotericOptions.length > 1 && (
-                <Stack
-                  direction='row'
-                  spacing={1}
-                  useFlexGap
-                  sx={{ alignItems: 'center', flexWrap: 'wrap', mt: 1 }}
-                >
-                  <Typography variant='body2' sx={{ mr: 0.5 }}>
-                    <strong>Esotérico:</strong>
-                  </Typography>
-                  {profile.esotericOptions.map((name) => (
-                    <Chip
-                      key={name}
-                      label={name}
-                      size='small'
-                      color='primary'
-                      variant={
-                        name === profile.esoteric ? 'filled' : 'outlined'
-                      }
-                      onClick={() => setChosenEsoteric(name)}
-                    />
-                  ))}
-                </Stack>
-              )}
+              {resolveProfile &&
+                profile.esotericOptions.length > profile.esotericLimit && (
+                  <Stack
+                    direction='row'
+                    spacing={1}
+                    useFlexGap
+                    sx={{ alignItems: 'center', flexWrap: 'wrap', mt: 1 }}
+                  >
+                    <Typography variant='body2' sx={{ mr: 0.5 }}>
+                      <strong>
+                        {profile.esotericLimit > 1
+                          ? `Esotéricos (até ${profile.esotericLimit}):`
+                          : 'Esotérico:'}
+                      </strong>
+                    </Typography>
+                    {profile.esotericOptions.map((name) => (
+                      <Chip
+                        key={name}
+                        label={name}
+                        size='small'
+                        color='primary'
+                        variant={
+                          profile.esoterics.includes(name)
+                            ? 'filled'
+                            : 'outlined'
+                        }
+                        onClick={() => toggleEsoteric(name)}
+                      />
+                    ))}
+                  </Stack>
+                )}
             </Box>
 
             {showActiveEffectHint && (

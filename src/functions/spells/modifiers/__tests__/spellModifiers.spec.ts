@@ -413,14 +413,14 @@ describe('um esotérico por magia (JdA)', () => {
       'Varinha arcana',
       'Medalhão de prata',
     ]);
-    expect(profile.esoteric).toBe('Varinha arcana');
+    expect(profile.esoterics).toEqual(['Varinha arcana']);
     expect(profile.dcBonus).toBe(1);
     expect(profile.pmReduction).toBe(0);
   });
 
   it('o escolhido no lançamento substitui o outro', () => {
     const profile = resolveSpellCast(sheet(), ARMADURA_ARCANA, {
-      esoteric: 'Medalhão de prata',
+      esoterics: ['Medalhão de prata'],
     });
     expect(profile.pmReduction).toBe(1);
     expect(profile.dcBonus).toBe(0);
@@ -637,5 +637,54 @@ describe('opção de lançamento que oferece efeito ativo', () => {
       active: true,
       activeEffectKey: 'magic:barreira-mistica',
     });
+  });
+});
+
+describe('Esoterismo: dois esotéricos ao mesmo tempo', () => {
+  const item = (id: string, nome: string): Equipment =>
+    ({ id, nome, group: 'Esotérico' } as Equipment);
+  const ARMADURA_ARCANA = spellsCircle1.armaduraArcana;
+  const sheetWith = (withPower: boolean): CharacterSheet => {
+    const s = createMockCharacterSheet();
+    s.bag.equipments.Esotérico = [
+      item('varinha', 'Varinha arcana'),
+      item('medalhao', 'Medalhão de prata'),
+    ];
+    s.mainHandItemId = 'varinha';
+    s.offHandItemId = 'medalhao';
+    if (withPower) {
+      s.generalPowers = [
+        { name: 'Esoterismo', description: '', requirements: [] },
+      ] as unknown as CharacterSheet['generalPowers'];
+    }
+    return s;
+  };
+  const ON = { castOptions: ['Esoterismo:esoterismo'] };
+
+  it('a opção só aparece com dois esotéricos que afetam a magia', () => {
+    expect(
+      resolveSpellCast(sheetWith(true), ARMADURA_ARCANA).castOptions.map(
+        (o) => o.key
+      )
+    ).toEqual(['Esoterismo:esoterismo']);
+    // Bola de Fogo não é pessoal: só a Varinha afeta.
+    expect(resolveSpellCast(sheetWith(true), BOLA_DE_FOGO).castOptions).toEqual(
+      []
+    );
+  });
+
+  it('marcada: +2 PM e os dois esotéricos valem juntos', () => {
+    const profile = resolveSpellCast(sheetWith(true), ARMADURA_ARCANA, ON);
+    expect(profile.esotericLimit).toBe(2);
+    expect(profile.esoterics).toEqual(['Varinha arcana', 'Medalhão de prata']);
+    expect(profile.castOptionPm).toBe(2);
+    expect(profile.dcBonus).toBe(1);
+    expect(profile.pmReduction).toBe(1);
+  });
+
+  it('sem o poder, a opção não existe e o limite fica em 1', () => {
+    const profile = resolveSpellCast(sheetWith(false), ARMADURA_ARCANA, ON);
+    expect(profile.castOptions).toEqual([]);
+    expect(profile.esoterics).toHaveLength(1);
   });
 });

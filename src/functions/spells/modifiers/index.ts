@@ -20,6 +20,7 @@ export type {
   SpellCastProfile,
   ResolveSpellCastOptions,
   SpellChoiceSlot,
+  SpellCastContext,
 } from './resolve';
 export { applySpellEffectModifiers, hasSpellEffectModifiers } from './effects';
 export type { EffectOptionLike } from './effects';

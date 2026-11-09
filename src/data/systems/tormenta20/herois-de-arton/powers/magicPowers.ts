@@ -33,6 +33,18 @@ const magicPowers: Record<string, GeneralPower> = {
     description:
       'Quando lança uma magia, você pode pagar 2 PM para canalizá-la através de dois itens esotéricos diferentes simultaneamente, recebendo os benefícios de ambos.',
     type: GeneralPowerType.MAGIA,
+    // Só aparece no lançamento quando há dois esotéricos que afetam a magia.
+    spellModifiers: [
+      {
+        effect: {
+          type: 'CastOption',
+          id: 'esoterismo',
+          label: 'canaliza dois esotéricos ao mesmo tempo',
+          addPm: 2,
+          effects: [{ type: 'EsotericLimit', value: 2 }],
+        },
+      },
+    ],
     requirements: [
       [{ type: RequirementType.TEXT, text: 'Lançar magias de 2º círculo' }],
     ],

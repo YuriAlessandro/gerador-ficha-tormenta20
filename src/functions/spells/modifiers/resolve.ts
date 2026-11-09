@@ -47,11 +47,13 @@ export interface SpellCastProfile {
   /** Efeito ativo: PV temporários = `multiplier` × bônus de `kind`. */
   effectTempPV: { kind: SpellEffectBonusKind; multiplier: number }[];
   /**
-   * "Uma magia só pode receber os benefícios de um esotérico por vez" (JdA).
-   * `esoteric` é o que vale neste perfil; `esotericOptions`, todos os em uso
-   * que afetariam a magia — mais de um = o jogador escolhe no lançamento.
+   * "Uma magia só pode receber os benefícios de um esotérico por vez" (JdA),
+   * salvo efeitos como o Esoterismo (limite 2). `esoterics` são os que valem
+   * neste perfil (até `esotericLimit`); `esotericOptions`, todos os em uso que
+   * afetariam a magia — mais opções que o limite = o jogador escolhe.
    */
-  esoteric?: string;
+  esoterics: string[];
+  esotericLimit: number;
   esotericOptions: string[];
   /**
    * Fontes de "escolha N magias" (Foco em Magia) para as quais esta magia é
@@ -91,10 +93,23 @@ export interface SpellChoiceSlot {
 }
 
 export interface ResolveSpellCastOptions {
-  /** Esotérico escolhido no lançamento (padrão: o primeiro em uso). */
-  esoteric?: string;
+  /**
+   * Esotéricos escolhidos no lançamento. Faltando (ou inválidos), completa
+   * com os primeiros em uso até o limite.
+   */
+  esoterics?: string[];
   /** Chaves das opções de lançamento marcadas. */
   castOptions?: string[];
+}
+
+/**
+ * O que o lançamento decidiu e o que vem depois dele precisa saber: os
+ * esotéricos e opções escolhidos (para o efeito ativo da magia refletir a
+ * mesma escolha) e os efeitos ativos das opções marcadas (Barreira Mística).
+ */
+export interface SpellCastContext {
+  resolveOptions: ResolveSpellCastOptions;
+  effectKeys: string[];
 }
 
 const sign = (n: number): string => (n >= 0 ? `+${n}` : `${n}`);
@@ -135,6 +150,8 @@ export function resolveSpellCast(
     effectBonusIncrease: [],
     effectThreatMargin: [],
     effectTempPV: [],
+    esoterics: [],
+    esotericLimit: 1,
     esotericOptions: [],
     spellChoices: [],
     castOptions: [],
@@ -170,13 +187,12 @@ export function resolveSpellCast(
       choice && { values: choice.chosen, of: choice.of }
     )
   );
+  // Esotéricos em uso que afetariam a magia (antes das etapas: a opção do
+  // Esoterismo só aparece quando há dois para canalizar).
   profile.esotericOptions = Array.from(
     new Set(matching.filter((m) => m.esoteric).map((m) => m.source))
   );
-  profile.esoteric =
-    options.esoteric && profile.esotericOptions.includes(options.esoteric)
-      ? options.esoteric
-      : profile.esotericOptions[0];
+
   const applyEffect = (
     effect: SpellModifierEffect,
     source: string,
@@ -220,6 +236,9 @@ export function resolveSpellCast(
         if (text) note(`${text} (${source})`);
         break;
       }
+      case 'EsotericLimit':
+        profile.esotericLimit = Math.max(profile.esotericLimit, effect.value);
+        break;
       case 'RollMaximize':
         profile.maximize = true;
         break;
@@ -263,6 +282,10 @@ export function resolveSpellCast(
         });
         break;
       case 'CastOption': {
+        const raisesEsotericLimit = (effect.effects ?? []).some(
+          (sub) => sub.type === 'EsotericLimit'
+        );
+        if (raisesEsotericLimit && profile.esotericOptions.length < 2) break;
         const key = `${source}:${effect.id}`;
         if (profile.castOptions.some((o) => o.key === key)) break;
         const active = !!options.castOptions?.includes(key);
@@ -287,8 +310,22 @@ export function resolveSpellCast(
     }
   };
 
+  // 1ª etapa: tudo que não é esotérico — inclusive o Esoterismo, que define
+  // quantos esotéricos a 2ª etapa aceita.
   matching
-    .filter((m) => !m.esoteric || m.source === profile.esoteric)
+    .filter((m) => !m.esoteric)
+    .forEach(({ source, modifier: { effect } }) => applyEffect(effect, source));
+
+  // 2ª etapa: os esotéricos que valem, até o limite.
+  const picked = Array.from(new Set(options.esoterics ?? []))
+    .filter((name) => profile.esotericOptions.includes(name))
+    .slice(0, profile.esotericLimit);
+  profile.esoterics = [
+    ...picked,
+    ...profile.esotericOptions.filter((name) => !picked.includes(name)),
+  ].slice(0, profile.esotericLimit);
+  matching
+    .filter((m) => m.esoteric && profile.esoterics.includes(m.source))
     .forEach(({ source, modifier: { effect } }) => applyEffect(effect, source));
 
   if (aprimoramentoSource) {

@@ -14,6 +14,7 @@ import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import {
   resolveSpellCast,
+  SpellCastContext,
   SpellCastProfile,
 } from '@/functions/spells/modifiers';
 import type {
@@ -141,7 +142,7 @@ export interface SpellsDisplayProps {
     spell: Spell,
     castLogged?: boolean,
     castAugments?: CastAugment[],
-    castEffectKeys?: string[]
+    castContext?: SpellCastContext
   ) => void;
   isMago?: boolean;
   onToggleMemorized?: (spell: Spell) => void;
@@ -435,7 +436,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
       castSpell: Spell,
       castLogged?: boolean,
       castAugments?: CastAugment[],
-      castEffectKeys?: string[]
+      castContext?: SpellCastContext
     ) => {
       const broke = engenhocaBrokeRef.current && !!castSpell.engenhoca;
       engenhocaBrokeRef.current = false;
@@ -445,13 +446,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
             engenhoca: { ...castSpell.engenhoca, enguicada: true },
           }
         : castSpell;
-      onSpellCast?.(
-        pmSpent,
-        reported,
-        castLogged,
-        castAugments,
-        castEffectKeys
-      );
+      onSpellCast?.(pmSpent, reported, castLogged, castAugments, castContext);
     },
     [onSpellCast]
   );

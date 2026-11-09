@@ -49,8 +49,8 @@ function assertSpellInvariants(sheet: CharacterSheet, label: string): void {
         );
       }
     });
-    if (profile.esoteric && profile.esotericOptions.length === 0) {
-      throw new Error(`${label}: esotérico sem opções`);
+    if (profile.esoterics.length > profile.esotericLimit) {
+      throw new Error(`${label}: esotéricos acima do limite`);
     }
   });
   ['mestreEmEscola', 'especialistaEmEscola'].forEach((key) => {

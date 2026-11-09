@@ -70,6 +70,11 @@ export type SpellModifierEffect =
       flatAttribute?: Atributo;
       flatAttributeMin?: number;
     }
+  /**
+   * Quantos esotéricos a magia pode usar ao mesmo tempo (padrão 1; Esoterismo,
+   * Heróis de Arton: "dois itens esotéricos diferentes simultaneamente").
+   */
+  | { type: 'EsotericLimit'; value: number }
   /** Maximiza as rolagens da magia (Espírito dos Solstícios). */
   | { type: 'RollMaximize' }
   /** Muda o tipo de dano das rolagens de dano (Magia Sagrada/Profana). */

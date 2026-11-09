@@ -165,7 +165,11 @@ import {
   PowerUserPatch,
 } from '@/functions/powers/updatePowerAcrossSheet';
 import { usesCharismaForDefense } from '@/functions/learnedClassAbility';
-import { toggleSpellModifierChoice } from '@/functions/spells/modifiers';
+import {
+  ResolveSpellCastOptions,
+  SpellCastContext,
+  toggleSpellModifierChoice,
+} from '@/functions/spells/modifiers';
 import PoderCapturadoEditDrawer from './EditDrawers/PoderCapturadoEditDrawer';
 import PoderCapturadoAction from './PoderCapturadoAction';
 import LevelUpWizardModal from '../LevelUpWizard/LevelUpWizardModal';
@@ -366,6 +370,11 @@ const Result: React.FC<ResultProps> = (props) => {
   const [queuedCastEffects, setQueuedCastEffects] = useState<
     ActivePowerDefinition[]
   >([]);
+  // Esotéricos e opções escolhidos no lançamento: o efeito ativo da magia
+  // resolve os modificadores com a MESMA escolha (Medalhão Afiado etc.).
+  const [pendingSpellCast, setPendingSpellCast] = useState<
+    ResolveSpellCastOptions | undefined
+  >(undefined);
   // Metadados da magia recém-lançada, guardados enquanto o diálogo de efeito
   // ativo está aberto — o card do histórico só é publicado ao confirmar (ou
   // ao fechar sem confirmar), já com a opção de uso escolhida.
@@ -1367,7 +1376,7 @@ const Result: React.FC<ResultProps> = (props) => {
       spell: Spell,
       castLogged?: boolean,
       castAugments?: CastAugment[],
-      castEffectKeys?: string[]
+      castContext?: SpellCastContext
     ) => {
       const currentTemp = currentSheet.tempPM ?? 0;
       const currentPMValue = currentSheet.currentPM ?? currentSheet.pm;
@@ -1413,7 +1422,7 @@ const Result: React.FC<ResultProps> = (props) => {
                 true
               )
             : undefined);
-        const optionEffects = (castEffectKeys ?? [])
+        const optionEffects = (castContext?.effectKeys ?? [])
           .map((key) => getActivePowerByKey(key))
           .filter((d): d is ActivePowerDefinition => !!d);
         if (def) {
@@ -1425,6 +1434,7 @@ const Result: React.FC<ResultProps> = (props) => {
           setPendingSpellAbility(buildSpellAbilityMeta(spell, pmSpent));
           setPendingSpellCastLogged(Boolean(castLogged));
           setPendingSpellCastAugments(castAugments);
+          setPendingSpellCast(castContext?.resolveOptions);
         } else if (optionEffects.length > 0) {
           // Sem efeito próprio, a magia já publicou o card no lançamento.
           const [first, ...rest] = optionEffects;
@@ -1448,6 +1458,7 @@ const Result: React.FC<ResultProps> = (props) => {
     setQueuedCastEffects(rest);
     setPendingSpellAbility(null);
     setPendingSpellCastAugments(undefined);
+    setPendingSpellCast(undefined);
   }, [queuedCastEffects]);
 
   const handleSpellEffectDismiss = useCallback(() => {
@@ -3626,6 +3637,7 @@ const Result: React.FC<ResultProps> = (props) => {
             definition={spellEffectDef}
             sheet={currentSheet}
             castAugments={pendingSpellCastAugments}
+            spellCast={pendingSpellCast}
             onClose={handleSpellEffectDismiss}
             onConfirm={(option) => {
               if (spellEffectDef) {
