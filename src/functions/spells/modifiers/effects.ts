@@ -1,4 +1,5 @@
 import type { SheetBonus } from '../../../interfaces/CharacterSheet';
+import Skill from '../../../interfaces/Skills';
 import type { SpellEffectBonusKind } from '../../../interfaces/SpellModifiers';
 import type { SpellCastProfile } from './resolve';
 
@@ -24,6 +25,12 @@ export interface EffectOptionLike {
   scale?: EffectScaleLike;
 }
 
+const RESISTANCE_SKILLS: string[] = [
+  Skill.FORTITUDE,
+  Skill.REFLEXOS,
+  Skill.VONTADE,
+];
+
 const isKind = (bonus: EffectBonus, kind: SpellEffectBonusKind): boolean => {
   switch (kind) {
     case 'attack':
@@ -33,6 +40,11 @@ const isKind = (bonus: EffectBonus, kind: SpellEffectBonusKind): boolean => {
       );
     case 'defense':
       return bonus.target.type === 'Defense';
+    case 'resistance':
+      return (
+        bonus.target.type === 'Skill' &&
+        RESISTANCE_SKILLS.includes(bonus.target.name)
+      );
     default:
       return false;
   }
@@ -69,15 +81,44 @@ function threatMarginsFor(
   return margins;
 }
 
-function transformBonuses(
+/** Soma `value` aos bônus fixos positivos de `kind` (Luva de ferro). */
+function increaseBonuses(
   bonuses: EffectBonus[],
   profile: SpellCastProfile
 ): EffectBonus[] {
+  if (profile.effectBonusIncrease.length === 0) return bonuses;
+  return bonuses.map((bonus) => {
+    const extra = profile.effectBonusIncrease
+      .filter(({ kind }) => isKind(bonus, kind))
+      .reduce((sum, { value }) => sum + value, 0);
+    if (extra === 0 || fixedBonusValue(bonus) === 0) return bonus;
+    return {
+      ...bonus,
+      modifier: { type: 'Fixed', value: fixedBonusValue(bonus) + extra },
+    };
+  });
+}
+
+/**
+ * Bônus finais da opção: primeiro os aumentos (o bônus "passa a ser" maior),
+ * depois o que deriva do valor final (margem de ameaça).
+ */
+function transformBonuses(
+  rawBonuses: EffectBonus[],
+  profile: SpellCastProfile
+): EffectBonus[] {
+  const bonuses = increaseBonuses(rawBonuses, profile);
   const extra = profile.effectThreatMargin.flatMap(({ kind, value }) =>
     kind === 'attack' ? threatMarginsFor(bonuses, value) : []
   );
   return extra.length > 0 ? [...bonuses, ...extra] : bonuses;
 }
+
+/** Os bônus já aumentados, para calcular o que deriva deles (PV temp.). */
+const finalBonuses = (
+  bonuses: EffectBonus[],
+  profile: SpellCastProfile
+): EffectBonus[] => increaseBonuses(bonuses, profile);
 
 function tempPVFor(bonuses: EffectBonus[], profile: SpellCastProfile): number {
   return profile.effectTempPV.reduce((sum, { kind, multiplier }) => {
@@ -98,7 +139,9 @@ const addTempPV = (
 
 export function hasSpellEffectModifiers(profile: SpellCastProfile): boolean {
   return (
-    profile.effectThreatMargin.length > 0 || profile.effectTempPV.length > 0
+    profile.effectThreatMargin.length > 0 ||
+    profile.effectTempPV.length > 0 ||
+    profile.effectBonusIncrease.length > 0
   );
 }
 
@@ -113,7 +156,7 @@ export function applySpellEffectModifiers<T extends EffectOptionLike>(
     bonuses: transformBonuses(option.bonuses, profile),
     grantsTempPV: addTempPV(
       option.grantsTempPV,
-      tempPVFor(option.bonuses, profile)
+      tempPVFor(finalBonuses(option.bonuses, profile), profile)
     ),
     scale: scale
       ? {
@@ -123,7 +166,10 @@ export function applySpellEffectModifiers<T extends EffectOptionLike>(
           buildGrantsTempPV: (value: number) =>
             addTempPV(
               scale.buildGrantsTempPV?.(value),
-              tempPVFor(scale.buildBonuses(value), profile)
+              tempPVFor(
+                finalBonuses(scale.buildBonuses(value), profile),
+                profile
+              )
             ),
         }
       : undefined,

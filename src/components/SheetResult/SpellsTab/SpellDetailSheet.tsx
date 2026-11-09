@@ -25,6 +25,7 @@ export interface SpellDetailSheetProps {
   engenhocaInfo?: EngenhocaRowInfo;
   tradition?: SpellTradition;
   castProfile?: SpellCastProfile;
+  spellDC?: number;
 }
 
 /**
@@ -47,6 +48,7 @@ const SpellDetailSheet: React.FC<SpellDetailSheetProps> = ({
   engenhocaInfo,
   tradition,
   castProfile,
+  spellDC,
 }) => (
   <Drawer
     anchor={compact ? 'bottom' : 'right'}
@@ -99,6 +101,7 @@ const SpellDetailSheet: React.FC<SpellDetailSheetProps> = ({
           engenhocaInfo={engenhocaInfo}
           tradition={tradition}
           castProfile={castProfile}
+          spellDC={spellDC}
         />
       </Box>
     )}

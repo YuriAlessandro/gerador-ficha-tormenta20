@@ -36,6 +36,8 @@ export interface SpellDetailBodyProps {
   tradition?: SpellTradition;
   /** O que os poderes/itens da ficha fazem com a magia (custo, cura...). */
   castProfile?: SpellCastProfile;
+  /** CD própria da magia, quando poderes/itens a alteram. */
+  spellDC?: number;
 }
 
 /**
@@ -54,6 +56,7 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
   engenhocaInfo,
   tradition,
   castProfile,
+  spellDC,
 }) => {
   const { engenhoca } = spell;
   const aparatos = getEngenhocaAparatos(engenhoca);
@@ -104,6 +107,15 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
               sx={MICRO_CHIP_SX}
             />
           </Tooltip>
+        )}
+        {spellDC !== undefined && spell.resistencia && (
+          <Chip
+            label={`CD ${spellDC}`}
+            size='small'
+            color='primary'
+            variant='outlined'
+            sx={MICRO_CHIP_SX}
+          />
         )}
         {profile.notes.map((note) => (
           <Chip

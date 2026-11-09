@@ -5,6 +5,7 @@ import type {
   SpellModifier,
 } from '../../../interfaces/SpellModifiers';
 import { isItemWielded } from '../../../components/SheetResult/BackpackModal/wielding';
+import { getClassLevel } from '../../multiclass';
 import { getCatalogSpellModifiers, SpellModifierSourceKind } from './catalog';
 
 /** Um modificador e a fonte que o concede (para o rótulo na UI). */
@@ -46,6 +47,21 @@ function isItemInUse(sheet: CharacterSheet, item: Equipment): boolean {
   return isItemWielded(item.id, sheet);
 }
 
+/**
+ * Habilidades de classe JÁ ganhas: `classe.abilities` pode trazer as de todos
+ * os níveis (ver `hasPowerNamed`), e Alta Arcana não pode valer no 1º nível.
+ * Multiclasse: o nível que conta é o da classe que concede a habilidade.
+ */
+function gainedClassAbilities(sheet: CharacterSheet): { name: string }[] {
+  const { classe } = sheet;
+  if (!classe?.abilities) return [];
+  return classe.abilities.filter((ability) => {
+    const className = ability.sourceClassName ?? classe.name;
+    const classLevel = getClassLevel(sheet, className);
+    return ability.nivel <= classLevel;
+  });
+}
+
 /** Todos os modificadores de magia ativos na ficha, deduplicados por fonte. */
 export function collectSheetSpellModifiers(
   sheet: CharacterSheet
@@ -68,7 +84,6 @@ export function collectSheetSpellModifiers(
   // ativos e exportações recebem fichas parciais.
   const bookPowers: { name: string }[] = [
     ...(sheet.classPowers ?? []),
-    ...(sheet.classe?.abilities ?? []),
     ...(sheet.raca?.abilities ?? []),
     ...(sheet.origin?.powers ?? []),
     ...(sheet.devoto?.poderes ?? []),
@@ -79,6 +94,13 @@ export function collectSheetSpellModifiers(
       'power',
       power.name,
       resolveEntry('power', power.name, power as HasSpellModifiers, false)
+    )
+  );
+  gainedClassAbilities(sheet).forEach((ability) =>
+    push(
+      'ability',
+      ability.name,
+      resolveEntry('ability', ability.name, ability as HasSpellModifiers, false)
     )
   );
   [...(sheet.customPowers ?? []), ...(sheet.customGrantedPowers ?? [])].forEach(

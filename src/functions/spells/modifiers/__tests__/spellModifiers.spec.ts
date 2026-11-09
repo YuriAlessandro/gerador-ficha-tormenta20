@@ -8,6 +8,8 @@ import {
   spellsCircle2,
   spellsCircle3,
 } from '../../../../data/systems/tormenta20/magias/generalSpells';
+import ARCANISTA from '../../../../data/systems/tormenta20/classes/arcanista';
+import DRUIDA from '../../../../data/systems/tormenta20/classes/druida';
 import { augmentSpellRolls } from '../../../spellRollAugmentation';
 import {
   applySpellEffectModifiers,
@@ -245,5 +247,115 @@ describe('esotérico precisa estar empunhado (JdA)', () => {
     sheet.mainHandItemId = 'espada';
     sheet.offHandItemId = 'medalhao';
     expect(hasThreatMargin(sheet)).toBe(true);
+  });
+});
+
+describe('fase B: passivos de itens e poderes', () => {
+  const ARMADURA_ARCANA = spellsCircle1.armaduraArcana;
+  const esoterico = (nome: string): Equipment =>
+    ({ id: nome, nome, group: 'Esotérico' } as Equipment);
+  const withItems = (items: Equipment[], powers: string[] = []) => {
+    const sheet = withClassPowers(powers);
+    sheet.bag.equipments.Esotérico = items;
+    return sheet;
+  };
+
+  it('Medalhão de prata: –1 PM só em magia de alcance pessoal', () => {
+    const sheet = withItems([esoterico('Medalhão de prata')]);
+    expect(resolveSpellCast(sheet, ARMADURA_ARCANA).pmReduction).toBe(1);
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).pmReduction).toBe(0);
+  });
+
+  it('Varinha arcana e Recruta Arcano: CD +1 cada nas arcanas, não nas divinas', () => {
+    const sheet = withItems([esoterico('Varinha arcana')]);
+    sheet.origin = {
+      name: 'Teste',
+      powers: [{ name: 'Recruta Arcano', description: '', type: 'origem' }],
+    } as unknown as CharacterSheet['origin'];
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).dcBonus).toBe(2);
+    expect(resolveSpellCast(sheet, CURAR_FERIMENTOS).dcBonus).toBe(0);
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).damage.flat).toBe(1);
+  });
+
+  it('Costela de lich: rolagem extra de 1d6 de trevas em magia de dano', () => {
+    const sheet = withItems([esoterico('Costela de lich')]);
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).extraRolls).toEqual([
+      expect.objectContaining({ dice: '1d6', damageType: 'trevas' }),
+    ]);
+    expect(resolveSpellCast(sheet, ARMADURA_ARCANA).extraRolls).toEqual([]);
+  });
+
+  it('PM para aprimoramentos não acumulam: Bolsa de pó (+2) e Magia Instintiva (+1) dão +2', () => {
+    const sheet = withItems([esoterico('Bolsa de pó')]);
+    sheet.raca = {
+      ...sheet.raca,
+      abilities: [{ name: 'Magia Instintiva', description: '' }],
+    };
+    expect(resolveSpellCast(sheet, spellsCircle1.sono).aprimoramentoPm).toBe(2);
+    // Fora de encantamento/ilusão, só a Magia Instintiva.
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).aprimoramentoPm).toBe(1);
+  });
+
+  it('Luva de ferro: +1 no bônus de Defesa de magia arcana pessoal', () => {
+    const profile = resolveSpellCast(
+      withItems([esoterico('Luva de ferro')]),
+      ARMADURA_ARCANA
+    );
+    const option = applySpellEffectModifiers(
+      {
+        bonuses: [
+          {
+            target: { type: 'Defense' as const },
+            modifier: { type: 'Fixed' as const, value: 5 },
+          },
+        ],
+      },
+      profile
+    );
+    expect(option.bonuses).toEqual([
+      { target: { type: 'Defense' }, modifier: { type: 'Fixed', value: 6 } },
+    ]);
+  });
+
+  it('Lira de casco de tartaruga só vale para bardo', () => {
+    const lira = {
+      id: 'lira',
+      nome: 'Lira de casco de tartaruga',
+      group: 'Item Geral',
+    } as unknown as Equipment;
+    const cure = { ...CURAR_FERIMENTOS };
+    const sheet = createMockCharacterSheet();
+    sheet.bag.equipments['Item Geral'] = [lira];
+    expect(resolveSpellCast(sheet, cure).healing.perDie).toBe(0);
+    sheet.classe = { ...sheet.classe, name: 'Bardo' };
+    expect(resolveSpellCast(sheet, cure).healing.perDie).toBe(1);
+  });
+});
+
+describe('habilidades de classe respeitam o nível', () => {
+  const arcanistaAt = (nivel: number): CharacterSheet => {
+    const sheet = createMockCharacterSheet();
+    sheet.classe = { ...ARCANISTA };
+    sheet.nivel = nivel;
+    return sheet;
+  };
+
+  it('Alta Arcana só no 20º nível', () => {
+    expect(resolveSpellCast(arcanistaAt(10), BOLA_DE_FOGO).pmHalve).toBe(false);
+    expect(resolveSpellCast(arcanistaAt(20), BOLA_DE_FOGO).pmHalve).toBe(true);
+    // Divina não é afetada.
+    expect(resolveSpellCast(arcanistaAt(20), CURAR_FERIMENTOS).pmHalve).toBe(
+      false
+    );
+  });
+
+  it('"Força da Natureza" de HdA (poder) não ganha o –2 PM da habilidade do druida 20', () => {
+    const sheet = withClassPowers(['Força da Natureza']);
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).pmReduction).toBe(0);
+    const druida = createMockCharacterSheet();
+    druida.classe = { ...DRUIDA };
+    druida.nivel = 20;
+    expect(resolveSpellCast(druida, BOLA_DE_FOGO).pmReduction).toBe(2);
+    expect(resolveSpellCast(druida, BOLA_DE_FOGO).dcBonus).toBe(2);
   });
 });

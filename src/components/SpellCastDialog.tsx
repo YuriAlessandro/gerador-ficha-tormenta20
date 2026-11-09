@@ -145,6 +145,8 @@ interface SpellCastDialogProps {
    * modificadores). Ausente = só a redução gravada na própria magia.
    */
   castProfile?: SpellCastProfile;
+  /** CD própria da magia, quando poderes/itens a alteram. */
+  spellDC?: number;
 }
 
 const isStackable = isStackableAprimoramento;
@@ -171,6 +173,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   characterName,
   castCheck,
   castProfile,
+  spellDC,
 }) => {
   const theme = useTheme();
   const { showDiceResult, logExternalRoll } = useDiceRoll();
@@ -275,9 +278,14 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     if (hasTruqueSelected) {
       return 0;
     }
+    // PM "para gastar em aprimoramentos" (Bolsa de pó, Tomo de guerra) só
+    // abatem o custo dos aprimoramentos, nunca o da magia.
     const adjustedAprimoramentos =
       aprimoramentoCost > 0
-        ? Math.max(0, aprimoramentoCost + aprimoramentoPmDelta)
+        ? Math.max(
+            0,
+            aprimoramentoCost + aprimoramentoPmDelta - profile.aprimoramentoPm
+          )
         : 0;
     // A redução vale sobre o custo TOTAL, com piso de 1 PM (JdA).
     return computeSpellPmCost(basePM + adjustedAprimoramentos, costProfile);
@@ -287,6 +295,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     aprimoramentoCost,
     aprimoramentoPmDelta,
     hasTruqueSelected,
+    profile.aprimoramentoPm,
   ]);
 
   // Custo que entra na CD do teste: sem o desconto do `aprimoramentoPmDelta`
@@ -317,12 +326,21 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   // Rolagens aumentadas automaticamente pelos aprimoramentos ativos.
   // Depois, os bônus de poderes/itens (ex.: Mago Branco, +1 PV por dado de
   // cura) — inclusive sobre os dados que os aprimoramentos somaram.
+  // Por fim, as rolagens extras de poderes/itens (Costela de lich) — fora de
+  // `localRolls` de propósito: não são da magia e não podem ser gravadas nela
+  // pelo `onUpdateRolls`.
   const effectiveRolls = useMemo(
-    () =>
-      applySpellRollModifiers(
+    () => [
+      ...applySpellRollModifiers(
         augmentSpellRolls(localRolls, activeSelections),
         profile
       ),
+      ...profile.extraRolls.map((roll) => ({
+        ...roll,
+        baseDice: roll.dice,
+        isAugmented: false,
+      })),
+    ],
     [localRolls, activeSelections, profile]
   );
 
@@ -346,6 +364,10 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     [effectiveRolls]
   );
 
+  // Chave estável (e não o array): o perfil pode ser recriado com a ficha
+  // aberta, e isso não pode zerar as escolhas do jogador.
+  const extraRollKey = profile.extraRolls.map((r) => r.id).join('|');
+
   useEffect(() => {
     if (open) {
       setSelections(new Map());
@@ -357,11 +379,16 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
         id: roll.id || uuid(),
       }));
       setLocalRolls(rollsWithIds);
-      // Select all rolls by default
-      setSelectedRollIds(new Set(rollsWithIds.map((r) => r.id as string)));
+      // Select all rolls by default (inclusive as extras de poderes/itens).
+      setSelectedRollIds(
+        new Set([
+          ...rollsWithIds.map((r) => r.id as string),
+          ...extraRollKey.split('|').filter(Boolean),
+        ])
+      );
       setActiveCheckToggles(new Set());
     }
-  }, [open, spell.rolls]);
+  }, [open, spell.rolls, extraRollKey]);
 
   const handleAprimoramentoToggle = useCallback((index: number) => {
     setSelections((prev) => {
@@ -811,6 +838,14 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                     label={`-${manaReduction} PM (${manaReductionLabel})`}
                     size='small'
                     color='success'
+                    variant='outlined'
+                  />
+                )}
+                {spellDC !== undefined && spell.resistencia && (
+                  <Chip
+                    label={`CD ${spellDC}`}
+                    size='small'
+                    color='primary'
                     variant='outlined'
                   />
                 )}

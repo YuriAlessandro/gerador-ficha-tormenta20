@@ -1,3 +1,4 @@
+import type CharacterSheet from '../../../interfaces/CharacterSheet';
 import type { Spell } from '../../../interfaces/Spells';
 import type { SpellModifierFilter } from '../../../interfaces/SpellModifiers';
 import { getSpellTradition } from '../spellTradition';
@@ -17,12 +18,32 @@ const hasDamageRoll = (spell: Spell): boolean =>
     isDamageRollLabel(roll.label, roll.damageType)
   );
 
+/** Classe principal (ou variante dela) ou multiclasse conjuradora. */
+function sheetHasCasterClass(
+  sheet: CharacterSheet | undefined,
+  className: string
+): boolean {
+  if (!sheet) return false;
+  const { classe } = sheet;
+  if (
+    classe?.name === className ||
+    (classe?.isVariant === true && classe.baseClassName === className)
+  ) {
+    return true;
+  }
+  return Object.keys(sheet.multiclassSpellPaths ?? {}).includes(className);
+}
+
 /** A magia passa no filtro? Campos combinam em E; listas são OU. */
 export function spellMatchesFilter(
   spell: Spell,
-  filter: SpellModifierFilter | undefined
+  filter: SpellModifierFilter | undefined,
+  sheet?: CharacterSheet
 ): boolean {
   if (!filter) return true;
+  if (filter.casterClass && !sheetHasCasterClass(sheet, filter.casterClass)) {
+    return false;
+  }
   if (filter.spellNames && !filter.spellNames.includes(spell.nome)) {
     return false;
   }

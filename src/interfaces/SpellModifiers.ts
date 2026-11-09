@@ -25,10 +25,15 @@ export interface SpellModifierFilter {
   healing?: boolean;
   /** Só magias com rolagem de dano ("magias de dano"). */
   damaging?: boolean;
+  /**
+   * Só se o personagem tem esta classe (principal, variante ou multiclasse
+   * conjuradora) — "magias de bardo".
+   */
+  casterClass?: string;
 }
 
 /** Tipos de bônus de efeito ativo que contam como "bônus em X". */
-export type SpellEffectBonusKind = 'attack' | 'defense';
+export type SpellEffectBonusKind = 'attack' | 'defense' | 'resistance';
 
 export type SpellModifierEffect =
   /**
@@ -45,6 +50,20 @@ export type SpellModifierEffect =
       perDie?: number;
       flat?: number;
     }
+  /** Bônus na CD para resistir à magia. */
+  | { type: 'SpellDC'; value: number }
+  /**
+   * PM extras para gastar em aprimoramentos (Bolsa de pó, Tomo de guerra).
+   * Não cumulativos entre si (Magia Instintiva, Heróis de Arton): vale o maior.
+   */
+  | { type: 'AprimoramentoPm'; value: number }
+  /** Rolagem extra somada ao lançamento (Costela de lich: +1d6 de trevas). */
+  | { type: 'ExtraRoll'; label: string; dice: string; damageType?: string }
+  /**
+   * Efeito ativo da magia: cada bônus de `kind` aumenta em +`value` (Luva de
+   * ferro: bônus na Defesa ou em resistências).
+   */
+  | { type: 'EffectBonusIncrease'; kind: SpellEffectBonusKind; value: number }
   /**
    * Efeito ativo da magia: cada bônus de `kind` ganha também +`value` na
    * margem de ameaça (Medalhão Afiado).

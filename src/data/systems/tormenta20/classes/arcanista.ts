@@ -397,6 +397,9 @@ const ARCANISTA: ClassDescription = {
       name: 'Alta Arcana',
       text: 'No 20º nível, seu domínio das artes arcanas é total. O custo em PM de suas magias arcanas é reduzido à metade (após aplicar aprimoramentos e quaisquer outros efeitos que reduzam custo).',
       nivel: 20,
+      spellModifiers: [
+        { filter: { tradition: 'arcane' }, effect: { type: 'PmHalve' } },
+      ],
     },
   ],
   powers: [

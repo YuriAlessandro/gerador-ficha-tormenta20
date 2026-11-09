@@ -12,7 +12,12 @@ import { SupplementId } from '../../../types/supplement.types';
  * não está no catálogo (poder/item criado à mão na ficha).
  */
 
-export type SpellModifierSourceKind = 'power' | 'item';
+/**
+ * Habilidade de classe e poder são espaços de nome separados: "Força da
+ * Natureza" é a habilidade de 20º nível do Druida (–2 PM) E um poder de Druida
+ * de Heróis de Arton (forma selvagem), sem relação entre si.
+ */
+export type SpellModifierSourceKind = 'power' | 'ability' | 'item';
 
 interface Entry {
   name?: string;
@@ -29,22 +34,38 @@ const catalogSupplements = (): SupplementId[] => [
 const keyOf = (kind: SpellModifierSourceKind, name: string): string =>
   `${kind}:${name}`;
 
-let cache: { key: string; map: Map<string, SpellModifier[]> } | null = null;
+/**
+ * `null` = nome AMBÍGUO no catálogo (duas entradas de mesmo nome com
+ * modificadores diferentes, inclusive "com" × "sem"). Nesse caso o índice não
+ * escolhe e o motor usa a cópia da própria ficha.
+ */
+type IndexValue = SpellModifier[] | null;
 
-function buildIndex(supplements: SupplementId[]): Map<string, SpellModifier[]> {
-  const map = new Map<string, SpellModifier[]>();
+let cache: { key: string; map: Map<string, IndexValue> } | null = null;
+
+function buildIndex(supplements: SupplementId[]): Map<string, IndexValue> {
+  const map = new Map<string, IndexValue>();
+  const signatures = new Map<string, string>();
   const add = (kind: SpellModifierSourceKind, entries: Entry[] = []) => {
     entries.forEach((entry) => {
       const name = entry.name ?? entry.nome;
-      if (name && entry.spellModifiers?.length) {
-        map.set(keyOf(kind, name), entry.spellModifiers);
+      if (!name) return;
+      const key = keyOf(kind, name);
+      const modifiers = entry.spellModifiers ?? [];
+      const signature = JSON.stringify(modifiers);
+      const seen = signatures.get(key);
+      if (seen === undefined) {
+        signatures.set(key, signature);
+        map.set(key, modifiers);
+      } else if (seen !== signature) {
+        map.set(key, null);
       }
     });
   };
 
   dataRegistry.getClassesBySupplements(supplements).forEach((classe) => {
     add('power', classe.powers);
-    add('power', classe.abilities);
+    add('ability', classe.abilities);
   });
   add('power', dataRegistry.getAllPowersBySupplements(supplements));
   dataRegistry.getRacesBySupplements(supplements).forEach((race) => {
@@ -60,7 +81,10 @@ function buildIndex(supplements: SupplementId[]): Map<string, SpellModifier[]> {
   return map;
 }
 
-/** Modificadores que o catálogo declara para a fonte, ou `undefined`. */
+/**
+ * Modificadores que o catálogo declara para a fonte. `undefined` quando o
+ * nome não está no catálogo ou é ambíguo — aí vale a cópia da ficha.
+ */
 export function getCatalogSpellModifiers(
   kind: SpellModifierSourceKind,
   name: string
@@ -68,7 +92,7 @@ export function getCatalogSpellModifiers(
   const supplements = catalogSupplements();
   const key = supplements.join('|');
   if (cache?.key !== key) cache = { key, map: buildIndex(supplements) };
-  return cache.map.get(keyOf(kind, name));
+  return cache.map.get(keyOf(kind, name)) ?? undefined;
 }
 
 /** Só para testes. */

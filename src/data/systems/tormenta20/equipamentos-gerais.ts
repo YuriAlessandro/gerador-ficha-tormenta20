@@ -585,12 +585,27 @@ export const esotericos: Equipment[] = [
     descricao:
       'Ao lançar magia de encantamento ou ilusão: +2 PM para gastar em aprimoramentos.',
     spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { schools: ['Encan', 'Ilusão'] },
+        effect: { type: 'AprimoramentoPm', value: 2 },
+      },
+    ],
   },
   {
     nome: 'Cajado arcano',
     group: 'Esotérico',
     preco: parsePrice('T$ 1000'),
+    descricao:
+      'O limite de PM que você pode gastar em magias arcanas e a CD para resistir a elas aumentam em +1.',
     spaces: parseSpaces(2),
+    // O +1 no limite de PM fica no texto: a ficha não valida o limite.
+    spellModifiers: [
+      {
+        filter: { tradition: 'arcane' },
+        effect: { type: 'SpellDC', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Cetro elemental',
@@ -602,7 +617,20 @@ export const esotericos: Equipment[] = [
     nome: 'Costela de lich',
     group: 'Esotérico',
     preco: parsePrice('T$ 300'),
+    descricao:
+      'Suas magias causam +1d6 pontos de dano de trevas. Se estiver empunhando esta varinha você não recupera PV por efeitos mágicos de cura.',
     spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { damaging: true },
+        effect: {
+          type: 'ExtraRoll',
+          label: 'Dano de trevas',
+          dice: '1d6',
+          damageType: 'trevas',
+        },
+      },
+    ],
   },
   {
     nome: 'Dedo de ente',
@@ -614,13 +642,33 @@ export const esotericos: Equipment[] = [
     nome: 'Luva de ferro',
     group: 'Esotérico',
     preco: parsePrice('T$ 150'),
+    descricao:
+      'Suas magias arcanas pessoais que concedem bônus na Defesa ou em testes de resistências têm esse bônus aumentado em +1.',
     spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { tradition: 'arcane', ranges: ['Pessoal'] },
+        effect: { type: 'EffectBonusIncrease', kind: 'defense', value: 1 },
+      },
+      {
+        filter: { tradition: 'arcane', ranges: ['Pessoal'] },
+        effect: { type: 'EffectBonusIncrease', kind: 'resistance', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Medalhão de prata',
     group: 'Esotérico',
     preco: parsePrice('T$ 750'),
+    descricao:
+      'Gravado com uma runa pessoal do conjurador, este medalhão de prata diminui em –1 PM o custo de magias de alcance pessoal.',
     spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { ranges: ['Pessoal'] },
+        effect: { type: 'PmReduction', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Orbe cristalina',
@@ -638,7 +686,14 @@ export const esotericos: Equipment[] = [
     nome: 'Varinha arcana',
     group: 'Esotérico',
     preco: parsePrice('T$ 100'),
+    descricao: 'A CD para resistir a suas magias arcanas aumenta em +1.',
     spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { tradition: 'arcane' },
+        effect: { type: 'SpellDC', value: 1 },
+      },
+    ],
   },
 ];
 

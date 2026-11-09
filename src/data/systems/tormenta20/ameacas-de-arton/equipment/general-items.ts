@@ -184,6 +184,12 @@ export const AMEACAS_ARTON_ESOTERIC: Equipment[] = [
     spaces: 1,
     descricao:
       'Ao lançar uma magia de evocação, você recebe +1 PM para gastar em aprimoramentos dela.',
+    spellModifiers: [
+      {
+        filter: { schools: ['Evoc'] },
+        effect: { type: 'AprimoramentoPm', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Tomo do rancor',

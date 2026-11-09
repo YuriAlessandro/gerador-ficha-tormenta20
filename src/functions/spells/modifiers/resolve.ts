@@ -1,4 +1,5 @@
 import type CharacterSheet from '../../../interfaces/CharacterSheet';
+import type { DiceRoll } from '../../../interfaces/DiceRoll';
 import type { Spell } from '../../../interfaces/Spells';
 import type { SpellEffectBonusKind } from '../../../interfaces/SpellModifiers';
 import {
@@ -29,6 +30,14 @@ export interface SpellCastProfile {
   pmHalve: boolean;
   healing: RollBonusTotal;
   damage: RollBonusTotal;
+  /** Rolagens extras (Costela de lich), com id estável por fonte. */
+  extraRolls: DiceRoll[];
+  /** Somado à CD para resistir à magia. */
+  dcBonus: number;
+  /** PM extras para aprimoramentos (o maior; não cumulativos). */
+  aprimoramentoPm: number;
+  /** Efeito ativo: bônus de `kind` aumentam em `value`. */
+  effectBonusIncrease: { kind: SpellEffectBonusKind; value: number }[];
   /** Efeito ativo: margem de ameaça extra por bônus de `kind`. */
   effectThreatMargin: { kind: SpellEffectBonusKind; value: number }[];
   /** Efeito ativo: PV temporários = `multiplier` × bônus de `kind`. */
@@ -68,14 +77,20 @@ export function resolveSpellCast(
     pmHalve: false,
     healing: { perDie: 0, flat: 0 },
     damage: { perDie: 0, flat: 0 },
+    extraRolls: [],
+    dcBonus: 0,
+    aprimoramentoPm: 0,
+    effectBonusIncrease: [],
     effectThreatMargin: [],
     effectTempPV: [],
     notes: [],
   };
 
+  let aprimoramentoSource: string | undefined;
+
   const modifiers = sheet ? collectSheetSpellModifiers(sheet) : [];
   modifiers
-    .filter(({ modifier }) => spellMatchesFilter(spell, modifier.filter))
+    .filter(({ modifier }) => spellMatchesFilter(spell, modifier.filter, sheet))
     .forEach(({ source, modifier: { effect } }) => {
       switch (effect.type) {
         case 'PmReduction':
@@ -104,6 +119,30 @@ export function resolveSpellCast(
           if (text) profile.notes.push(`${text} (${source})`);
           break;
         }
+        case 'SpellDC':
+          profile.dcBonus += effect.value;
+          profile.notes.push(`${sign(effect.value)} na CD (${source})`);
+          break;
+        case 'AprimoramentoPm':
+          if (effect.value > profile.aprimoramentoPm) {
+            profile.aprimoramentoPm = effect.value;
+            aprimoramentoSource = source;
+          }
+          break;
+        case 'ExtraRoll':
+          profile.extraRolls.push({
+            id: `spell-modifier:${source}:${effect.label}`,
+            label: `${effect.label} (${source})`,
+            dice: effect.dice,
+            damageType: effect.damageType,
+          });
+          break;
+        case 'EffectBonusIncrease':
+          profile.effectBonusIncrease.push({
+            kind: effect.kind,
+            value: effect.value,
+          });
+          break;
         case 'EffectThreatMargin':
           profile.effectThreatMargin.push({
             kind: effect.kind,
@@ -121,6 +160,11 @@ export function resolveSpellCast(
       }
     });
 
+  if (aprimoramentoSource) {
+    profile.notes.push(
+      `+${profile.aprimoramentoPm} PM para aprimoramentos (${aprimoramentoSource})`
+    );
+  }
   profile.pmReduction = bestNonCumulative + cumulative;
   if (bestSource) profile.pmReductionSources.push(bestSource);
   profile.pmReductionSources.push(...cumulativeSources);

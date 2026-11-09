@@ -77,6 +77,8 @@ export interface SpellRowProps {
   tradition?: SpellTradition;
   /** Perfil do motor de modificadores (custo com reduções de poderes). */
   castProfile?: SpellCastProfile;
+  /** CD própria da magia, quando poderes/itens a alteram. */
+  spellDC?: number;
 }
 
 /**
@@ -111,6 +113,7 @@ const SpellRow: React.FC<SpellRowProps> = ({
   onRepairEngenhoca,
   tradition,
   castProfile,
+  spellDC,
 }) => {
   const { engenhoca } = spell;
   const displayName = getSpellDisplayName(spell);
@@ -419,6 +422,7 @@ const SpellRow: React.FC<SpellRowProps> = ({
           engenhocaInfo={engenhocaInfo}
           tradition={tradition}
           castProfile={castProfile}
+          spellDC={spellDC}
         />
       </AccordionDetails>
     </Accordion>

@@ -262,6 +262,12 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
     return map;
   }, [sheet, spells]);
 
+  /** CD própria da magia — só quando poderes/itens a alteram. */
+  const spellDCOf = (spell: Spell): number | undefined => {
+    const dcBonus = castProfileByName.get(spell.nome)?.dcBonus ?? 0;
+    return dcBonus !== 0 ? resistance + dcBonus : undefined;
+  };
+
   const engenhocaCounter = useMemo(
     () =>
       engenhoqueiro && sheet
@@ -569,6 +575,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
                   }
                   tradition={getSpellTradition(spell.nome)}
                   castProfile={castProfileByName.get(spell.nome)}
+                  spellDC={spellDCOf(spell)}
                 />
               ))}
             </Box>
@@ -594,6 +601,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
         castProfile={
           detailSpell ? castProfileByName.get(detailSpell.nome) : undefined
         }
+        spellDC={detailSpell ? spellDCOf(detailSpell) : undefined}
       />
 
       {engenhocaSpell && sheet && onEngenhocaChange && (
@@ -631,6 +639,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
           characterName={characterName}
           castCheck={castingCheck}
           castProfile={castProfileByName.get(castingSpell.nome)}
+          spellDC={spellDCOf(castingSpell)}
         />
       )}
     </Box>

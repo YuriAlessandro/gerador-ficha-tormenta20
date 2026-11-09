@@ -26,6 +26,7 @@ const EIRADAAN: Race = {
       name: 'Magia Instintiva',
       description:
         'Você pode usar Sabedoria no lugar de seu atributo-chave de magias arcanas e Misticismo. Além disso, quando lança uma magia, você recebe +1 PM para gastar em seus aprimoramentos (não cumulativo com outros efeitos que fornecem PM para aprimoramentos, como bolsa de pó).',
+      spellModifiers: [{ effect: { type: 'AprimoramentoPm', value: 1 } }],
     },
     {
       name: 'Sentidos Místicos',

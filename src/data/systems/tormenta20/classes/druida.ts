@@ -122,6 +122,11 @@ const DRUIDA: ClassDescription = {
       name: 'Força da Natureza',
       text: 'No 20º nível, você diminui o custo de todas as suas magias em –2 PM e aumenta a CD delas em +2. Os bônus dobram (–4 PM e +4 na CD) se você estiver em terrenos naturais.',
       nivel: 20,
+      // A dobra em terrenos naturais é situacional e fica no texto.
+      spellModifiers: [
+        { effect: { type: 'PmReduction', value: 2 } },
+        { effect: { type: 'SpellDC', value: 2 } },
+      ],
     },
   ],
   powers: [
