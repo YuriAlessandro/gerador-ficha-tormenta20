@@ -14,6 +14,8 @@ import {
 export interface SourcedSpellModifier {
   source: string;
   modifier: SpellModifier;
+  /** Vem de um esotérico — só um por magia (ver `resolveSpellCast`). */
+  esoteric?: boolean;
 }
 
 /**
@@ -82,13 +84,16 @@ export function collectSheetSpellModifiers(
   const push = (
     kind: SpellModifierSourceKind,
     name: string,
-    modifiers: SpellModifier[]
+    modifiers: SpellModifier[],
+    esoteric = false
   ) => {
     // Poder repetido (duas fontes, ou dois itens iguais) não dobra o efeito.
     const key = `${kind}:${name}`;
     if (seen.has(key) || modifiers.length === 0) return;
     seen.add(key);
-    modifiers.forEach((modifier) => result.push({ source: name, modifier }));
+    modifiers.forEach((modifier) =>
+      result.push({ source: name, modifier, esoteric })
+    );
   };
 
   // As mesmas fontes de `buildPowerSources`, lidas com tolerância: efeitos
@@ -148,7 +153,8 @@ export function collectSheetSpellModifiers(
       push(
         'item',
         item.nome,
-        resolveEntry(sheet, 'item', item.nome, item, !!item.isCustom)
+        resolveEntry(sheet, 'item', item.nome, item, !!item.isCustom),
+        item.group === 'Esotérico'
       );
     });
   });

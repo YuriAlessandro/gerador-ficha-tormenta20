@@ -145,8 +145,13 @@ interface SpellCastDialogProps {
    * modificadores). Ausente = só a redução gravada na própria magia.
    */
   castProfile?: SpellCastProfile;
-  /** CD própria da magia, quando poderes/itens a alteram. */
-  spellDC?: number;
+  /**
+   * Perfil para outro esotérico ("uma magia só recebe os benefícios de um
+   * esotérico por vez"): o diálogo oferece a escolha quando há mais de um.
+   */
+  resolveProfile?: (esoteric: string) => SpellCastProfile;
+  /** CD base das magias da ficha; o diálogo soma o bônus do perfil. */
+  baseSpellDC?: number;
 }
 
 const isStackable = isStackableAprimoramento;
@@ -173,7 +178,8 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   characterName,
   castCheck,
   castProfile,
-  spellDC,
+  resolveProfile,
+  baseSpellDC,
 }) => {
   const theme = useTheme();
   const { showDiceResult, logExternalRoll } = useDiceRoll();
@@ -222,10 +228,16 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   );
   const displayName = getSpellDisplayName(spell);
 
-  const profile = useMemo(
-    () => castProfile ?? resolveSpellCast(undefined, spell),
-    [castProfile, spell]
-  );
+  const [chosenEsoteric, setChosenEsoteric] = useState<string | null>(null);
+  const profile = useMemo(() => {
+    if (chosenEsoteric && resolveProfile) return resolveProfile(chosenEsoteric);
+    return castProfile ?? resolveSpellCast(undefined, spell);
+  }, [castProfile, resolveProfile, chosenEsoteric, spell]);
+  // CD própria só quando poderes/itens a alteram.
+  const spellDC =
+    baseSpellDC !== undefined && profile.dcBonus !== 0
+      ? baseSpellDC + profile.dcBonus
+      : undefined;
   // Engenhoca (`basePmOverride`) não paga o custo da magia: não há o que
   // reduzir — mantém o comportamento de antes, em que a redução só abatia o
   // custo base.
@@ -387,6 +399,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
         ])
       );
       setActiveCheckToggles(new Set());
+      setChosenEsoteric(null);
     }
   }, [open, spell.rolls, extraRollKey]);
 
@@ -859,6 +872,30 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                   />
                 ))}
               </Stack>
+              {resolveProfile && profile.esotericOptions.length > 1 && (
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  useFlexGap
+                  sx={{ alignItems: 'center', flexWrap: 'wrap', mt: 1 }}
+                >
+                  <Typography variant='body2' sx={{ mr: 0.5 }}>
+                    <strong>Esotérico:</strong>
+                  </Typography>
+                  {profile.esotericOptions.map((name) => (
+                    <Chip
+                      key={name}
+                      label={name}
+                      size='small'
+                      color='primary'
+                      variant={
+                        name === profile.esoteric ? 'filled' : 'outlined'
+                      }
+                      onClick={() => setChosenEsoteric(name)}
+                    />
+                  ))}
+                </Stack>
+              )}
             </Box>
 
             {showActiveEffectHint && (

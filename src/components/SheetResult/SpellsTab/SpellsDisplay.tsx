@@ -639,7 +639,10 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
           characterName={characterName}
           castCheck={castingCheck}
           castProfile={castProfileByName.get(castingSpell.nome)}
-          spellDC={spellDCOf(castingSpell)}
+          resolveProfile={(esoteric) =>
+            resolveSpellCast(sheet, castingSpell, { esoteric })
+          }
+          baseSpellDC={resistance}
         />
       )}
     </Box>

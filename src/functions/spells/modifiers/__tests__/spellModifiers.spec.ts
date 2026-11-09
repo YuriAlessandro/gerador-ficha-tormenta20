@@ -390,3 +390,44 @@ describe('fase C: escolhas de escola (chooseFromOptions)', () => {
     expect(resolveSpellCast(sheet, BOLA_DE_FOGO).pmReduction).toBe(0);
   });
 });
+
+describe('um esotérico por magia (JdA)', () => {
+  const item = (id: string, nome: string): Equipment =>
+    ({ id, nome, group: 'Esotérico' } as Equipment);
+  const sheet = (): CharacterSheet => {
+    const s = createMockCharacterSheet();
+    s.bag.equipments.Esotérico = [
+      item('varinha', 'Varinha arcana'),
+      item('medalhao', 'Medalhão de prata'),
+    ];
+    s.mainHandItemId = 'varinha';
+    s.offHandItemId = 'medalhao';
+    return s;
+  };
+  const ARMADURA_ARCANA = spellsCircle1.armaduraArcana;
+
+  it('dois esotéricos empunhados: só um vale, e os dois viram opção', () => {
+    const profile = resolveSpellCast(sheet(), ARMADURA_ARCANA);
+    expect(profile.esotericOptions).toEqual([
+      'Varinha arcana',
+      'Medalhão de prata',
+    ]);
+    expect(profile.esoteric).toBe('Varinha arcana');
+    expect(profile.dcBonus).toBe(1);
+    expect(profile.pmReduction).toBe(0);
+  });
+
+  it('o escolhido no lançamento substitui o outro', () => {
+    const profile = resolveSpellCast(sheet(), ARMADURA_ARCANA, {
+      esoteric: 'Medalhão de prata',
+    });
+    expect(profile.pmReduction).toBe(1);
+    expect(profile.dcBonus).toBe(0);
+  });
+
+  it('esotérico que não afeta a magia nem entra como opção', () => {
+    // Bola de Fogo não é pessoal: o Medalhão de prata não se aplica.
+    const profile = resolveSpellCast(sheet(), BOLA_DE_FOGO);
+    expect(profile.esotericOptions).toEqual(['Varinha arcana']);
+  });
+});

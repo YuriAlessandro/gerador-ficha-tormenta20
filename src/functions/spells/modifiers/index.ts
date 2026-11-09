@@ -16,7 +16,7 @@ export {
   getSpellDisplayPmCost,
   applySpellRollModifiers,
 } from './resolve';
-export type { SpellCastProfile } from './resolve';
+export type { SpellCastProfile, ResolveSpellCastOptions } from './resolve';
 export { applySpellEffectModifiers, hasSpellEffectModifiers } from './effects';
 export type { EffectOptionLike } from './effects';
 export { collectSheetSpellModifiers } from './collect';

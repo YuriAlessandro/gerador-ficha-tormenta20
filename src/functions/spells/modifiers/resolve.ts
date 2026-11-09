@@ -42,8 +42,20 @@ export interface SpellCastProfile {
   effectThreatMargin: { kind: SpellEffectBonusKind; value: number }[];
   /** Efeito ativo: PV temporários = `multiplier` × bônus de `kind`. */
   effectTempPV: { kind: SpellEffectBonusKind; multiplier: number }[];
+  /**
+   * "Uma magia só pode receber os benefícios de um esotérico por vez" (JdA).
+   * `esoteric` é o que vale neste perfil; `esotericOptions`, todos os em uso
+   * que afetariam a magia — mais de um = o jogador escolhe no lançamento.
+   */
+  esoteric?: string;
+  esotericOptions: string[];
   /** Linhas legíveis do que se aplica, com a fonte, para a UI. */
   notes: string[];
+}
+
+export interface ResolveSpellCastOptions {
+  /** Esotérico escolhido no lançamento (padrão: o primeiro em uso). */
+  esoteric?: string;
 }
 
 const sign = (n: number): string => (n >= 0 ? `+${n}` : `${n}`);
@@ -61,7 +73,8 @@ function describeRollBonus(
 
 export function resolveSpellCast(
   sheet: CharacterSheet | undefined,
-  spell: Spell
+  spell: Spell,
+  options: ResolveSpellCastOptions = {}
 ): SpellCastProfile {
   // Redução gravada na própria magia (poderes que ensinam a magia de novo,
   // ver `addOrCheapenSpell`): é não cumulativa, como a regra geral.
@@ -83,14 +96,24 @@ export function resolveSpellCast(
     effectBonusIncrease: [],
     effectThreatMargin: [],
     effectTempPV: [],
+    esotericOptions: [],
     notes: [],
   };
 
   let aprimoramentoSource: string | undefined;
 
-  const modifiers = sheet ? collectSheetSpellModifiers(sheet) : [];
-  modifiers
-    .filter(({ modifier }) => spellMatchesFilter(spell, modifier.filter, sheet))
+  const matching = (sheet ? collectSheetSpellModifiers(sheet) : []).filter(
+    ({ modifier }) => spellMatchesFilter(spell, modifier.filter, sheet)
+  );
+  profile.esotericOptions = Array.from(
+    new Set(matching.filter((m) => m.esoteric).map((m) => m.source))
+  );
+  profile.esoteric =
+    options.esoteric && profile.esotericOptions.includes(options.esoteric)
+      ? options.esoteric
+      : profile.esotericOptions[0];
+  matching
+    .filter((m) => !m.esoteric || m.source === profile.esoteric)
     .forEach(({ source, modifier: { effect } }) => {
       switch (effect.type) {
         case 'PmReduction':
