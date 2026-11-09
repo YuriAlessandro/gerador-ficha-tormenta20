@@ -96,6 +96,12 @@ const CLERIGO_POWERS: ClassPower[] = [
     name: 'Égide da Fé',
     text: 'Quando você lança Escudo da Fé, a magia também fornece 5 PV temporários para cada +1 na Defesa. Esses PV temporários duram até o fim da cena.',
     requirements: [[{ type: RequirementType.MAGIA, name: 'Escudo da Fé' }]],
+    spellModifiers: [
+      {
+        filter: { spellNames: ['Escudo da Fé'] },
+        effect: { type: 'EffectTempPV', kind: 'defense', multiplier: 5 },
+      },
+    ],
   },
   {
     name: 'Força da Devoção',

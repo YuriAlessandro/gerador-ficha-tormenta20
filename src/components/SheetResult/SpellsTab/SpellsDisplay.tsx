@@ -12,6 +12,10 @@ import { manaExpenseByCircle } from '@/data/systems/tormenta20/magias/generalSpe
 import { useContainerWidth } from '@/hooks/useContainerWidth';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import CharacterSheet from '@/interfaces/CharacterSheet';
+import {
+  resolveSpellCast,
+  SpellCastProfile,
+} from '@/functions/spells/modifiers';
 import type {
   ActiveEffectUsageOption,
   ActivePowerDefinition,
@@ -247,6 +251,16 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
     });
     return map;
   }, [sheet, spells, derived, bonus]);
+
+  // Um perfil por magia (motor de modificadores), calculado uma vez para a
+  // lista, o detalhe e o diálogo de lançamento.
+  const castProfileByName = useMemo(() => {
+    const map = new Map<string, SpellCastProfile>();
+    spells.forEach((spell) =>
+      map.set(spell.nome, resolveSpellCast(sheet, spell))
+    );
+    return map;
+  }, [sheet, spells]);
 
   const engenhocaCounter = useMemo(
     () =>
@@ -554,6 +568,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
                     canEditEngenhoca ? handleRepairEngenhoca : undefined
                   }
                   tradition={getSpellTradition(spell.nome)}
+                  castProfile={castProfileByName.get(spell.nome)}
                 />
               ))}
             </Box>
@@ -575,6 +590,9 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
         }
         tradition={
           detailSpell ? getSpellTradition(detailSpell.nome) : undefined
+        }
+        castProfile={
+          detailSpell ? castProfileByName.get(detailSpell.nome) : undefined
         }
       />
 
@@ -612,6 +630,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
           onUpdateRolls={onUpdateRolls}
           characterName={characterName}
           castCheck={castingCheck}
+          castProfile={castProfileByName.get(castingSpell.nome)}
         />
       )}
     </Box>

@@ -23,6 +23,10 @@ import { SpellTradition } from '@/functions/spells/spellTradition';
 import { getEngenhocaAparatos } from '@/functions/spells/engenhoca';
 import { manaExpenseByCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import CharacterSheet from '@/interfaces/CharacterSheet';
+import {
+  computeSpellPmCost,
+  SpellCastProfile,
+} from '@/functions/spells/modifiers';
 import type {
   ActiveEffectUsageOption,
   ActivePowerDefinition,
@@ -71,6 +75,8 @@ export interface SpellRowProps {
   onRepairEngenhoca?: (spell: Spell) => void;
   /** Arcana, divina ou universal — resolvido pelo pai contra o catálogo. */
   tradition?: SpellTradition;
+  /** Perfil do motor de modificadores (custo com reduções de poderes). */
+  castProfile?: SpellCastProfile;
 }
 
 /**
@@ -104,6 +110,7 @@ const SpellRow: React.FC<SpellRowProps> = ({
   onOpenEngenhoca,
   onRepairEngenhoca,
   tradition,
+  castProfile,
 }) => {
   const { engenhoca } = spell;
   const displayName = getSpellDisplayName(spell);
@@ -112,8 +119,12 @@ const SpellRow: React.FC<SpellRowProps> = ({
   // personalizada) não tem entrada na tabela, e sem ele o custo viraria NaN.
   const circleCost = manaExpenseByCircle[spell.spellCircle] ?? 0;
   const baseCost = spell.manaExpense ?? circleCost;
-  const reduction = spell.manaReduction ?? 0;
-  const cost = Math.max(0, baseCost - reduction);
+  const cost = castProfile
+    ? computeSpellPmCost(baseCost, castProfile)
+    : computeSpellPmCost(baseCost, {
+        pmReduction: spell.manaReduction ?? 0,
+        pmHalve: false,
+      });
   /** O custo mora no cabeçalho do círculo; na linha só quando foge da regra. */
   const hasCustomCost = cost !== circleCost;
 
@@ -407,6 +418,7 @@ const SpellRow: React.FC<SpellRowProps> = ({
           onCast={enguicada ? undefined : onOpenCast}
           engenhocaInfo={engenhocaInfo}
           tradition={tradition}
+          castProfile={castProfile}
         />
       </AccordionDetails>
     </Accordion>

@@ -1,3 +1,4 @@
+import type { SpellModifier } from './SpellModifiers';
 import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { SheetBonus, SheetAction } from './CharacterSheet';
@@ -64,6 +65,8 @@ export type ClassAbility = {
   dynamicText?: string; // Texto calculado na exibição (ex: escolas escolhidas em "Magias")
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
+  /** Efeitos sobre magias (ver `interfaces/SpellModifiers.ts`). */
+  spellModifiers?: SpellModifier[];
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
   customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário
   // Nome definido pelo usuário. Quando presente, tem precedência sobre `name`
@@ -92,6 +95,8 @@ export type ClassPower = CountsAsTormentaPower & {
   requirements?: Requirement[][];
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
+  /** Efeitos sobre magias (ver `interfaces/SpellModifiers.ts`). */
+  spellModifiers?: SpellModifier[];
   canRepeat?: boolean;
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
   customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário

@@ -1,3 +1,4 @@
+import type { SpellModifier } from './SpellModifiers';
 import { SheetBonus } from './CharacterSheet';
 import { DiceRoll } from './DiceRoll';
 import Skill from './Skills';
@@ -345,6 +346,8 @@ export default interface Equipment {
 
   // Equipment bonuses (automatic bonuses to skills, stats, etc.)
   sheetBonuses?: SheetBonus[];
+  /** Efeitos sobre magias (ver `interfaces/SpellModifiers.ts`). */
+  spellModifiers?: SpellModifier[];
 
   // Conditional bonuses (only apply if condition is met)
   conditionalBonuses?: {

@@ -1,8 +1,6 @@
 import { Atributo } from '../../data/systems/tormenta20/atributos';
-import {
-  getSpellBasePm,
-  getSpellCircleNumber,
-} from '../../functions/spells/engenhoca';
+import { getSpellCircleNumber } from '../../functions/spells/engenhoca';
+import { getSpellDisplayPmCost } from '../../functions/spells/modifiers';
 import { getSpellDisplayName } from '../../functions/spells/spellDisplayName';
 import { getSpellTradition } from '../../functions/spells/spellTradition';
 import CharacterSheet from '../../interfaces/CharacterSheet';
@@ -156,10 +154,7 @@ export function buildSpellItems(sheet: CharacterSheet): FoundryItem[] {
     item.system.tipo = getSpellType(sheet, spell);
 
     if (isRecord(item.system.ativacao)) {
-      item.system.ativacao.custo = Math.max(
-        0,
-        getSpellBasePm(spell) - (spell.manaReduction ?? 0)
-      );
+      item.system.ativacao.custo = getSpellDisplayPmCost(sheet, spell);
     }
 
     // A CD só é calculada pelo sistema quando a magia tem atributo E texto de

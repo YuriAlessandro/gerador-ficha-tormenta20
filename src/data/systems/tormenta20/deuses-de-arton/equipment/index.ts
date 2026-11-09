@@ -467,6 +467,11 @@ export const religiousEsoteric: Equipment[] = [
     group: 'Esotérico',
     preco: parsePrice('T$ 900'),
     spaces: parseSpaces(1),
+    // "Quando você lança uma magia que fornece um bônus em testes de ataque,
+    // ela também fornece +1 na margem de ameaça desses ataques."
+    spellModifiers: [
+      { effect: { type: 'EffectThreatMargin', kind: 'attack', value: 1 } },
+    ],
   },
   {
     nome: 'Ostensório santificado',

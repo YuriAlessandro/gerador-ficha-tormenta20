@@ -478,6 +478,48 @@ export function augmentSpellRolls(
   ];
 }
 
+/** Rolagem de cura: "Recuperar vida", "Cura" — nunca a de dano (truque). */
+export function isHealingRollLabel(label: string): boolean {
+  const normalized = normalizeLabel(label);
+  return /cura|recupera|regenera/.test(normalized) && !/dano/.test(normalized);
+}
+
+/**
+ * Soma `perDie` por dado e `flat` fixo a uma rolagem (ex.: Mago Branco, "+1
+ * PV por dado de cura"). Roda DEPOIS dos aprimoramentos: os dados que eles
+ * somam contam. Quem escolhe QUAIS rolagens recebem é o motor de
+ * modificadores de magia (`functions/spells/modifiers`).
+ */
+export function applyRollBonus(
+  roll: AugmentedRoll,
+  perDie: number,
+  flat: number
+): AugmentedRoll {
+  if (perDie === 0 && flat === 0) return roll;
+  const parsed = parseDamage(roll.dice);
+  if (!parsed) return roll;
+  const diceCount = parsed.diceGroups.reduce(
+    (sum, group) => sum + group.count,
+    0
+  );
+  const bonus = diceCount * perDie + flat;
+  if (bonus === 0) return roll;
+
+  const total = newAccumulator();
+  addGroups(total, parsed.diceGroups, parsed.modifier + bonus);
+  const perDieNote = perDie ? ` (${perDie > 0 ? '+' : ''}${perDie}/dado)` : '';
+  const bonusSummary = `${bonus > 0 ? '+' : ''}${bonus}${perDieNote}`;
+
+  return {
+    ...roll,
+    dice: composeNotation(total),
+    isAugmented: true,
+    addedSummary: roll.addedSummary
+      ? `${roll.addedSummary} ${bonusSummary}`
+      : bonusSummary,
+  };
+}
+
 // Reexport para testes que queiram varrer todos os tokens de dado num texto.
 export function extractAllDiceTokens(text: string): string[] {
   return [...text.matchAll(DICE_TOKEN_GLOBAL)].map((m) => m[1]);

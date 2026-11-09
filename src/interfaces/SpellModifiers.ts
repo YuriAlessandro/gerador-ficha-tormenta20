@@ -1,0 +1,67 @@
+import type { SpellSchool } from './Spells';
+
+/**
+ * Modificadores de magia: o efeito que um PODER, HABILIDADE ou ITEM aplica às
+ * magias do personagem ("suas magias de cura de luz custam –1 PM", "a CD das
+ * suas magias arcanas aumenta em +1", "magias que dão bônus em ataque também
+ * dão +1 na margem de ameaça").
+ *
+ * É declarado nos DADOS, no campo `spellModifiers` da entidade que concede o
+ * efeito (ao lado de `sheetBonuses`), para que homebrew possa declarar o mesmo.
+ * O motor em `functions/spells/modifiers` coleta, filtra por magia e resolve
+ * tudo num perfil único consumido pelo lançamento, pela lista de magias, pelo
+ * PDF, pelo Foundry e pelos efeitos ativos.
+ */
+
+/** Filtro de magias. Campos combinam em E; listas são OU. Vazio = todas. */
+export interface SpellModifierFilter {
+  /** Nomes exatos de magia ("Curar Ferimentos"). */
+  spellNames?: string[];
+  schools?: SpellSchool[];
+  tradition?: 'arcane' | 'divine';
+  /** Alcances exatos ("Pessoal"). */
+  ranges?: string[];
+  /** Só magias com rolagem de cura ("magias de cura"). */
+  healing?: boolean;
+  /** Só magias com rolagem de dano ("magias de dano"). */
+  damaging?: boolean;
+}
+
+/** Tipos de bônus de efeito ativo que contam como "bônus em X". */
+export type SpellEffectBonusKind = 'attack' | 'defense';
+
+export type SpellModifierEffect =
+  /**
+   * Redução de custo. Por regra (JdA, Reduções de Custo) reduções NÃO
+   * acumulam — vale a maior —, exceto as que o texto declara cumulativas.
+   */
+  | { type: 'PmReduction'; value: number; cumulative?: boolean }
+  /** Custo reduzido à metade, depois de todo o resto (Alta Arcana). */
+  | { type: 'PmHalve' }
+  /** Bônus nas rolagens de cura ou de dano da magia. */
+  | {
+      type: 'RollBonus';
+      rolls: 'healing' | 'damage';
+      perDie?: number;
+      flat?: number;
+    }
+  /**
+   * Efeito ativo da magia: cada bônus de `kind` ganha também +`value` na
+   * margem de ameaça (Medalhão Afiado).
+   */
+  | { type: 'EffectThreatMargin'; kind: SpellEffectBonusKind; value: number }
+  /**
+   * Efeito ativo da magia: PV temporários iguais a `multiplier` × o bônus de
+   * `kind` concedido (Égide da Fé, Bênção Fortalecedora).
+   */
+  | { type: 'EffectTempPV'; kind: SpellEffectBonusKind; multiplier: number };
+
+export interface SpellModifier {
+  filter?: SpellModifierFilter;
+  effect: SpellModifierEffect;
+}
+
+/** Entidade de dados que pode declarar modificadores de magia. */
+export interface HasSpellModifiers {
+  spellModifiers?: SpellModifier[];
+}

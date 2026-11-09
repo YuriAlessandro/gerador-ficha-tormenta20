@@ -39,6 +39,12 @@ import {
   isTruqueAprimoramento,
   AugmentedRoll,
 } from '@/functions/spellRollAugmentation';
+import {
+  applySpellRollModifiers,
+  computeSpellPmCost,
+  resolveSpellCast,
+  SpellCastProfile,
+} from '@/functions/spells/modifiers';
 import { Spell, Aprimoramento, CastAugment } from '../interfaces/Spells';
 import { manaExpenseByCircle } from '../data/systems/tormenta20/magias/generalSpells';
 import { getSpellDisplayName } from '../functions/spells/spellDisplayName';
@@ -134,6 +140,11 @@ interface SpellCastDialogProps {
   characterName?: string;
   /** Teste obrigatório antes do lançamento (Usurpar). */
   castCheck?: SpellCastCheck;
+  /**
+   * O que os poderes e itens da ficha fazem com esta magia (motor de
+   * modificadores). Ausente = só a redução gravada na própria magia.
+   */
+  castProfile?: SpellCastProfile;
 }
 
 const isStackable = isStackableAprimoramento;
@@ -159,6 +170,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   onUpdateRolls,
   characterName,
   castCheck,
+  castProfile,
 }) => {
   const theme = useTheme();
   const { showDiceResult, logExternalRoll } = useDiceRoll();
@@ -207,12 +219,22 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   );
   const displayName = getSpellDisplayName(spell);
 
-  const manaReduction = spell.manaReduction ?? 0;
-
-  const effectiveBasePM = useMemo(
-    () => Math.max(0, basePM - manaReduction),
-    [basePM, manaReduction]
+  const profile = useMemo(
+    () => castProfile ?? resolveSpellCast(undefined, spell),
+    [castProfile, spell]
   );
+  // Engenhoca (`basePmOverride`) não paga o custo da magia: não há o que
+  // reduzir — mantém o comportamento de antes, em que a redução só abatia o
+  // custo base.
+  const costProfile = useMemo(
+    () =>
+      basePmOverride !== undefined
+        ? { pmReduction: 0, pmHalve: false }
+        : profile,
+    [basePmOverride, profile]
+  );
+  const manaReduction = costProfile.pmReduction;
+  const manaReductionLabel = profile.pmReductionSources.join(', ') || 'redução';
 
   const hasTruqueSelected = useMemo(() => {
     let found = false;
@@ -257,9 +279,11 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
       aprimoramentoCost > 0
         ? Math.max(0, aprimoramentoCost + aprimoramentoPmDelta)
         : 0;
-    return effectiveBasePM + adjustedAprimoramentos;
+    // A redução vale sobre o custo TOTAL, com piso de 1 PM (JdA).
+    return computeSpellPmCost(basePM + adjustedAprimoramentos, costProfile);
   }, [
-    effectiveBasePM,
+    basePM,
+    costProfile,
     aprimoramentoCost,
     aprimoramentoPmDelta,
     hasTruqueSelected,
@@ -269,7 +293,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   // (o Comutador barateia o PM, não a dificuldade de ativar).
   const checkPMCost = hasTruqueSelected
     ? 0
-    : effectiveBasePM + aprimoramentoCost;
+    : computeSpellPmCost(basePM + aprimoramentoCost, costProfile);
 
   const aprimoramentoOverLimit =
     castCheck?.maxAprimoramentoPm !== undefined &&
@@ -291,9 +315,15 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   }, [selections, spell.aprimoramentos]);
 
   // Rolagens aumentadas automaticamente pelos aprimoramentos ativos.
+  // Depois, os bônus de poderes/itens (ex.: Mago Branco, +1 PV por dado de
+  // cura) — inclusive sobre os dados que os aprimoramentos somaram.
   const effectiveRolls = useMemo(
-    () => augmentSpellRolls(localRolls, activeSelections),
-    [localRolls, activeSelections]
+    () =>
+      applySpellRollModifiers(
+        augmentSpellRolls(localRolls, activeSelections),
+        profile
+      ),
+    [localRolls, activeSelections, profile]
   );
 
   // Rolagens exibidas/executadas: edição manual quando houver, senão o
@@ -766,22 +796,33 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
               </Typography>
               <Stack
                 direction='row'
-                spacing={2}
+                spacing={1}
+                useFlexGap
                 sx={{
                   alignItems: 'center',
+                  flexWrap: 'wrap',
                 }}
               >
-                <Typography>
+                <Typography sx={{ mr: 1 }}>
                   <strong>Custo Base:</strong> {basePM} PM
                 </Typography>
                 {manaReduction > 0 && (
                   <Chip
-                    label={`-${manaReduction} PM (redução)`}
+                    label={`-${manaReduction} PM (${manaReductionLabel})`}
                     size='small'
                     color='success'
                     variant='outlined'
                   />
                 )}
+                {profile.notes.map((note) => (
+                  <Chip
+                    key={note}
+                    label={note}
+                    size='small'
+                    color='success'
+                    variant='outlined'
+                  />
+                ))}
               </Stack>
             </Box>
 

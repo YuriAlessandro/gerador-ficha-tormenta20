@@ -2,6 +2,10 @@ import React from 'react';
 import CasinoIcon from '@mui/icons-material/Casino';
 import { Box, Button, Chip, Stack, Tooltip, Typography } from '@mui/material';
 import { Spell } from '@/interfaces/Spells';
+import {
+  computeSpellPmCost,
+  SpellCastProfile,
+} from '@/functions/spells/modifiers';
 import { getEngenhocaAparatos } from '@/functions/spells/engenhoca';
 import {
   SpellTradition,
@@ -30,6 +34,8 @@ export interface SpellDetailBodyProps {
   engenhocaInfo?: EngenhocaRowInfo;
   /** Tipo resolvido pelo pai (não é campo da magia). */
   tradition?: SpellTradition;
+  /** O que os poderes/itens da ficha fazem com a magia (custo, cura...). */
+  castProfile?: SpellCastProfile;
 }
 
 /**
@@ -47,6 +53,7 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
   onCast,
   engenhocaInfo,
   tradition,
+  castProfile,
 }) => {
   const { engenhoca } = spell;
   const aparatos = getEngenhocaAparatos(engenhoca);
@@ -55,8 +62,15 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
   // viraria NaN na tela.
   const circleCost = manaExpenseByCircle[spell.spellCircle] ?? 0;
   const baseCost = spell.manaExpense ?? circleCost;
-  const reduction = spell.manaReduction ?? 0;
-  const cost = Math.max(0, baseCost - reduction);
+  // Sem perfil (ex.: detalhe fora da ficha), só a redução gravada na magia.
+  const profile = castProfile ?? {
+    pmReduction: spell.manaReduction ?? 0,
+    pmReductionSources: [],
+    pmHalve: false,
+    notes: [],
+  };
+  const reduction = profile.pmReduction;
+  const cost = computeSpellPmCost(baseCost, profile);
 
   return (
     <Box>
@@ -77,7 +91,13 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
         {reduction > 0 && (
           <Tooltip title={`Custo base ${baseCost} PM`} arrow>
             <Chip
-              label={`−${reduction} PM de redução`}
+              label={
+                profile.pmReductionSources.length > 0
+                  ? `−${reduction} PM (${profile.pmReductionSources.join(
+                      ', '
+                    )})`
+                  : `−${reduction} PM de redução`
+              }
               size='small'
               color='success'
               variant='outlined'
@@ -85,6 +105,16 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
             />
           </Tooltip>
         )}
+        {profile.notes.map((note) => (
+          <Chip
+            key={note}
+            label={note}
+            size='small'
+            color='success'
+            variant='outlined'
+            sx={MICRO_CHIP_SX}
+          />
+        ))}
         {spell.equipmentSource && (
           // O campo guarda o id do item, não o nome — mostrar o id cru não
           // ajudaria ninguém. O que importa é avisar que a magia veio do

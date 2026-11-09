@@ -1,3 +1,4 @@
+import type { SpellModifier } from './SpellModifiers';
 import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 // eslint-disable-next-line
@@ -132,6 +133,8 @@ export interface GeneralPower extends CountsAsTormentaPower, PowerTaggable {
   canRepeat?: boolean;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
+  /** Efeitos sobre magias (ver `interfaces/SpellModifiers.ts`). */
+  spellModifiers?: SpellModifier[];
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
   customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário
   // Nome definido pelo usuário. Quando presente, tem precedência sobre `name`
@@ -169,6 +172,8 @@ export type OriginPower = CountsAsTormentaPower & {
   swappableAtLevelUp?: boolean;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
+  /** Efeitos sobre magias (ver `interfaces/SpellModifiers.ts`). */
+  spellModifiers?: SpellModifier[];
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
   customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário
   // Nome definido pelo usuário. Quando presente, tem precedência sobre `name`
