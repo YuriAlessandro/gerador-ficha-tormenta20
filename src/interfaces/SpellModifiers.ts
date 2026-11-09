@@ -86,6 +86,12 @@ export type SpellModifierEffect =
       label: string;
       addPm: number;
       effects?: SpellModifierEffect[];
+      /**
+       * Efeito ativo (chave do registro de efeitos) oferecido depois do
+       * lançamento quando a opção é marcada — já pago pelo `addPm`
+       * (Barreira Mística: +4 na Defesa até o próximo turno).
+       */
+      activeEffectKey?: string;
     }
   /** Bônus na CD para resistir à magia. */
   | { type: 'SpellDC'; value: number }

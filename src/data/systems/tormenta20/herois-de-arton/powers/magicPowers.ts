@@ -20,6 +20,8 @@ const magicPowers: Record<string, GeneralPower> = {
           id: 'barreira',
           label: '+4 na Defesa até o início do seu próximo turno',
           addPm: 1,
+          // O PM já sai no lançamento; o efeito ativo aplica o +4 na Defesa.
+          activeEffectKey: 'magic:barreira-mistica',
         },
       },
     ],

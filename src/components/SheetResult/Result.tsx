@@ -112,7 +112,10 @@ import {
   getActiveEffectLabelStyle,
   ACTIVE_EFFECT_COLOR,
 } from '@/premium/functions/activeEffectHighlights';
-import { getActiveEffectForSpell } from '@/premium/data/activePowers';
+import {
+  getActiveEffectForSpell,
+  getActivePowerByKey,
+} from '@/premium/data/activePowers';
 import {
   collectVirtualCustomEffectDefinitions,
   collectStandaloneCustomEffectDefinitions,
@@ -358,6 +361,11 @@ const Result: React.FC<ResultProps> = (props) => {
     useState(false);
   const [spellEffectDef, setSpellEffectDef] =
     useState<ActivePowerDefinition | null>(null);
+  // Efeitos das opções de lançamento (Barreira Mística), oferecidos em fila
+  // depois do efeito da própria magia. O PM deles já saiu no lançamento.
+  const [queuedCastEffects, setQueuedCastEffects] = useState<
+    ActivePowerDefinition[]
+  >([]);
   // Metadados da magia recém-lançada, guardados enquanto o diálogo de efeito
   // ativo está aberto — o card do histórico só é publicado ao confirmar (ou
   // ao fechar sem confirmar), já com a opção de uso escolhida.
@@ -1358,7 +1366,8 @@ const Result: React.FC<ResultProps> = (props) => {
       pmSpent: number,
       spell: Spell,
       castLogged?: boolean,
-      castAugments?: CastAugment[]
+      castAugments?: CastAugment[],
+      castEffectKeys?: string[]
     ) => {
       const currentTemp = currentSheet.tempPM ?? 0;
       const currentPMValue = currentSheet.currentPM ?? currentSheet.pm;
@@ -1404,14 +1413,23 @@ const Result: React.FC<ResultProps> = (props) => {
                 true
               )
             : undefined);
+        const optionEffects = (castEffectKeys ?? [])
+          .map((key) => getActivePowerByKey(key))
+          .filter((d): d is ActivePowerDefinition => !!d);
         if (def) {
           setSpellEffectDef(def);
+          setQueuedCastEffects(optionEffects);
           // Guardado para enriquecer o card da ativação (círculo, escola, PM).
           // `castLogged` diz se o diálogo de lançamento já publicou um card —
           // se publicou, descartar o efeito não deve publicar outro igual.
           setPendingSpellAbility(buildSpellAbilityMeta(spell, pmSpent));
           setPendingSpellCastLogged(Boolean(castLogged));
           setPendingSpellCastAugments(castAugments);
+        } else if (optionEffects.length > 0) {
+          // Sem efeito próprio, a magia já publicou o card no lançamento.
+          const [first, ...rest] = optionEffects;
+          setSpellEffectDef(first);
+          setQueuedCastEffects(rest);
         }
       }
     },
@@ -1421,6 +1439,17 @@ const Result: React.FC<ResultProps> = (props) => {
   // Fechar o diálogo de efeito sem confirmar não pode engolir o lançamento:
   // publica o card da magia sem a oferta de efeito — a menos que o diálogo de
   // lançamento já tenha publicado um (magia com dano).
+  // Fecha o efeito atual e abre o próximo da fila (efeitos das opções de
+  // lançamento). Os seguintes não são o efeito da magia: sem card pendente
+  // nem aprimoramentos a pré-selecionar.
+  const advanceSpellEffectQueue = useCallback(() => {
+    const [next, ...rest] = queuedCastEffects;
+    setSpellEffectDef(next ?? null);
+    setQueuedCastEffects(rest);
+    setPendingSpellAbility(null);
+    setPendingSpellCastAugments(undefined);
+  }, [queuedCastEffects]);
+
   const handleSpellEffectDismiss = useCallback(() => {
     if (pendingSpellAbility && !pendingSpellCastLogged) {
       logExternalRoll(
@@ -1430,14 +1459,13 @@ const Result: React.FC<ResultProps> = (props) => {
         pendingSpellAbility
       );
     }
-    setSpellEffectDef(null);
-    setPendingSpellAbility(null);
-    setPendingSpellCastAugments(undefined);
+    advanceSpellEffectQueue();
   }, [
     pendingSpellAbility,
     pendingSpellCastLogged,
     currentSheet.nome,
     logExternalRoll,
+    advanceSpellEffectQueue,
   ]);
 
   const handleKeyAttributeChange = useCallback(
@@ -3601,13 +3629,14 @@ const Result: React.FC<ResultProps> = (props) => {
             onClose={handleSpellEffectDismiss}
             onConfirm={(option) => {
               if (spellEffectDef) {
-                handleActiveEffectActivate(spellEffectDef, option, {
-                  abilityBase: pendingSpellAbility ?? undefined,
-                });
+                // O PM já foi pago no lançamento (magia e opções).
+                handleActiveEffectActivate(
+                  spellEffectDef,
+                  { ...option, pmCost: 0 },
+                  { abilityBase: pendingSpellAbility ?? undefined }
+                );
               }
-              setSpellEffectDef(null);
-              setPendingSpellAbility(null);
-              setPendingSpellCastAugments(undefined);
+              advanceSpellEffectQueue();
             }}
           />
 

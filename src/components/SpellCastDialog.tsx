@@ -132,11 +132,14 @@ interface SpellCastDialogProps {
   // histórico — a ficha usa isso pra não publicar um segundo card igual.
   // `castAugments` são os aprimoramentos escolhidos — o efeito ativo da magia
   // usa para pré-selecionar o tier pago.
+  // `castEffectKeys`: efeitos ativos das opções de lançamento marcadas
+  // (Barreira Mística), oferecidos depois do efeito da própria magia.
   onCast: (
     pmSpent: number,
     spell: Spell,
     castLogged?: boolean,
-    castAugments?: CastAugment[]
+    castAugments?: CastAugment[],
+    castEffectKeys?: string[]
   ) => void;
   onUpdateRolls?: (spell: Spell, newRolls: DiceRoll[]) => void;
   characterName?: string;
@@ -665,7 +668,12 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
         });
       }
     });
-    onCast(pmSpent, spell, castLogged, castAugments);
+    const castEffectKeys = checkFailed
+      ? []
+      : profile.castOptions
+          .filter((option) => option.active && option.activeEffectKey)
+          .map((option) => option.activeEffectKey as string);
+    onCast(pmSpent, spell, castLogged, castAugments, castEffectKeys);
 
     onClose();
   }, [

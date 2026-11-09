@@ -622,3 +622,20 @@ describe('fase D: opções de lançamento (CastOption)', () => {
     ).toHaveLength(0);
   });
 });
+
+describe('opção de lançamento que oferece efeito ativo', () => {
+  it('Barreira Mística: +1 PM e oferece o efeito magic:barreira-mistica', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = [
+      { name: 'Barreira Mística', description: '', requirements: [] },
+    ] as unknown as CharacterSheet['generalPowers'];
+    const [option] = resolveSpellCast(sheet, BOLA_DE_FOGO, {
+      castOptions: ['Barreira Mística:barreira'],
+    }).castOptions;
+    expect(option).toMatchObject({
+      addPm: 1,
+      active: true,
+      activeEffectKey: 'magic:barreira-mistica',
+    });
+  });
+});

@@ -77,6 +77,8 @@ export interface SpellCastOptionSlot {
   label: string;
   addPm: number;
   active: boolean;
+  /** Efeito ativo oferecido depois do lançamento, se a opção for marcada. */
+  activeEffectKey?: string;
 }
 
 export interface SpellChoiceSlot {
@@ -270,6 +272,7 @@ export function resolveSpellCast(
           label: effect.label,
           addPm: effect.addPm,
           active,
+          activeEffectKey: effect.activeEffectKey,
         });
         if (active) {
           profile.castOptionPm += effect.addPm;

@@ -140,7 +140,8 @@ export interface SpellsDisplayProps {
     pmSpent: number,
     spell: Spell,
     castLogged?: boolean,
-    castAugments?: CastAugment[]
+    castAugments?: CastAugment[],
+    castEffectKeys?: string[]
   ) => void;
   isMago?: boolean;
   onToggleMemorized?: (spell: Spell) => void;
@@ -433,7 +434,8 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
       pmSpent: number,
       castSpell: Spell,
       castLogged?: boolean,
-      castAugments?: CastAugment[]
+      castAugments?: CastAugment[],
+      castEffectKeys?: string[]
     ) => {
       const broke = engenhocaBrokeRef.current && !!castSpell.engenhoca;
       engenhocaBrokeRef.current = false;
@@ -443,7 +445,13 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
             engenhoca: { ...castSpell.engenhoca, enguicada: true },
           }
         : castSpell;
-      onSpellCast?.(pmSpent, reported, castLogged, castAugments);
+      onSpellCast?.(
+        pmSpent,
+        reported,
+        castLogged,
+        castAugments,
+        castEffectKeys
+      );
     },
     [onSpellCast]
   );
