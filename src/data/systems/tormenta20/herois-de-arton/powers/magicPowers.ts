@@ -21,9 +21,7 @@ const magicPowers: Record<string, GeneralPower> = {
     description:
       'Quando lança uma magia, você pode pagar 2 PM para canalizá-la através de dois itens esotéricos diferentes simultaneamente, recebendo os benefícios de ambos.',
     type: GeneralPowerType.MAGIA,
-    requirements: [
-      [{ type: RequirementType.TEXT, text: 'Lançar magias de 2º círculo' }],
-    ],
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS, value: 2 }]],
   },
   ESTILO_ESOTERICO: {
     name: 'Estilo Esotérico',
@@ -45,11 +43,11 @@ const magicPowers: Record<string, GeneralPower> = {
     type: GeneralPowerType.MAGIA,
     requirements: [
       [
-        { type: RequirementType.TEXT, text: 'Lançar magias de 3º círculo' },
+        { type: RequirementType.LANCAR_MAGIAS, value: 3 },
         { type: RequirementType.PERICIA, name: Skill.MISTICISMO },
       ],
       [
-        { type: RequirementType.TEXT, text: 'Lançar magias de 3º círculo' },
+        { type: RequirementType.LANCAR_MAGIAS, value: 3 },
         { type: RequirementType.PERICIA, name: Skill.RELIGIAO },
       ],
     ],
@@ -61,7 +59,7 @@ const magicPowers: Record<string, GeneralPower> = {
     type: GeneralPowerType.MAGIA,
     requirements: [
       [
-        { type: RequirementType.TEXT, text: 'Lançar magias de 4º círculo' },
+        { type: RequirementType.LANCAR_MAGIAS, value: 4 },
         { type: RequirementType.PODER, name: 'Encantar Itens Menores' },
       ],
     ],
@@ -73,7 +71,7 @@ const magicPowers: Record<string, GeneralPower> = {
     type: GeneralPowerType.MAGIA,
     requirements: [
       [
-        { type: RequirementType.TEXT, text: 'Lançar magias de 5º círculo' },
+        { type: RequirementType.LANCAR_MAGIAS, value: 5 },
         { type: RequirementType.PODER, name: 'Encantar Itens Médios' },
       ],
     ],
@@ -98,18 +96,14 @@ const magicPowers: Record<string, GeneralPower> = {
     description:
       'Aprimoramento. Além do normal, a magia cria 1d4 (+1 por círculo) capangas elementais Pequenos em espaços desocupados adjacentes ao alvo ou dentro da área de efeito da magia (deslocamento 9m, Defesa 15, dano 1d6+1 do tipo da magia, imunidade a atordoamento, cansaço, dano do seu elemento, dano não letal, efeitos de metabolismo e paralisia). Eles desaparecem quando são reduzidos a 0 PV ou no fim da cena. Custo: +3 PM.',
     type: GeneralPowerType.MAGIA,
-    requirements: [
-      [{ type: RequirementType.TEXT, text: 'Lançar magias de 2º círculo' }],
-    ],
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS, value: 2 }]],
   },
   MAGIA_DIVIDIDA: {
     name: 'Magia Dividida',
     description:
       'Aprimoramento. A área da magia é dividida em duas, cada uma com metade do tamanho da original, que não podem se sobrepor. Por exemplo, uma Bola de Fogo (raio de 6m) pode ser dividida em duas áreas com 3m de raio. Custo: +2 PM.',
     type: GeneralPowerType.MAGIA,
-    requirements: [
-      [{ type: RequirementType.TEXT, text: 'Lançar magias de 2º círculo' }],
-    ],
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS, value: 2 }]],
   },
   MAGIA_SUSPENSA: {
     name: 'Magia Suspensa',
