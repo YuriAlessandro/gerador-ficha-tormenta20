@@ -1,6 +1,10 @@
 import type CharacterSheet from '../../../interfaces/CharacterSheet';
 import type Equipment from '../../../interfaces/Equipment';
-import type { SpellModifier } from '../../../interfaces/SpellModifiers';
+import type {
+  SpellModifier,
+  SpellModifierChoiceSpec,
+  SpellModifierFilter,
+} from '../../../interfaces/SpellModifiers';
 import { isItemWielded } from '../../../components/SheetResult/BackpackModal/wielding';
 import { getClassLevel } from '../../multiclass';
 import {
@@ -10,18 +14,34 @@ import {
   SpellModifierSourceKind,
 } from './catalog';
 
+/** "Escolha N magias" já resolvido para a ficha. */
+export interface ResolvedSpellChoice {
+  source: string;
+  max: number;
+  /** Magias marcadas pelo jogador (cortadas em `max`). */
+  chosen: string[];
+  eligible?: SpellModifierFilter;
+}
+
 /** Um modificador e a fonte que o concede (para o rótulo na UI). */
 export interface SourcedSpellModifier {
   source: string;
   modifier: SpellModifier;
   /** Vem de um esotérico — só um por magia (ver `resolveSpellCast`). */
   esoteric?: boolean;
+  /** A fonte deixa escolher magias (filtro `chosen`). */
+  choice?: ResolvedSpellChoice;
+}
+
+interface ResolvedEntry {
+  modifiers: SpellModifier[];
+  spellChoice?: SpellModifierChoiceSpec;
 }
 
 /**
  * Resolve os modificadores de uma entrada da ficha: o catálogo manda (versão
  * atual, mesmo em ficha antiga); conteúdo criado à mão na ficha usa a própria
- * cópia. Os de escolha (Mestre em Escola) vêm da opção gravada em
+ * cópia. Os de escolha de opção (Mestre em Escola) vêm da opção gravada em
  * `optionChoices[optionKey]`.
  */
 function resolveEntry(
@@ -30,7 +50,7 @@ function resolveEntry(
   name: string,
   entry: SpellModifierEntry,
   isCustom: boolean
-): SpellModifier[] {
+): ResolvedEntry {
   const source =
     (!isCustom && getCatalogSpellModifierSource(kind, name)) ||
     extractSpellModifierSource(entry);
@@ -39,7 +59,10 @@ function resolveEntry(
       (optionName) => options[optionName] ?? []
     )
   );
-  return [...source.modifiers, ...chosen];
+  return {
+    modifiers: [...source.modifiers, ...chosen],
+    spellChoice: source.spellChoice,
+  };
 }
 
 /**
@@ -75,88 +98,119 @@ function gainedClassAbilities(sheet: CharacterSheet): { name: string }[] {
   });
 }
 
+function resolveChoiceMax(
+  sheet: CharacterSheet,
+  spec: SpellModifierChoiceSpec,
+  picks: number
+): number {
+  const { count } = spec;
+  switch (count.type) {
+    case 'fixed':
+      return count.value;
+    case 'picks':
+      return picks;
+    case 'attribute': {
+      const value = sheet.atributos?.[count.attribute]?.value ?? 0;
+      return Math.max(count.min ?? 0, value);
+    }
+    default:
+      return 0;
+  }
+}
+
+interface Candidate {
+  kind: SpellModifierSourceKind;
+  name: string;
+  entry: SpellModifierEntry;
+  isCustom: boolean;
+  esoteric?: boolean;
+}
+
 /** Todos os modificadores de magia ativos na ficha, deduplicados por fonte. */
 export function collectSheetSpellModifiers(
   sheet: CharacterSheet
 ): SourcedSpellModifier[] {
-  const result: SourcedSpellModifier[] = [];
-  const seen = new Set<string>();
-  const push = (
-    kind: SpellModifierSourceKind,
-    name: string,
-    modifiers: SpellModifier[],
-    esoteric = false
-  ) => {
-    // Poder repetido (duas fontes, ou dois itens iguais) não dobra o efeito.
-    const key = `${kind}:${name}`;
-    if (seen.has(key) || modifiers.length === 0) return;
-    seen.add(key);
-    modifiers.forEach((modifier) =>
-      result.push({ source: name, modifier, esoteric })
-    );
-  };
-
   // As mesmas fontes de `buildPowerSources`, lidas com tolerância: efeitos
   // ativos e exportações recebem fichas parciais.
-  const bookPowers: { name: string }[] = [
-    ...(sheet.classPowers ?? []),
-    ...(sheet.raca?.abilities ?? []),
-    ...(sheet.origin?.powers ?? []),
-    ...(sheet.devoto?.poderes ?? []),
-    ...(sheet.generalPowers ?? []),
+  const asPower =
+    (isCustom: boolean) =>
+    (power: { name: string }): Candidate => ({
+      kind: 'power',
+      name: power.name,
+      entry: power as SpellModifierEntry,
+      isCustom,
+    });
+  const candidates: Candidate[] = [
+    ...[
+      ...(sheet.classPowers ?? []),
+      ...(sheet.raca?.abilities ?? []),
+      ...(sheet.origin?.powers ?? []),
+      ...(sheet.devoto?.poderes ?? []),
+      ...(sheet.generalPowers ?? []),
+    ].map(asPower(false)),
+    ...gainedClassAbilities(sheet).map(
+      (ability): Candidate => ({
+        kind: 'ability',
+        name: ability.name,
+        entry: ability as SpellModifierEntry,
+        isCustom: false,
+      })
+    ),
+    ...[
+      ...(sheet.customPowers ?? []),
+      ...(sheet.customGrantedPowers ?? []),
+    ].map(asPower(true)),
   ];
-  bookPowers.forEach((power) =>
-    push(
-      'power',
-      power.name,
-      resolveEntry(
-        sheet,
-        'power',
-        power.name,
-        power as SpellModifierEntry,
-        false
-      )
-    )
-  );
-  gainedClassAbilities(sheet).forEach((ability) =>
-    push(
-      'ability',
-      ability.name,
-      resolveEntry(
-        sheet,
-        'ability',
-        ability.name,
-        ability as SpellModifierEntry,
-        false
-      )
-    )
-  );
-  [...(sheet.customPowers ?? []), ...(sheet.customGrantedPowers ?? [])].forEach(
-    (power) =>
-      push(
-        'power',
-        power.name,
-        resolveEntry(
-          sheet,
-          'power',
-          power.name,
-          power as SpellModifierEntry,
-          true
-        )
-      )
-  );
-
   const groups = sheet.bag?.equipments ?? {};
   (Object.values(groups) as (Equipment[] | undefined)[]).forEach((items) => {
     (items ?? []).forEach((item) => {
       if (!item.nome || !isItemInUse(sheet, item)) return;
-      push(
-        'item',
-        item.nome,
-        resolveEntry(sheet, 'item', item.nome, item, !!item.isCustom),
-        item.group === 'Esotérico'
-      );
+      candidates.push({
+        kind: 'item',
+        name: item.nome,
+        entry: item,
+        isCustom: !!item.isCustom,
+        esoteric: item.group === 'Esotérico',
+      });
     });
+  });
+
+  // Quantas vezes cada fonte aparece ANTES de deduplicar ("uma magia por vez
+  // que o poder foi escolhido").
+  const picks = new Map<string, number>();
+  candidates.forEach(({ kind, name }) => {
+    const key = `${kind}:${name}`;
+    picks.set(key, (picks.get(key) ?? 0) + 1);
+  });
+
+  const result: SourcedSpellModifier[] = [];
+  const seen = new Set<string>();
+  candidates.forEach(({ kind, name, entry, isCustom, esoteric }) => {
+    // Poder repetido (duas fontes, ou dois itens iguais) não dobra o efeito.
+    const key = `${kind}:${name}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    const { modifiers, spellChoice } = resolveEntry(
+      sheet,
+      kind,
+      name,
+      entry,
+      isCustom
+    );
+    if (modifiers.length === 0) return;
+    let choice: ResolvedSpellChoice | undefined;
+    if (spellChoice) {
+      const max = resolveChoiceMax(sheet, spellChoice, picks.get(key) ?? 1);
+      choice = {
+        source: name,
+        max,
+        chosen: (sheet.spellModifierChoices?.[name] ?? []).slice(0, max),
+        eligible: spellChoice.eligible,
+      };
+    }
+    modifiers.forEach((modifier) =>
+      result.push({ source: name, modifier, esoteric, choice })
+    );
   });
 
   return result;

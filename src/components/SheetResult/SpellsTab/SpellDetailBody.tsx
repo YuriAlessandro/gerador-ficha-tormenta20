@@ -31,6 +31,8 @@ export interface EngenhocaRowInfo {
 export interface SpellDetailBodyProps {
   spell: Spell;
   onCast?: () => void;
+  /** Marca/desmarca a magia para uma fonte de "escolha N magias". */
+  onSpellChoiceToggle?: (source: string) => void;
   engenhocaInfo?: EngenhocaRowInfo;
   /** Tipo resolvido pelo pai (não é campo da magia). */
   tradition?: SpellTradition;
@@ -53,6 +55,7 @@ export interface SpellDetailBodyProps {
 const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
   spell,
   onCast,
+  onSpellChoiceToggle,
   engenhocaInfo,
   tradition,
   castProfile,
@@ -117,6 +120,36 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
             sx={MICRO_CHIP_SX}
           />
         )}
+        {(castProfile?.spellChoices ?? []).map((slot) => {
+          const full = !slot.chosen && slot.used >= slot.max;
+          return (
+            <Tooltip
+              key={slot.source}
+              arrow
+              title={
+                full
+                  ? `Todas as ${slot.max} escolhas de ${slot.source} estão em uso.`
+                  : `Escolher esta magia para ${slot.source}.`
+              }
+            >
+              <span>
+                <Chip
+                  label={`${slot.source} · ${slot.used}/${slot.max}`}
+                  size='small'
+                  color='secondary'
+                  variant={slot.chosen ? 'filled' : 'outlined'}
+                  disabled={!onSpellChoiceToggle || full}
+                  onClick={
+                    onSpellChoiceToggle
+                      ? () => onSpellChoiceToggle(slot.source)
+                      : undefined
+                  }
+                  sx={MICRO_CHIP_SX}
+                />
+              </span>
+            </Tooltip>
+          );
+        })}
         {profile.notes.map((note) => (
           <Chip
             key={note}

@@ -22,6 +22,7 @@ export interface SpellDetailSheetProps {
   compact: boolean;
   spell: Spell | null;
   onCast?: () => void;
+  onSpellChoiceToggle?: (source: string) => void;
   engenhocaInfo?: EngenhocaRowInfo;
   tradition?: SpellTradition;
   castProfile?: SpellCastProfile;
@@ -45,6 +46,7 @@ const SpellDetailSheet: React.FC<SpellDetailSheetProps> = ({
   compact,
   spell,
   onCast,
+  onSpellChoiceToggle,
   engenhocaInfo,
   tradition,
   castProfile,
@@ -98,6 +100,7 @@ const SpellDetailSheet: React.FC<SpellDetailSheetProps> = ({
         <SpellDetailBody
           spell={spell}
           onCast={onCast}
+          onSpellChoiceToggle={onSpellChoiceToggle}
           engenhocaInfo={engenhocaInfo}
           tradition={tradition}
           castProfile={castProfile}

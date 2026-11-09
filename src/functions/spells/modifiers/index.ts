@@ -16,8 +16,13 @@ export {
   getSpellDisplayPmCost,
   applySpellRollModifiers,
 } from './resolve';
-export type { SpellCastProfile, ResolveSpellCastOptions } from './resolve';
+export type {
+  SpellCastProfile,
+  ResolveSpellCastOptions,
+  SpellChoiceSlot,
+} from './resolve';
 export { applySpellEffectModifiers, hasSpellEffectModifiers } from './effects';
 export type { EffectOptionLike } from './effects';
 export { collectSheetSpellModifiers } from './collect';
-export { spellMatchesFilter } from './match';
+export { toggleSpellModifierChoice } from './choices';
+export { spellMatchesFilter, getSpellCircle } from './match';

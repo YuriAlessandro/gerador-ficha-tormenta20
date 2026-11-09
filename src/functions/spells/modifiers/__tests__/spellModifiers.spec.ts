@@ -19,6 +19,7 @@ import {
   computeSpellPmCost,
   getSpellDisplayPmCost,
   resolveSpellCast,
+  toggleSpellModifierChoice,
 } from '..';
 
 const CURAR_FERIMENTOS = spellsCircle1.curarFerimentos;
@@ -429,5 +430,82 @@ describe('um esotérico por magia (JdA)', () => {
     // Bola de Fogo não é pessoal: o Medalhão de prata não se aplica.
     const profile = resolveSpellCast(sheet(), BOLA_DE_FOGO);
     expect(profile.esotericOptions).toEqual(['Varinha arcana']);
+  });
+});
+
+describe('fase C: escolher magias (spellChoice)', () => {
+  const foco = (picks: number): CharacterSheet => {
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = Array.from({ length: picks }, () => ({
+      name: 'Foco em Magia',
+      description: '',
+      type: 'MAGIA',
+      requirements: [],
+    })) as unknown as CharacterSheet['generalPowers'];
+    return sheet;
+  };
+
+  it('magia elegível mostra a vaga; marcar aplica a redução', () => {
+    const sheet = foco(1);
+    const before = resolveSpellCast(sheet, BOLA_DE_FOGO);
+    expect(before.spellChoices).toEqual([
+      { source: 'Foco em Magia', chosen: false, used: 0, max: 1 },
+    ]);
+    expect(before.pmReduction).toBe(0);
+
+    sheet.spellModifierChoices = toggleSpellModifierChoice(
+      sheet,
+      'Foco em Magia',
+      BOLA_DE_FOGO
+    );
+    const after = resolveSpellCast(sheet, BOLA_DE_FOGO);
+    expect(after.spellChoices[0]).toMatchObject({ chosen: true, used: 1 });
+    expect(after.pmReduction).toBe(1);
+    // Outra magia não é afetada e a vaga já está cheia.
+    expect(
+      toggleSpellModifierChoice(sheet, 'Foco em Magia', CURAR_FERIMENTOS)
+    ).toBeUndefined();
+  });
+
+  it('uma vaga por vez que o poder foi escolhido', () => {
+    const sheet = foco(2);
+    sheet.spellModifierChoices = { 'Foco em Magia': ['Bola de Fogo'] };
+    expect(resolveSpellCast(sheet, CURAR_FERIMENTOS).spellChoices[0]).toEqual({
+      source: 'Foco em Magia',
+      chosen: false,
+      used: 1,
+      max: 2,
+    });
+  });
+
+  it('Foco em Magia acumula com a redução não cumulativa (Mago Branco)', () => {
+    const sheet = foco(1);
+    sheet.classPowers = [{ name: 'Mago Branco', text: '' }];
+    sheet.spellModifierChoices = { 'Foco em Magia': ['Sopro da Salvação'] };
+    expect(resolveSpellCast(sheet, SOPRO_DA_SALVACAO).pmReduction).toBe(2);
+  });
+
+  it('desmarcar libera a vaga', () => {
+    const sheet = foco(1);
+    sheet.spellModifierChoices = { 'Foco em Magia': ['Bola de Fogo'] };
+    expect(
+      toggleSpellModifierChoice(sheet, 'Foco em Magia', BOLA_DE_FOGO)
+    ).toEqual({ 'Foco em Magia': [] });
+  });
+
+  it('elegibilidade: Acólito Escudeiro só em magia de 1º círculo', () => {
+    const sheet = withClassPowers(['Acólito Escudeiro']);
+    expect(resolveSpellCast(sheet, CURAR_FERIMENTOS).spellChoices).toHaveLength(
+      1
+    );
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).spellChoices).toHaveLength(0);
+  });
+
+  it('Aspecto da Primavera: vagas = Carisma (mínimo 1)', () => {
+    const sheet = withClassPowers(['Aspecto da Primavera']);
+    sheet.atributos.Carisma = { name: 'Carisma', value: 3 } as never;
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).spellChoices[0].max).toBe(3);
+    sheet.atributos.Carisma = { name: 'Carisma', value: -1 } as never;
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).spellChoices[0].max).toBe(1);
   });
 });

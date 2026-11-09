@@ -455,6 +455,14 @@ export const religiousEsoteric: Equipment[] = [
     group: 'Esotérico',
     preco: parsePrice('T$ 150'),
     spaces: parseSpaces(1),
+    // "A CD para resistir à magia divina representada na estola aumenta em +2."
+    spellChoice: {
+      count: { type: 'fixed', value: 1 },
+      eligible: { tradition: 'divine' },
+    },
+    spellModifiers: [
+      { filter: { chosen: true }, effect: { type: 'SpellDC', value: 2 } },
+    ],
   },
   {
     nome: 'Frasco purificador',

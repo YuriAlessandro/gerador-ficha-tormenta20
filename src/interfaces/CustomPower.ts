@@ -1,4 +1,4 @@
-import type { SpellModifier } from './SpellModifiers';
+import type { SpellModifier, SpellModifierChoiceSpec } from './SpellModifiers';
 import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import type { SheetBonus } from './CharacterSheet';
 import { DiceRoll } from './DiceRoll';
@@ -25,6 +25,8 @@ export interface CustomPower extends CountsAsTormentaPower {
   sheetBonuses?: SheetBonus[];
   /** Efeitos sobre magias (ver `interfaces/SpellModifiers.ts`). */
   spellModifiers?: SpellModifier[];
+  /** "Escolha N magias" dos `spellModifiers` com `filter.chosen`. */
+  spellChoice?: SpellModifierChoiceSpec;
   // Override de exibição vindo da aba "Exibição" do poder na ficha. O
   // `CustomPowerDialog` edita `name`/`description` (a identidade do poder);
   // estes campos existem só para o leitor ser único em toda a aba de Poderes.

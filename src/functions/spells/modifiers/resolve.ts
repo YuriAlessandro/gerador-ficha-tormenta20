@@ -49,8 +49,20 @@ export interface SpellCastProfile {
    */
   esoteric?: string;
   esotericOptions: string[];
+  /**
+   * Fontes de "escolha N magias" (Foco em Magia) para as quais esta magia é
+   * elegível: se está marcada e quantas vagas a fonte já usou.
+   */
+  spellChoices: SpellChoiceSlot[];
   /** Linhas legíveis do que se aplica, com a fonte, para a UI. */
   notes: string[];
+}
+
+export interface SpellChoiceSlot {
+  source: string;
+  chosen: boolean;
+  used: number;
+  max: number;
 }
 
 export interface ResolveSpellCastOptions {
@@ -97,13 +109,30 @@ export function resolveSpellCast(
     effectThreatMargin: [],
     effectTempPV: [],
     esotericOptions: [],
+    spellChoices: [],
     notes: [],
   };
 
   let aprimoramentoSource: string | undefined;
 
-  const matching = (sheet ? collectSheetSpellModifiers(sheet) : []).filter(
-    ({ modifier }) => spellMatchesFilter(spell, modifier.filter, sheet)
+  const collected = sheet ? collectSheetSpellModifiers(sheet) : [];
+
+  // Vagas de "escolha N magias" em que esta magia pode entrar (uma por fonte).
+  const choiceSources = new Set<string>();
+  collected.forEach(({ choice }) => {
+    if (!choice || choiceSources.has(choice.source)) return;
+    choiceSources.add(choice.source);
+    if (!spellMatchesFilter(spell, choice.eligible, sheet)) return;
+    profile.spellChoices.push({
+      source: choice.source,
+      chosen: choice.chosen.includes(spell.nome),
+      used: choice.chosen.length,
+      max: choice.max,
+    });
+  });
+
+  const matching = collected.filter(({ modifier, choice }) =>
+    spellMatchesFilter(spell, modifier.filter, sheet, choice?.chosen)
   );
   profile.esotericOptions = Array.from(
     new Set(matching.filter((m) => m.esoteric).map((m) => m.source))

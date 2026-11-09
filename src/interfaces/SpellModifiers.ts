@@ -1,3 +1,4 @@
+import type { Atributo } from '../data/systems/tormenta20/atributos';
 import type { SpellSchool } from './Spells';
 
 /**
@@ -21,6 +22,13 @@ export interface SpellModifierFilter {
   tradition?: 'arcane' | 'divine';
   /** Alcances exatos ("Pessoal"). */
   ranges?: string[];
+  /** Círculos (1–5). */
+  circles?: number[];
+  /**
+   * Só as magias que o jogador marcou para ESTA fonte (Foco em Magia: "escolha
+   * uma magia"). Ver `SpellModifierChoiceSpec`.
+   */
+  chosen?: boolean;
   /** Só magias com rolagem de cura ("magias de cura"). */
   healing?: boolean;
   /** Só magias com rolagem de dano ("magias de dano"). */
@@ -80,7 +88,26 @@ export interface SpellModifier {
   effect: SpellModifierEffect;
 }
 
+/** Quantas magias a fonte deixa escolher. */
+export type SpellChoiceCount =
+  | { type: 'fixed'; value: number }
+  /** Uma por vez que o poder foi escolhido (Foco em Magia). */
+  | { type: 'picks' }
+  /** Igual a um atributo, com mínimo (Aspecto da Primavera: Carisma, mín. 1). */
+  | { type: 'attribute'; attribute: Atributo; min?: number };
+
+/**
+ * "Escolha N magias…": quantas e quais podem ser escolhidas. As escolhas
+ * ficam em `CharacterSheet.spellModifierChoices[nome da fonte]` e valem para
+ * os modificadores com `filter.chosen`.
+ */
+export interface SpellModifierChoiceSpec {
+  count: SpellChoiceCount;
+  eligible?: SpellModifierFilter;
+}
+
 /** Entidade de dados que pode declarar modificadores de magia. */
 export interface HasSpellModifiers {
   spellModifiers?: SpellModifier[];
+  spellChoice?: SpellModifierChoiceSpec;
 }

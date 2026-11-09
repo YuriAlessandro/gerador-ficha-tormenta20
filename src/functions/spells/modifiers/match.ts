@@ -34,13 +34,27 @@ function sheetHasCasterClass(
   return Object.keys(sheet.multiclassSpellPaths ?? {}).includes(className);
 }
 
-/** A magia passa no filtro? Campos combinam em E; listas são OU. */
+/** Círculo da magia (1–5) a partir do rótulo "2º Circulo". */
+export function getSpellCircle(spell: Spell): number {
+  const match = /(\d)/.exec(spell.spellCircle ?? '');
+  return match ? Number(match[1]) : 0;
+}
+
+/**
+ * A magia passa no filtro? Campos combinam em E; listas são OU. `chosen` são
+ * as magias que o jogador marcou para a fonte do modificador (`filter.chosen`).
+ */
 export function spellMatchesFilter(
   spell: Spell,
   filter: SpellModifierFilter | undefined,
-  sheet?: CharacterSheet
+  sheet?: CharacterSheet,
+  chosen?: string[]
 ): boolean {
   if (!filter) return true;
+  if (filter.chosen && !chosen?.includes(spell.nome)) return false;
+  if (filter.circles && !filter.circles.includes(getSpellCircle(spell))) {
+    return false;
+  }
   if (filter.casterClass && !sheetHasCasterClass(sheet, filter.casterClass)) {
     return false;
   }

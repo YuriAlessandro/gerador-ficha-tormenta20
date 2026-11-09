@@ -1,6 +1,9 @@
 import { dataRegistry } from '../../../data/registry';
 import type { SheetAction } from '../../../interfaces/CharacterSheet';
-import type { SpellModifier } from '../../../interfaces/SpellModifiers';
+import type {
+  SpellModifier,
+  SpellModifierChoiceSpec,
+} from '../../../interfaces/SpellModifiers';
 import { SupplementId } from '../../../types/supplement.types';
 
 /**
@@ -31,12 +34,15 @@ export interface SpellModifierChoice {
 export interface SpellModifierSource {
   modifiers: SpellModifier[];
   choices: SpellModifierChoice[];
+  /** "Escolha N magias" (modificadores com `filter.chosen`). */
+  spellChoice?: SpellModifierChoiceSpec;
 }
 
 export interface SpellModifierEntry {
   name?: string;
   nome?: string;
   spellModifiers?: SpellModifier[];
+  spellChoice?: SpellModifierChoiceSpec;
   sheetActions?: SheetAction[];
 }
 
@@ -57,7 +63,11 @@ export function extractSpellModifierSource(
       choices.push({ optionKey: action.optionKey, options });
     }
   });
-  return { modifiers: entry.spellModifiers ?? [], choices };
+  return {
+    modifiers: entry.spellModifiers ?? [],
+    choices,
+    ...(entry.spellChoice ? { spellChoice: entry.spellChoice } : {}),
+  };
 }
 
 /** Todos os suplementos, como em `spellTradition`: o índice é só lookup. */

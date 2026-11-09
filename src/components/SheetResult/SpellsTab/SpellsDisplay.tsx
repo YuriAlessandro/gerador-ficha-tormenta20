@@ -144,6 +144,8 @@ export interface SpellsDisplayProps {
   ) => void;
   isMago?: boolean;
   onToggleMemorized?: (spell: Spell) => void;
+  /** Marca/desmarca a magia para uma fonte de "escolha N magias". */
+  onSpellChoiceToggle?: (source: string, spell: Spell) => void;
   onToggleAlwaysPrepared?: (spell: Spell) => void;
   onKeyAttributeChange?: (newAttr: Atributo) => void;
   bonusSpellDC?: number;
@@ -206,6 +208,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
   onSpellCast,
   isMago,
   onToggleMemorized,
+  onSpellChoiceToggle,
   onToggleAlwaysPrepared,
   onKeyAttributeChange,
   bonusSpellDC,
@@ -558,6 +561,9 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
                   onOpenCast={() => handleOpenCast(spell)}
                   isMago={isMago}
                   onToggleMemorized={onToggleMemorized}
+                  onSpellChoiceToggle={
+                    derived ? undefined : onSpellChoiceToggle
+                  }
                   onToggleAlwaysPrepared={onToggleAlwaysPrepared}
                   activeEffect={
                     canUseActiveEffects
@@ -602,6 +608,11 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
           detailSpell ? castProfileByName.get(detailSpell.nome) : undefined
         }
         spellDC={detailSpell ? spellDCOf(detailSpell) : undefined}
+        onSpellChoiceToggle={
+          detailSpell && onSpellChoiceToggle && !derived
+            ? (source) => onSpellChoiceToggle(source, detailSpell)
+            : undefined
+        }
       />
 
       {engenhocaSpell && sheet && onEngenhocaChange && (

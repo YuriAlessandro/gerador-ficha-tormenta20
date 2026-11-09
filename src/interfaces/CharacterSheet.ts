@@ -932,6 +932,12 @@ export default interface CharacterSheet {
    * e do recálculo final pós-level-up).
    */
   optionChoices?: Record<string, string[]>;
+  /**
+   * Magias escolhidas para modificadores de "escolha uma magia" (Foco em
+   * Magia, Estola…): nome da fonte → nomes das magias. Ver
+   * `SpellModifierChoiceSpec`.
+   */
+  spellModifierChoices?: Record<string, string[]>;
   defesa: number;
   bag: Bag;
   // Currently wielded items (Equipment.id references). Optional — when both are

@@ -179,6 +179,12 @@ const DRUIDA: ClassDescription = {
       name: 'Aspecto da Primavera',
       text: 'Você aprende e pode lançar uma magia de encantamento ou ilusão, arcana ou divina, de qualquer círculo que possa lançar. Além disso, escolha uma quantidade de magias igual ao seu Carisma (mínimo 1). O custo dessas magias é reduzido em −1 PM.',
       requirements: [],
+      spellChoice: {
+        count: { type: 'attribute', attribute: Atributo.CARISMA, min: 1 },
+      },
+      spellModifiers: [
+        { filter: { chosen: true }, effect: { type: 'PmReduction', value: 1 } },
+      ],
       sheetActions: [
         {
           source: {

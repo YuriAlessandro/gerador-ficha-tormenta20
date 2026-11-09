@@ -1,4 +1,4 @@
-import type { SpellModifier } from './SpellModifiers';
+import type { SpellModifier, SpellModifierChoiceSpec } from './SpellModifiers';
 import { SheetBonus } from './CharacterSheet';
 import { DiceRoll } from './DiceRoll';
 import Skill from './Skills';
@@ -348,6 +348,8 @@ export default interface Equipment {
   sheetBonuses?: SheetBonus[];
   /** Efeitos sobre magias (ver `interfaces/SpellModifiers.ts`). */
   spellModifiers?: SpellModifier[];
+  /** "Escolha N magias" dos `spellModifiers` com `filter.chosen`. */
+  spellChoice?: SpellModifierChoiceSpec;
 
   // Conditional bonuses (only apply if condition is met)
   conditionalBonuses?: {

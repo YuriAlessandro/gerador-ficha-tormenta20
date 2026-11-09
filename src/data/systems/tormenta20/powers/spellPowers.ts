@@ -42,6 +42,14 @@ const magicPowers: Record<string, GeneralPower> = {
       'Escolha uma magia que possa lançar. Seu custo diminui em –1 PM (cumulativo com outras reduções de custo). Você pode escolher este poder outras vezes para magias diferentes.',
     type: GeneralPowerType.MAGIA,
     allowSeveralPicks: true,
+    // Uma magia por vez que o poder foi escolhido; marcada na aba de magias.
+    spellChoice: { count: { type: 'picks' } },
+    spellModifiers: [
+      {
+        filter: { chosen: true },
+        effect: { type: 'PmReduction', value: 1, cumulative: true },
+      },
+    ],
     requirements: [[{ type: RequirementType.HABILIDADE, name: 'Magias' }]],
   },
   MAGIA_ACELERADA: {

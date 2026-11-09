@@ -162,6 +162,7 @@ import {
   PowerUserPatch,
 } from '@/functions/powers/updatePowerAcrossSheet';
 import { usesCharismaForDefense } from '@/functions/learnedClassAbility';
+import { toggleSpellModifierChoice } from '@/functions/spells/modifiers';
 import PoderCapturadoEditDrawer from './EditDrawers/PoderCapturadoEditDrawer';
 import PoderCapturadoAction from './PoderCapturadoAction';
 import LevelUpWizardModal from '../LevelUpWizard/LevelUpWizardModal';
@@ -1036,6 +1037,22 @@ const Result: React.FC<ResultProps> = (props) => {
         s.nome === spell.nome ? { ...s, memorized: !s.memorized } : s
       );
       const updatedSheet = { ...currentSheet, spells: updatedSpells };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate, ownsSpell]
+  );
+
+  // "Escolha N magias" (Foco em Magia, Estola…): marca na ficha, o motor de
+  // modificadores lê de `spellModifierChoices`.
+  const handleSpellChoiceToggle = useCallback(
+    (source: string, spell: Spell) => {
+      if (!ownsSpell(spell)) return;
+      const choices = toggleSpellModifierChoice(currentSheet, source, spell);
+      if (!choices) return;
+      const updatedSheet = { ...currentSheet, spellModifierChoices: choices };
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
@@ -3091,6 +3108,9 @@ const Result: React.FC<ResultProps> = (props) => {
               }
               onToggleAlwaysPrepared={
                 onSheetUpdate ? handleToggleAlwaysPrepared : undefined
+              }
+              onSpellChoiceToggle={
+                onSheetUpdate ? handleSpellChoiceToggle : undefined
               }
               bonusSpellDC={spellDCBonus}
               onKeyAttributeChange={

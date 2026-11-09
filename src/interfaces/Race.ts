@@ -1,4 +1,4 @@
-import type { SpellModifier } from './SpellModifiers';
+import type { SpellModifier, SpellModifierChoiceSpec } from './SpellModifiers';
 import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { CharacterAttributes, CharacterReligion } from './Character';
@@ -77,6 +77,8 @@ export type RaceAbility = {
   sheetBonuses?: SheetBonus[];
   /** Efeitos sobre magias (ver `interfaces/SpellModifiers.ts`). */
   spellModifiers?: SpellModifier[];
+  /** "Escolha N magias" dos `spellModifiers` com `filter.chosen`. */
+  spellChoice?: SpellModifierChoiceSpec;
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
   customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário
   // Nome definido pelo usuário. Quando presente, tem precedência sobre `name`
