@@ -1,3 +1,4 @@
+import type { SpellModifier } from './SpellModifiers';
 import { ClassDescription, ClassPower, CrossTraditionRules } from './Class';
 import { GeneralPower, GeneralPowerType, OriginPower } from './Poderes';
 import Race, { AttributeVariant, RaceSize, raceSize } from './Race';
@@ -281,6 +282,10 @@ export type SheetActionStep =
         name: string;
         text: string;
         sheetBonuses?: SheetBonus[];
+        // Efeitos sobre magias que a opção concede (ex.: Mestre em Escola, a
+        // escola escolhida). Lidos pelo motor de modificadores de magia a
+        // partir de `optionChoices[optionKey]`.
+        spellModifiers?: SpellModifier[];
         repeatable?: boolean; // Pode ser escolhida mais de uma vez (multi-pick)
         grantedSpells?: Spell[]; // Magias concedidas ao escolher esta opção (fixas)
         // Concessão de magias por ESCOLHA do jogador ao escolher esta opção

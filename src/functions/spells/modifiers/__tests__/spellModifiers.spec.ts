@@ -11,6 +11,7 @@ import {
 import ARCANISTA from '../../../../data/systems/tormenta20/classes/arcanista';
 import DRUIDA from '../../../../data/systems/tormenta20/classes/druida';
 import { augmentSpellRolls } from '../../../spellRollAugmentation';
+import { applyPower } from '../../../general';
 import {
   applySpellEffectModifiers,
   applySpellRollModifiers,
@@ -357,5 +358,35 @@ describe('habilidades de classe respeitam o nível', () => {
     druida.nivel = 20;
     expect(resolveSpellCast(druida, BOLA_DE_FOGO).pmReduction).toBe(2);
     expect(resolveSpellCast(druida, BOLA_DE_FOGO).dcBonus).toBe(2);
+  });
+});
+
+describe('fase C: escolhas de escola (chooseFromOptions)', () => {
+  const power = (name: string) => {
+    const found = ARCANISTA.powers.find((p) => p.name === name);
+    if (!found) throw new Error(name);
+    return found;
+  };
+
+  it('Mestre em Escola: aplicar o poder grava a escola e reduz o custo nela', () => {
+    const MESTRE = power('Mestre em Escola');
+    const base = createMockCharacterSheet();
+    base.classPowers = [MESTRE];
+    const [sheet] = applyPower(base, MESTRE, { chosenOption: ['Evocação'] });
+    expect(sheet.optionChoices?.mestreEmEscola).toEqual(['Evocação']);
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).pmReduction).toBe(1);
+    expect(resolveSpellCast(sheet, spellsCircle1.sono).pmReduction).toBe(0);
+  });
+
+  it('Especialista em Escola: +2 na CD só da escola escolhida', () => {
+    const sheet = withClassPowers(['Especialista em Escola']);
+    sheet.optionChoices = { especialistaEmEscola: ['Encantamento'] };
+    expect(resolveSpellCast(sheet, spellsCircle1.sono).dcBonus).toBe(2);
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).dcBonus).toBe(0);
+  });
+
+  it('sem escolha gravada (ficha antiga) não aplica nada', () => {
+    const sheet = withClassPowers(['Mestre em Escola']);
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).pmReduction).toBe(0);
   });
 });

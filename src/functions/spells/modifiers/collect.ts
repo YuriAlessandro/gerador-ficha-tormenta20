@@ -1,12 +1,14 @@
 import type CharacterSheet from '../../../interfaces/CharacterSheet';
 import type Equipment from '../../../interfaces/Equipment';
-import type {
-  HasSpellModifiers,
-  SpellModifier,
-} from '../../../interfaces/SpellModifiers';
+import type { SpellModifier } from '../../../interfaces/SpellModifiers';
 import { isItemWielded } from '../../../components/SheetResult/BackpackModal/wielding';
 import { getClassLevel } from '../../multiclass';
-import { getCatalogSpellModifiers, SpellModifierSourceKind } from './catalog';
+import {
+  extractSpellModifierSource,
+  getCatalogSpellModifierSource,
+  SpellModifierEntry,
+  SpellModifierSourceKind,
+} from './catalog';
 
 /** Um modificador e a fonte que o concede (para o rótulo na UI). */
 export interface SourcedSpellModifier {
@@ -17,16 +19,25 @@ export interface SourcedSpellModifier {
 /**
  * Resolve os modificadores de uma entrada da ficha: o catálogo manda (versão
  * atual, mesmo em ficha antiga); conteúdo criado à mão na ficha usa a própria
- * cópia.
+ * cópia. Os de escolha (Mestre em Escola) vêm da opção gravada em
+ * `optionChoices[optionKey]`.
  */
 function resolveEntry(
+  sheet: CharacterSheet,
   kind: SpellModifierSourceKind,
   name: string,
-  entry: HasSpellModifiers,
+  entry: SpellModifierEntry,
   isCustom: boolean
 ): SpellModifier[] {
-  if (isCustom) return entry.spellModifiers ?? [];
-  return getCatalogSpellModifiers(kind, name) ?? entry.spellModifiers ?? [];
+  const source =
+    (!isCustom && getCatalogSpellModifierSource(kind, name)) ||
+    extractSpellModifierSource(entry);
+  const chosen = source.choices.flatMap(({ optionKey, options }) =>
+    Array.from(new Set(sheet.optionChoices?.[optionKey] ?? [])).flatMap(
+      (optionName) => options[optionName] ?? []
+    )
+  );
+  return [...source.modifiers, ...chosen];
 }
 
 /**
@@ -93,14 +104,26 @@ export function collectSheetSpellModifiers(
     push(
       'power',
       power.name,
-      resolveEntry('power', power.name, power as HasSpellModifiers, false)
+      resolveEntry(
+        sheet,
+        'power',
+        power.name,
+        power as SpellModifierEntry,
+        false
+      )
     )
   );
   gainedClassAbilities(sheet).forEach((ability) =>
     push(
       'ability',
       ability.name,
-      resolveEntry('ability', ability.name, ability as HasSpellModifiers, false)
+      resolveEntry(
+        sheet,
+        'ability',
+        ability.name,
+        ability as SpellModifierEntry,
+        false
+      )
     )
   );
   [...(sheet.customPowers ?? []), ...(sheet.customGrantedPowers ?? [])].forEach(
@@ -108,7 +131,13 @@ export function collectSheetSpellModifiers(
       push(
         'power',
         power.name,
-        resolveEntry('power', power.name, power as HasSpellModifiers, true)
+        resolveEntry(
+          sheet,
+          'power',
+          power.name,
+          power as SpellModifierEntry,
+          true
+        )
       )
   );
 
@@ -119,7 +148,7 @@ export function collectSheetSpellModifiers(
       push(
         'item',
         item.nome,
-        resolveEntry('item', item.nome, item, !!item.isCustom)
+        resolveEntry(sheet, 'item', item.nome, item, !!item.isCustom)
       );
     });
   });
