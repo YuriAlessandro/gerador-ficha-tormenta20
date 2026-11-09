@@ -53,6 +53,7 @@ import {
 } from '@/2foundry';
 import Bag from '@/interfaces/Bag';
 import preparePDF from '@/functions/downloadSheetPdf';
+import { takeImportedSheet } from '@/functions/importedSheetHandoff';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import {
   dataRegistry,
@@ -734,6 +735,13 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
     trackSheetGeneration();
   };
+
+  // Ficha criada fora daqui (importação de uma build): segue o caminho do fim
+  // do assistente. Sem entrega, este efeito não faz nada.
+  React.useEffect(() => {
+    const imported = takeImportedSheet();
+    if (imported) finalizeSheet(imported);
+  }, []);
 
   const handleWizardConfirm = (
     wizardSelections: import('@/interfaces/WizardSelections').WizardSelections
