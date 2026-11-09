@@ -67,6 +67,44 @@ describe('evaluatePowerRequirements', () => {
     });
   });
 
+  describe('LANCAR_MAGIAS', () => {
+    // Regressão: o tipo caía no `default` e o editor de poderes liberava
+    // Magia Acelerada para um Guerreiro.
+    const acelerada = power([
+      [{ type: RequirementType.LANCAR_MAGIAS, value: 2 }],
+    ]);
+
+    it('quem não lança magia não atende', () => {
+      const sheet = createMockCharacterSheet();
+      sheet.nivel = 6;
+      sheet.classLevels = undefined;
+      sheet.classe = { ...sheet.classe, spellPath: undefined };
+      sheet.spells = [];
+      expect(evaluatePowerRequirements(acelerada, ctxOf(sheet)).available).toBe(
+        false
+      );
+    });
+
+    it('classe que libera o círculo atende', () => {
+      const sheet = createMockCharacterSheet();
+      sheet.nivel = 5;
+      sheet.classLevels = undefined;
+      sheet.classe = {
+        ...sheet.classe,
+        spellPath: {
+          initialSpells: 3,
+          spellType: 'Arcane',
+          qtySpellsLearnAtLevel: () => 1,
+          spellCircleAvailableAtLevel: (level) => (level >= 5 ? 2 : 1),
+          keyAttribute: Atributo.INTELIGENCIA,
+        },
+      };
+      expect(evaluatePowerRequirements(acelerada, ctxOf(sheet)).available).toBe(
+        true
+      );
+    });
+  });
+
   describe('NIVEL', () => {
     it('compara com o nível da ficha e informa o nível atual ao falhar', () => {
       const sheet = createMockCharacterSheet();
