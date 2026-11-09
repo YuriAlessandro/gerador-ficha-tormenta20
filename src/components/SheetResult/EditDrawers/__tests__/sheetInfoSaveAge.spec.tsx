@@ -9,6 +9,7 @@ import { createMockCharacterSheet } from '@/__mocks__/characterSheet';
 import { findClassDescription } from '@/functions/multiclass';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
+import { describeWithPremium } from '../../../../__tests__/premiumGate';
 import SheetInfoEditDrawer from '../SheetInfoEditDrawer';
 
 /**
@@ -197,7 +198,8 @@ describe('SheetInfoEditDrawer: idade', () => {
    * mostrava nem o toggle de "Já Vi Coisas", nem a complicação, nem um seletor
    * de poder — o drawer assumia que o poder só podia vir da criação.
    */
-  describe('Adulto: "Já Vi Coisas" na edição', () => {
+  // As complicações de idade moram no premium.
+  describeWithPremium('Adulto: "Já Vi Coisas" na edição', () => {
     function adultSheet(): CharacterSheet {
       const sheet = baseSheet();
       sheet.age = {

@@ -81,9 +81,7 @@ const magicPowers: Record<string, GeneralPower> = {
       },
     ],
     type: GeneralPowerType.DESTINO,
-    requirements: [
-      [{ type: RequirementType.TEXT, text: 'Lançar magias de 2º círculo' }],
-    ],
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS, value: 2 }]],
   },
   MAGIA_AMPLIADA: {
     name: 'Magia Ampliada',

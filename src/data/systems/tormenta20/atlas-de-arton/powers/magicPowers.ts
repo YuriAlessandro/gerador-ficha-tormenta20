@@ -21,9 +21,7 @@ const magicPowers: Record<string, GeneralPower> = {
         effect: { type: 'AprimoramentoPm', value: 1 },
       },
     ],
-    requirements: [
-      [{ type: RequirementType.TEXT, text: 'Lançar magia arcana' }],
-    ],
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS, name: 'arcane' }]],
   },
 };
 

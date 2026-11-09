@@ -42,6 +42,12 @@ export enum RequirementType {
   CHASSIS = 'CHASSIS',
   HERANCA = 'HERANCA',
   TIER_LIMIT = 'TIER_LIMIT',
+  /**
+   * "Lançar magias" avaliado pela ficha. `value` = círculo mínimo (omitido =
+   * qualquer); `name` = tradição ('arcane' | 'divine', omitido = qualquer).
+   * Ver `sheetCastsSpells`.
+   */
+  LANCAR_MAGIAS = 'LANCAR_MAGIAS',
 }
 
 export interface Requirement {

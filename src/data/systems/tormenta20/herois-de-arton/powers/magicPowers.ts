@@ -45,9 +45,7 @@ const magicPowers: Record<string, GeneralPower> = {
         },
       },
     ],
-    requirements: [
-      [{ type: RequirementType.TEXT, text: 'Lançar magias de 2º círculo' }],
-    ],
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS, value: 2 }]],
   },
   ESTILO_ESOTERICO: {
     name: 'Estilo Esotérico',
@@ -69,11 +67,11 @@ const magicPowers: Record<string, GeneralPower> = {
     type: GeneralPowerType.MAGIA,
     requirements: [
       [
-        { type: RequirementType.TEXT, text: 'Lançar magias de 3º círculo' },
+        { type: RequirementType.LANCAR_MAGIAS, value: 3 },
         { type: RequirementType.PERICIA, name: Skill.MISTICISMO },
       ],
       [
-        { type: RequirementType.TEXT, text: 'Lançar magias de 3º círculo' },
+        { type: RequirementType.LANCAR_MAGIAS, value: 3 },
         { type: RequirementType.PERICIA, name: Skill.RELIGIAO },
       ],
     ],
@@ -85,7 +83,7 @@ const magicPowers: Record<string, GeneralPower> = {
     type: GeneralPowerType.MAGIA,
     requirements: [
       [
-        { type: RequirementType.TEXT, text: 'Lançar magias de 4º círculo' },
+        { type: RequirementType.LANCAR_MAGIAS, value: 4 },
         { type: RequirementType.PODER, name: 'Encantar Itens Menores' },
       ],
     ],
@@ -97,7 +95,7 @@ const magicPowers: Record<string, GeneralPower> = {
     type: GeneralPowerType.MAGIA,
     requirements: [
       [
-        { type: RequirementType.TEXT, text: 'Lançar magias de 5º círculo' },
+        { type: RequirementType.LANCAR_MAGIAS, value: 5 },
         { type: RequirementType.PODER, name: 'Encantar Itens Médios' },
       ],
     ],
@@ -142,9 +140,7 @@ const magicPowers: Record<string, GeneralPower> = {
       },
     ],
     type: GeneralPowerType.MAGIA,
-    requirements: [
-      [{ type: RequirementType.TEXT, text: 'Lançar magias de 2º círculo' }],
-    ],
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS, value: 2 }]],
   },
   MAGIA_DIVIDIDA: {
     name: 'Magia Dividida',
@@ -161,9 +157,7 @@ const magicPowers: Record<string, GeneralPower> = {
       },
     ],
     type: GeneralPowerType.MAGIA,
-    requirements: [
-      [{ type: RequirementType.TEXT, text: 'Lançar magias de 2º círculo' }],
-    ],
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS, value: 2 }]],
   },
   MAGIA_SUSPENSA: {
     name: 'Magia Suspensa',
