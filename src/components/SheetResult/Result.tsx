@@ -170,6 +170,7 @@ import {
   SpellCastContext,
   toggleSpellModifierChoice,
 } from '@/functions/spells/modifiers';
+import { getSheetSpellDCBonus } from '@/functions/spells/spellDC';
 import PoderCapturadoEditDrawer from './EditDrawers/PoderCapturadoEditDrawer';
 import PoderCapturadoAction from './PoderCapturadoAction';
 import LevelUpWizardModal from '../LevelUpWizard/LevelUpWizardModal';
@@ -2214,17 +2215,14 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet]
   );
 
-  const spellDCBonus = useMemo(() => {
-    let total = currentSheet.bonusSpellDC ?? 0;
-    currentSheet.sheetBonuses
-      .filter((b) => b.target.type === 'SpellDC')
-      .forEach((b) => {
-        if (b.modifier.type === 'Fixed') {
-          total += b.modifier.value;
-        }
-      });
-    return total;
-  }, [currentSheet.bonusSpellDC, currentSheet.sheetBonuses]);
+  const spellDCBonus = useMemo(
+    () =>
+      getSheetSpellDCBonus({
+        bonusSpellDC: currentSheet.bonusSpellDC,
+        sheetBonuses: currentSheet.sheetBonuses,
+      } as CharacterSheet),
+    [currentSheet.bonusSpellDC, currentSheet.sheetBonuses]
+  );
 
   // Helper function to format attribute modifiers correctly
   const formatAttributeModifier = useCallback(

@@ -1,6 +1,9 @@
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { getSpellCircleNumber } from '../../functions/spells/engenhoca';
-import { getSpellDisplayPmCost } from '../../functions/spells/modifiers';
+import {
+  getSpellDisplayPmCost,
+  resolveSpellCast,
+} from '../../functions/spells/modifiers';
 import { getSpellDisplayName } from '../../functions/spells/spellDisplayName';
 import { getSpellTradition } from '../../functions/spells/spellTradition';
 import CharacterSheet from '../../interfaces/CharacterSheet';
@@ -162,6 +165,9 @@ export function buildSpellItems(sheet: CharacterSheet): FoundryItem[] {
     const attribute = spell.customKeyAttr ?? keyAttribute;
     if (attribute && isRecord(item.system.resistencia)) {
       item.system.resistencia.atributo = ATTRIBUTE_KEYS[attribute];
+      // O sistema soma o resto (10 + ½ nível + atributo); aqui vai só o que é
+      // desta magia (Foco em Magia, Varinha arcana, Tomo hermético).
+      item.system.resistencia.bonus = resolveSpellCast(sheet, spell).dcBonus;
     }
 
     return item;

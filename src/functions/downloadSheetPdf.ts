@@ -8,6 +8,7 @@ import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { getSpellDisplayName } from './spells/spellDisplayName';
 import { getEngenhocaAparatos } from './spells/engenhoca';
 import { getSpellDisplayPmCost } from './spells/modifiers';
+import { getSpellResistDC } from './spells/spellDC';
 import { calculateCurrencySpaces } from './general';
 import { isMulticlass, getMulticlassDisplayName } from './multiclass';
 import {
@@ -284,7 +285,14 @@ const generateSpellText = (spell: Spell, sheet: CharacterSheet): string => {
     spell.engenhoca
       ? 'ativação por Ofício'
       : `${getSpellDisplayPmCost(sheet, spell)}PM`,
-  ].join(', ');
+    // A CD de cada magia: os bônus por magia (Foco em Magia, Varinha arcana)
+    // fazem uma diferir da outra.
+    spell.resistencia && !spell.engenhoca
+      ? `CD ${getSpellResistDC(sheet, spell)}`
+      : undefined,
+  ]
+    .filter(Boolean)
+    .join(', ');
   if (spell.engenhoca) {
     const aparatos = getEngenhocaAparatos(spell.engenhoca).map((a) => a.nome);
     const details = [
