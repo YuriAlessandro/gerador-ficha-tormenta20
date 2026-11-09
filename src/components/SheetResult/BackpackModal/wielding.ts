@@ -364,6 +364,7 @@ export interface MigratableBagView {
   Armadura?: { id?: string }[];
   Escudo?: { id?: string }[];
   Arma?: Equipment[];
+  Esotérico?: { id?: string }[];
 }
 
 export function migrateLegacyEquipState<
@@ -404,6 +405,15 @@ export function migrateLegacyEquipState<
   } else if (twoHandedWeapon?.id) {
     mainHandItemId = twoHandedWeapon.id;
     offHandItemId = twoHandedWeapon.id;
+  }
+
+  // Mão que sobrou vai para o primeiro esotérico: "para usar um esotérico,
+  // você precisa empunhá-lo" (JdA), e sem isso o conjurador com uma arma de
+  // uma mão perderia o efeito do esotérico que carrega.
+  const esoteric = (equipments.Esotérico ?? []).find((item) => !!item.id);
+  if (esoteric?.id) {
+    if (mainHandItemId === undefined) mainHandItemId = esoteric.id;
+    else if (offHandItemId === undefined) offHandItemId = esoteric.id;
   }
 
   return {
