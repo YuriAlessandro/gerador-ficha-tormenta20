@@ -87,6 +87,15 @@ describe('sheetCastsSpells', () => {
     expect(sheetCastsSpells(sheet, { circle: 2 })).toBe(false);
   });
 
+  it('magia fora de classe não cumpre requisito de círculo (JdA p. 171)', () => {
+    const sheet = sheetWith({
+      spells: [{ ...ARCANE, spellCircle: spellsCircles.c2 }],
+    });
+    expect(sheetCastsSpells(sheet)).toBe(true);
+    expect(sheetCastsSpells(sheet, { circle: 2 })).toBe(false);
+    expect(sheetCastsSpells(sheet, { circle: 1 })).toBe(false);
+  });
+
   it('magia injetada por equipamento não conta', () => {
     const sheet = sheetWith({
       spells: [{ ...ARCANE, equipmentSource: 'item-1' }],

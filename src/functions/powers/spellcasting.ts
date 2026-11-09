@@ -21,9 +21,6 @@ const TRADITIONS_OF_SPELL_TYPE: Record<
   Both: ['arcane', 'divine'],
 };
 
-/** "2º Circulo" → 2. */
-const circleOf = (spell: Spell): number => parseInt(spell.spellCircle, 10) || 1;
-
 /**
  * Magias que contam como "você lança". As injetadas por encantamento de
  * equipamento ficam de fora: somem quando o item sai, e o poder não pode
@@ -81,27 +78,32 @@ function spellCountsFor(spell: Spell, tradition?: CastingTradition): boolean {
 
 /**
  * "Lançar magias", "Lançar magias de Nº círculo", "Lançar magias divinas".
- * Vale pelo círculo que uma classe libera no nível dela ou por uma magia na
- * ficha (de raça, poder, origem) do círculo pedido ou acima. Com tradição,
- * magia universal ou customizada só conta se alguma classe ou magia exclusiva
- * da ficha confirmar que ela lança por essa tradição.
+ *
+ * Com círculo, só vale o que uma classe libera no nível dela: magia de raça,
+ * poder ou origem não tem círculo para efeito de pré-requisito (JdA p. 171,
+ * "para magias aprendidas de outra forma, você não tem como cumprir esses
+ * pré-requisitos").
+ *
+ * Sem círculo, vale também qualquer magia na ficha (Duende, Sílfide...). Com
+ * tradição, magia universal ou customizada só conta se alguma classe ou magia
+ * exclusiva da ficha confirmar que ela lança por essa tradição.
  */
 export function sheetCastsSpells(
   sheet: CharacterSheet,
   requirement: { circle?: number; tradition?: CastingTradition } = {}
 ): boolean {
-  const { circle = 1, tradition } = requirement;
+  const { circle, tradition } = requirement;
   const castings = getClassCastings(sheet);
 
   const byClass = castings.some(
     (casting) =>
-      casting.circle >= circle &&
+      casting.circle >= (circle ?? 1) &&
       (!tradition || casting.traditions.includes(tradition))
   );
-  if (byClass) return true;
+  if (byClass || circle !== undefined) return byClass;
 
-  const spells = castableSpells(sheet).filter(
-    (spell) => circleOf(spell) >= circle && spellCountsFor(spell, tradition)
+  const spells = castableSpells(sheet).filter((spell) =>
+    spellCountsFor(spell, tradition)
   );
   if (!tradition) return spells.length > 0;
 
