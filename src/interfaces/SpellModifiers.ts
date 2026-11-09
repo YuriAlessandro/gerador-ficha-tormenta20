@@ -104,6 +104,12 @@ export type SpellChoiceCount =
 export interface SpellModifierChoiceSpec {
   count: SpellChoiceCount;
   eligible?: SpellModifierFilter;
+  /**
+   * O que se escolhe: uma magia (padrão) ou uma escola (Tomo hermético: "uma
+   * escola de magia específica"). A escola é marcada a partir de qualquer
+   * magia dela.
+   */
+  of?: 'spell' | 'school';
 }
 
 /** Entidade de dados que pode declarar modificadores de magia. */

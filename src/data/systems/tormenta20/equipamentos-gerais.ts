@@ -679,6 +679,19 @@ export const esotericos: Equipment[] = [
   {
     nome: 'Tomo hermético',
     group: 'Esotérico',
+    descricao:
+      'Um livro de tratados que aumentam a sua compreensão sobre uma escola de magia específica. A CD para resistir a suas magias arcanas dessa escola aumenta em +2.',
+    spellChoice: {
+      of: 'school',
+      count: { type: 'fixed', value: 1 },
+      eligible: { tradition: 'arcane' },
+    },
+    spellModifiers: [
+      {
+        filter: { chosen: true, tradition: 'arcane' },
+        effect: { type: 'SpellDC', value: 2 },
+      },
+    ],
     preco: parsePrice('T$ 1500'),
     spaces: parseSpaces(1),
   },

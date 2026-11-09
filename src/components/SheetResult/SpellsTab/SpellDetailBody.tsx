@@ -122,6 +122,15 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
         )}
         {(castProfile?.spellChoices ?? []).map((slot) => {
           const full = !slot.chosen && slot.used >= slot.max;
+          // Escolha de escola (Tomo hermético) é marcada a partir de uma magia.
+          const what =
+            slot.of === 'school'
+              ? `a escola ${getSchoolLabel(spell.school)}`
+              : 'esta magia';
+          const label =
+            slot.of === 'school'
+              ? `${slot.source} · ${getSchoolLabel(spell.school)}`
+              : `${slot.source} · ${slot.used}/${slot.max}`;
           return (
             <Tooltip
               key={slot.source}
@@ -129,12 +138,12 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
               title={
                 full
                   ? `Todas as ${slot.max} escolhas de ${slot.source} estão em uso.`
-                  : `Escolher esta magia para ${slot.source}.`
+                  : `Escolher ${what} para ${slot.source}.`
               }
             >
               <span>
                 <Chip
-                  label={`${slot.source} · ${slot.used}/${slot.max}`}
+                  label={label}
                   size='small'
                   color='secondary'
                   variant={slot.chosen ? 'filled' : 'outlined'}

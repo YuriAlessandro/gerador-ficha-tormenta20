@@ -9,7 +9,7 @@ import {
 } from '../../spellRollAugmentation';
 import { getSpellBasePm } from '../engenhoca';
 import { collectSheetSpellModifiers } from './collect';
-import { isDamageRollLabel, spellMatchesFilter } from './match';
+import { choiceValueOf, isDamageRollLabel, spellMatchesFilter } from './match';
 
 interface RollBonusTotal {
   perDie: number;
@@ -60,7 +60,9 @@ export interface SpellCastProfile {
 
 export interface SpellChoiceSlot {
   source: string;
+  /** A magia (ou a escola dela, se `of: 'school'`) está escolhida. */
   chosen: boolean;
+  of: 'spell' | 'school';
   used: number;
   max: number;
 }
@@ -125,14 +127,20 @@ export function resolveSpellCast(
     if (!spellMatchesFilter(spell, choice.eligible, sheet)) return;
     profile.spellChoices.push({
       source: choice.source,
-      chosen: choice.chosen.includes(spell.nome),
+      chosen: choice.chosen.includes(choiceValueOf(spell, choice.of)),
+      of: choice.of,
       used: choice.chosen.length,
       max: choice.max,
     });
   });
 
   const matching = collected.filter(({ modifier, choice }) =>
-    spellMatchesFilter(spell, modifier.filter, sheet, choice?.chosen)
+    spellMatchesFilter(
+      spell,
+      modifier.filter,
+      sheet,
+      choice && { values: choice.chosen, of: choice.of }
+    )
   );
   profile.esotericOptions = Array.from(
     new Set(matching.filter((m) => m.esoteric).map((m) => m.source))

@@ -18,8 +18,9 @@ import {
 export interface ResolvedSpellChoice {
   source: string;
   max: number;
-  /** Magias marcadas pelo jogador (cortadas em `max`). */
+  /** Magias (ou escolas) marcadas pelo jogador, cortadas em `max`. */
   chosen: string[];
+  of: 'spell' | 'school';
   eligible?: SpellModifierFilter;
 }
 
@@ -206,6 +207,7 @@ export function collectSheetSpellModifiers(
         max,
         chosen: (sheet.spellModifierChoices?.[name] ?? []).slice(0, max),
         eligible: spellChoice.eligible,
+        of: spellChoice.of ?? 'spell',
       };
     }
     modifiers.forEach((modifier) =>

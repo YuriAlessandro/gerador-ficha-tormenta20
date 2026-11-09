@@ -449,7 +449,7 @@ describe('fase C: escolher magias (spellChoice)', () => {
     const sheet = foco(1);
     const before = resolveSpellCast(sheet, BOLA_DE_FOGO);
     expect(before.spellChoices).toEqual([
-      { source: 'Foco em Magia', chosen: false, used: 0, max: 1 },
+      { source: 'Foco em Magia', chosen: false, of: 'spell', used: 0, max: 1 },
     ]);
     expect(before.pmReduction).toBe(0);
 
@@ -473,6 +473,7 @@ describe('fase C: escolher magias (spellChoice)', () => {
     expect(resolveSpellCast(sheet, CURAR_FERIMENTOS).spellChoices[0]).toEqual({
       source: 'Foco em Magia',
       chosen: false,
+      of: 'spell',
       used: 1,
       max: 2,
     });
@@ -507,5 +508,27 @@ describe('fase C: escolher magias (spellChoice)', () => {
     expect(resolveSpellCast(sheet, BOLA_DE_FOGO).spellChoices[0].max).toBe(3);
     sheet.atributos.Carisma = { name: 'Carisma', value: -1 } as never;
     expect(resolveSpellCast(sheet, BOLA_DE_FOGO).spellChoices[0].max).toBe(1);
+  });
+});
+
+describe('escolha de escola em item (Tomo hermético)', () => {
+  it('marcar a partir de uma magia escolhe a escola dela', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.bag.equipments.Esotérico = [
+      { id: 'tomo', nome: 'Tomo hermético', group: 'Esotérico' } as Equipment,
+    ];
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).dcBonus).toBe(0);
+    sheet.spellModifierChoices = toggleSpellModifierChoice(
+      sheet,
+      'Tomo hermético',
+      BOLA_DE_FOGO
+    );
+    expect(sheet.spellModifierChoices).toEqual({ 'Tomo hermético': ['Evoc'] });
+    // Outra magia de evocação também ganha; outra escola, não.
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).dcBonus).toBe(2);
+    expect(resolveSpellCast(sheet, spellsCircle1.sono).dcBonus).toBe(0);
+    expect(
+      resolveSpellCast(sheet, spellsCircle1.sono).spellChoices[0]
+    ).toMatchObject({ chosen: false, used: 1, max: 1 });
   });
 });

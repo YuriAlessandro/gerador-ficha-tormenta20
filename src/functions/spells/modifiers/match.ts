@@ -44,14 +44,25 @@ export function getSpellCircle(spell: Spell): number {
  * A magia passa no filtro? Campos combinam em E; listas são OU. `chosen` são
  * as magias que o jogador marcou para a fonte do modificador (`filter.chosen`).
  */
+/** O valor que uma escolha registra para a magia: o nome ou a escola. */
+export const choiceValueOf = (
+  spell: Spell,
+  of: 'spell' | 'school' = 'spell'
+): string => (of === 'school' ? spell.school : spell.nome);
+
 export function spellMatchesFilter(
   spell: Spell,
   filter: SpellModifierFilter | undefined,
   sheet?: CharacterSheet,
-  chosen?: string[]
+  chosen?: { values: string[]; of: 'spell' | 'school' }
 ): boolean {
   if (!filter) return true;
-  if (filter.chosen && !chosen?.includes(spell.nome)) return false;
+  if (
+    filter.chosen &&
+    !chosen?.values.includes(choiceValueOf(spell, chosen.of))
+  ) {
+    return false;
+  }
   if (filter.circles && !filter.circles.includes(getSpellCircle(spell))) {
     return false;
   }

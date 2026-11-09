@@ -1,5 +1,6 @@
 import type CharacterSheet from '../../../interfaces/CharacterSheet';
 import type { Spell } from '../../../interfaces/Spells';
+import { choiceValueOf } from './match';
 import { resolveSpellCast } from './resolve';
 
 /**
@@ -16,11 +17,12 @@ export function toggleSpellModifierChoice(
     (s) => s.source === source
   );
   if (!slot) return undefined;
+  const value = choiceValueOf(spell, slot.of);
   const current = sheet.spellModifierChoices?.[source] ?? [];
   if (slot.chosen) {
     return {
       ...sheet.spellModifierChoices,
-      [source]: current.filter((name) => name !== spell.nome),
+      [source]: current.filter((name) => name !== value),
     };
   }
   if (slot.used >= slot.max) return undefined;
@@ -28,6 +30,6 @@ export function toggleSpellModifierChoice(
   // ao marcar uma nova, para a lista não crescer fantasma.
   return {
     ...sheet.spellModifierChoices,
-    [source]: [...current.slice(0, slot.max - 1), spell.nome],
+    [source]: [...current.slice(0, slot.max - 1), value],
   };
 }
