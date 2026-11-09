@@ -29,6 +29,14 @@ import Equipment, {
 import Skill from '../../../../interfaces/Skills';
 
 describe('isWieldable', () => {
+  it('esotérico é empunhável (precisa estar na mão para ser usado)', () => {
+    const varinha = {
+      nome: 'Varinha arcana',
+      group: 'Esotérico',
+    } as unknown as Equipment;
+    expect(isWieldable(varinha)).toBe(true);
+  });
+
   test('weapons are wieldable', () => {
     const sword: Equipment = { id: 'a', nome: 'Espada', group: 'Arma' };
     expect(isWieldable(sword)).toBe(true);

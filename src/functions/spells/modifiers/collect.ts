@@ -4,6 +4,7 @@ import type {
   HasSpellModifiers,
   SpellModifier,
 } from '../../../interfaces/SpellModifiers';
+import { isItemWielded } from '../../../components/SheetResult/BackpackModal/wielding';
 import { getCatalogSpellModifiers, SpellModifierSourceKind } from './catalog';
 
 /** Um modificador e a fonte que o concede (para o rótulo na UI). */
@@ -28,12 +29,21 @@ function resolveEntry(
 }
 
 /**
- * Esotérico em uso. Hoje conta por estar na mochila, como os `sheetBonuses`
- * de esotéricos em `recalculateSheet`. Ponto único para a regra "precisa
- * empunhá-lo" (JdA), se a ficha passar a exigir.
+ * O item está em uso? "Para usar um esotérico, você precisa empunhá-lo" (JdA):
+ * esotérico só conta empunhado. Ficha que nunca marcou nada nas mãos segue a
+ * regra legada da mochila ("tudo está equipado"), senão toda ficha antiga
+ * perderia o efeito de uma vez. Demais itens contam por estar na mochila.
  */
-function isItemInUse(_sheet: CharacterSheet, _item: Equipment): boolean {
-  return true;
+function isItemInUse(sheet: CharacterSheet, item: Equipment): boolean {
+  if (item.group !== 'Esotérico') return true;
+  const hands = [
+    sheet.mainHandItemId,
+    sheet.offHandItemId,
+    sheet.extraHand1ItemId,
+    sheet.extraHand2ItemId,
+  ];
+  if (hands.every((id) => id === undefined)) return true;
+  return isItemWielded(item.id, sheet);
 }
 
 /** Todos os modificadores de magia ativos na ficha, deduplicados por fonte. */

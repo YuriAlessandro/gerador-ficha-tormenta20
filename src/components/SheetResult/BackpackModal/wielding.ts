@@ -83,6 +83,7 @@ export function isTwoHanded(item: Equipment): boolean {
  *  - Arma (weapons)
  *  - Escudo (shields)
  *  - Alquimía (alchemical items — most are thrown/applied with a hand)
+ *  - Esotérico ("para usar um esotérico, você precisa empunhá-lo", JdA)
  * Plus any item explicitly flagged via `canBeUsedAsWeapon` (e.g. Tocha).
  *
  * `canBeWielded` é um override de três estados: `true` força empunhável
@@ -98,7 +99,8 @@ export function isWieldable(item: Equipment): boolean {
   return (
     item.group === 'Arma' ||
     item.group === 'Escudo' ||
-    item.group === 'Alquimía'
+    item.group === 'Alquimía' ||
+    item.group === 'Esotérico'
   );
 }
 

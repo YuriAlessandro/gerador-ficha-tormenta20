@@ -215,3 +215,35 @@ describe('efeito ativo da magia', () => {
     ).toBe(option);
   });
 });
+
+describe('esotérico precisa estar empunhado (JdA)', () => {
+  const medalhao = {
+    id: 'medalhao',
+    nome: 'Medalhão afiado',
+    group: 'Esotérico',
+  } as Equipment;
+  const hasThreatMargin = (sheet: CharacterSheet): boolean =>
+    resolveSpellCast(sheet, spellsCircle1.bencao).effectThreatMargin.length > 0;
+  const sheetWithMedalhao = (): CharacterSheet => {
+    const sheet = createMockCharacterSheet();
+    sheet.bag.equipments.Esotérico = [medalhao];
+    return sheet;
+  };
+
+  it('ficha legada (nada marcado nas mãos): vale estando na mochila', () => {
+    expect(hasThreatMargin(sheetWithMedalhao())).toBe(true);
+  });
+
+  it('com outra coisa nas mãos, o esotérico guardado não vale', () => {
+    const sheet = sheetWithMedalhao();
+    sheet.mainHandItemId = 'espada';
+    expect(hasThreatMargin(sheet)).toBe(false);
+  });
+
+  it('empunhado, vale', () => {
+    const sheet = sheetWithMedalhao();
+    sheet.mainHandItemId = 'espada';
+    sheet.offHandItemId = 'medalhao';
+    expect(hasThreatMargin(sheet)).toBe(true);
+  });
+});
