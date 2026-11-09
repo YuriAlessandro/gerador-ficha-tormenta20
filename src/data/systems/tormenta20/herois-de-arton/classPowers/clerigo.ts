@@ -144,6 +144,20 @@ const CLERIGO_POWERS: ClassPower[] = [
   {
     name: 'Punição Divina',
     text: 'Uma vez por rodada, quando lança uma magia divina com tempo de execução de ação de movimento em si mesmo, você pode gastar +2 PM fazer um ataque como ação livre.',
+    spellModifiers: [
+      {
+        filter: {
+          tradition: 'divine',
+          executions: ['Movimento'],
+        },
+        effect: {
+          type: 'CastOption',
+          id: 'punicao',
+          label: 'em si mesmo: ataque como ação livre',
+          addPm: 2,
+        },
+      },
+    ],
     requirements: [[{ type: RequirementType.PODER, name: 'Prece de Combate' }]],
   },
   {

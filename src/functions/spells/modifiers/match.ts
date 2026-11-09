@@ -66,6 +66,13 @@ export function spellMatchesFilter(
   if (filter.circles && !filter.circles.includes(getSpellCircle(spell))) {
     return false;
   }
+  if (filter.executions && !filter.executions.includes(spell.execucao)) {
+    return false;
+  }
+  if (filter.channelEnergy) {
+    const energy = sheet?.devoto?.divindade?.energy;
+    if (energy !== filter.channelEnergy && energy !== 'qualquer') return false;
+  }
   if (filter.casterClass && !sheetHasCasterClass(sheet, filter.casterClass)) {
     return false;
   }
@@ -84,5 +91,6 @@ export function spellMatchesFilter(
   }
   if (filter.healing && !hasHealingRoll(spell)) return false;
   if (filter.damaging && !hasDamageRoll(spell)) return false;
+  if (filter.resisted && !spell.resistencia) return false;
   return true;
 }

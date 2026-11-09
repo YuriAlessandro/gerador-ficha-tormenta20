@@ -520,6 +520,28 @@ export function applyRollBonus(
   };
 }
 
+/**
+ * Maximiza a rolagem: cada dado no valor máximo (Espírito dos Solstícios —
+ * "uma magia Curar Ferimentos aprimorada para curar 5d8+5 PV irá curar
+ * automaticamente 45 PV").
+ */
+export function maximizeRoll(roll: AugmentedRoll): AugmentedRoll {
+  const parsed = parseDamage(roll.dice);
+  if (!parsed || parsed.diceGroups.length === 0) return roll;
+  const total = parsed.diceGroups.reduce(
+    (sum, group) => sum + group.count * group.sides,
+    parsed.modifier
+  );
+  return {
+    ...roll,
+    dice: String(total),
+    isAugmented: true,
+    addedSummary: roll.addedSummary
+      ? `${roll.addedSummary} (maximizado)`
+      : 'maximizado',
+  };
+}
+
 // Reexport para testes que queiram varrer todos os tokens de dado num texto.
 export function extractAllDiceTokens(text: string): string[] {
   return [...text.matchAll(DICE_TOKEN_GLOBAL)].map((m) => m[1]);

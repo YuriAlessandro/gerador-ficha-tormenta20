@@ -13,6 +13,16 @@ const magicPowers: Record<string, GeneralPower> = {
     name: 'Barreira Mística',
     description:
       'Você usa a energia residual da conjuração de feitiços para materializar escudos capazes de protegê-lo de ataques físicos. Quando lança uma magia, você pode gastar 1 PM. Se fizer isso, você recebe +4 na Defesa até o início do seu próximo turno.',
+    spellModifiers: [
+      {
+        effect: {
+          type: 'CastOption',
+          id: 'barreira',
+          label: '+4 na Defesa até o início do seu próximo turno',
+          addPm: 1,
+        },
+      },
+    ],
     type: GeneralPowerType.MAGIA,
     requirements: [],
   },

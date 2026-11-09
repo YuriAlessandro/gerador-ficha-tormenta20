@@ -384,6 +384,16 @@ const DEUSES_ARTON_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
       name: 'Magia Caótica',
       description:
         'Quando lança uma magia, você pode gastar +2 PM. Se fizer isso, a CD para resistir a essa magia é calculada com 1d20 + seus modificadores, em vez de 10 + seus modificadores.',
+      spellModifiers: [
+        {
+          effect: {
+            type: 'CastOption',
+            id: 'caotica',
+            label: 'CD = 1d20 + seus modificadores',
+            addPm: 2,
+          },
+        },
+      ],
       type: GeneralPowerType.CONCEDIDOS,
       requirements: [[{ type: RequirementType.DEVOTO, name: 'Nimb' }]],
     },

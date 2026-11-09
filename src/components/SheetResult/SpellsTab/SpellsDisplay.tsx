@@ -650,8 +650,8 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
           characterName={characterName}
           castCheck={castingCheck}
           castProfile={castProfileByName.get(castingSpell.nome)}
-          resolveProfile={(esoteric) =>
-            resolveSpellCast(sheet, castingSpell, { esoteric })
+          resolveProfile={(options) =>
+            resolveSpellCast(sheet, castingSpell, options)
           }
           baseSpellDC={resistance}
         />

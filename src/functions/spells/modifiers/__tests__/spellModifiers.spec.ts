@@ -532,3 +532,93 @@ describe('escolha de escola em item (Tomo hermético)', () => {
     ).toMatchObject({ chosen: false, used: 1, max: 1 });
   });
 });
+
+describe('fase D: opções de lançamento (CastOption)', () => {
+  it('Magia Pungente: aparece desmarcada; marcada soma +1 PM e +2 na CD', () => {
+    const sheet = withClassPowers(['Magia Pungente']);
+    const idle = resolveSpellCast(sheet, BOLA_DE_FOGO);
+    expect(idle.castOptions).toEqual([
+      expect.objectContaining({
+        key: 'Magia Pungente:pungente',
+        addPm: 1,
+        active: false,
+      }),
+    ]);
+    expect(idle.dcBonus).toBe(0);
+    const on = resolveSpellCast(sheet, BOLA_DE_FOGO, {
+      castOptions: ['Magia Pungente:pungente'],
+    });
+    expect(on.castOptionPm).toBe(1);
+    expect(on.dcBonus).toBe(2);
+  });
+
+  it('Urro Divino: soma a Constituição (mínimo +1) no dano', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = [
+      { name: 'Urro Divino', description: '', requirements: [] },
+    ] as unknown as CharacterSheet['generalPowers'];
+    sheet.atributos.Constituição = { name: 'Constituição', value: 3 } as never;
+    const on = { castOptions: ['Urro Divino:urro'] };
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO, on).damage.flat).toBe(3);
+    sheet.atributos.Constituição = { name: 'Constituição', value: -1 } as never;
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO, on).damage.flat).toBe(1);
+    // Magia sem dano não oferece a opção.
+    expect(resolveSpellCast(sheet, spellsCircle1.sono).castOptions).toEqual([]);
+  });
+
+  it('Espírito dos Solstícios: Curar Ferimentos 5d8+5 maximizado cura 45', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.classPowers = [{ name: 'Espírito dos Solstícios', text: '' }];
+    const aprimoramento = CURAR_FERIMENTOS.aprimoramentos?.find((a) =>
+      a.text.startsWith('aumenta a cura')
+    );
+    if (!aprimoramento) throw new Error('aprimoramento não encontrado');
+    const profile = resolveSpellCast(sheet, CURAR_FERIMENTOS, {
+      castOptions: ['Espírito dos Solstícios:solsticios'],
+    });
+    const rolls = applySpellRollModifiers(
+      augmentSpellRolls(CURAR_FERIMENTOS.rolls ?? [], [
+        { aprimoramento, count: 3 },
+      ]),
+      profile
+    );
+    expect(rolls.find((r) => r.label === 'Recuperar vida')?.dice).toBe('45');
+    expect(profile.castOptionPm).toBe(4);
+  });
+
+  it('Magia Sagrada/Profana segue a energia canalizada', () => {
+    const sheet = withClassPowers(['Magia Sagrada/Profana']);
+    sheet.devoto = {
+      divindade: { name: 'Teste', energy: 'positiva' },
+      poderes: [],
+    } as unknown as CharacterSheet['devoto'];
+    const DIVINE_DAMAGE: Spell = {
+      ...BOLA_DE_FOGO,
+      nome: 'Teste Divino',
+      rolls: [{ id: 'd', label: 'Dano', dice: '2d6', damageType: 'fogo' }],
+    };
+    const profile = resolveSpellCast(sheet, CURAR_FERIMENTOS);
+    // Curar Ferimentos é divina e tem rolagem de dano (truque).
+    expect(profile.castOptions.map((o) => o.key)).toEqual([
+      'Magia Sagrada/Profana:sagrada',
+    ]);
+    const on = resolveSpellCast(sheet, CURAR_FERIMENTOS, {
+      castOptions: ['Magia Sagrada/Profana:sagrada'],
+    });
+    expect(on.damageTypeOverride).toBe('luz');
+    // Magia fora do catálogo não tem tradição conhecida: não é "divina".
+    expect(resolveSpellCast(sheet, DIVINE_DAMAGE).castOptions).toEqual([]);
+  });
+
+  it('Magia Acelerada só em magia de movimento, padrão ou completa', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.generalPowers = [
+      { name: 'Magia Acelerada', description: '', requirements: [] },
+    ] as unknown as CharacterSheet['generalPowers'];
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).castOptions).toHaveLength(1);
+    expect(
+      resolveSpellCast(sheet, { ...BOLA_DE_FOGO, execucao: 'Reação' })
+        .castOptions
+    ).toHaveLength(0);
+  });
+});

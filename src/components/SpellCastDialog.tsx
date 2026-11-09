@@ -38,11 +38,13 @@ import {
   isStackableAprimoramento,
   isTruqueAprimoramento,
   AugmentedRoll,
+  maximizeRoll,
 } from '@/functions/spellRollAugmentation';
 import {
   applySpellRollModifiers,
   computeSpellPmCost,
   resolveSpellCast,
+  ResolveSpellCastOptions,
   SpellCastProfile,
 } from '@/functions/spells/modifiers';
 import { Spell, Aprimoramento, CastAugment } from '../interfaces/Spells';
@@ -149,7 +151,7 @@ interface SpellCastDialogProps {
    * Perfil para outro esotérico ("uma magia só recebe os benefícios de um
    * esotérico por vez"): o diálogo oferece a escolha quando há mais de um.
    */
-  resolveProfile?: (esoteric: string) => SpellCastProfile;
+  resolveProfile?: (options: ResolveSpellCastOptions) => SpellCastProfile;
   /** CD base das magias da ficha; o diálogo soma o bônus do perfil. */
   baseSpellDC?: number;
 }
@@ -229,10 +231,22 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   const displayName = getSpellDisplayName(spell);
 
   const [chosenEsoteric, setChosenEsoteric] = useState<string | null>(null);
+  // Opções de lançamento marcadas (Magia Pungente, Urro Divino…).
+  const [activeCastOptions, setActiveCastOptions] = useState<string[]>([]);
   const profile = useMemo(() => {
-    if (chosenEsoteric && resolveProfile) return resolveProfile(chosenEsoteric);
+    if (resolveProfile && (chosenEsoteric || activeCastOptions.length > 0)) {
+      return resolveProfile({
+        esoteric: chosenEsoteric ?? undefined,
+        castOptions: activeCastOptions,
+      });
+    }
     return castProfile ?? resolveSpellCast(undefined, spell);
-  }, [castProfile, resolveProfile, chosenEsoteric, spell]);
+  }, [castProfile, resolveProfile, chosenEsoteric, activeCastOptions, spell]);
+  const toggleCastOption = useCallback((key: string) => {
+    setActiveCastOptions((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  }, []);
   // CD própria só quando poderes/itens a alteram.
   const spellDC =
     baseSpellDC !== undefined && profile.dcBonus !== 0
@@ -299,11 +313,16 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
             aprimoramentoCost + aprimoramentoPmDelta - profile.aprimoramentoPm
           )
         : 0;
-    // A redução vale sobre o custo TOTAL, com piso de 1 PM (JdA).
-    return computeSpellPmCost(basePM + adjustedAprimoramentos, costProfile);
+    // A redução vale sobre o custo TOTAL, com piso de 1 PM (JdA) — inclusive
+    // o PM das opções de lançamento.
+    return computeSpellPmCost(
+      basePM + adjustedAprimoramentos + profile.castOptionPm,
+      costProfile
+    );
   }, [
     basePM,
     costProfile,
+    profile.castOptionPm,
     aprimoramentoCost,
     aprimoramentoPmDelta,
     hasTruqueSelected,
@@ -314,7 +333,10 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   // (o Comutador barateia o PM, não a dificuldade de ativar).
   const checkPMCost = hasTruqueSelected
     ? 0
-    : computeSpellPmCost(basePM + aprimoramentoCost, costProfile);
+    : computeSpellPmCost(
+        basePM + aprimoramentoCost + profile.castOptionPm,
+        costProfile
+      );
 
   const aprimoramentoOverLimit =
     castCheck?.maxAprimoramentoPm !== undefined &&
@@ -347,11 +369,10 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
         augmentSpellRolls(localRolls, activeSelections),
         profile
       ),
-      ...profile.extraRolls.map((roll) => ({
-        ...roll,
-        baseDice: roll.dice,
-        isAugmented: false,
-      })),
+      ...profile.extraRolls.map((roll) => {
+        const extra = { ...roll, baseDice: roll.dice, isAugmented: false };
+        return profile.maximize ? maximizeRoll(extra) : extra;
+      }),
     ],
     [localRolls, activeSelections, profile]
   );
@@ -400,6 +421,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
       );
       setActiveCheckToggles(new Set());
       setChosenEsoteric(null);
+      setActiveCastOptions([]);
     }
   }, [open, spell.rolls, extraRollKey]);
 
@@ -574,13 +596,17 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
       ...buildSpellAbilityMeta(spell, pmSpent),
       name: displayName,
     };
+    const optionsNote = profile.castOptions
+      .filter((option) => option.active)
+      .map((option) => `${option.label} (${option.source})`)
+      .join(', ');
     const extraNote = (() => {
       if (checkFailed)
         return (
           castCheck?.failureNote ??
           'Usurpar falhou: a magia é perdida, mas os PM são gastos.'
         );
-      return adjustment.note;
+      return [adjustment.note, optionsNote].filter(Boolean).join(' · ');
     })();
     const abilityWithNote = extraNote
       ? {
@@ -979,6 +1005,53 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                       do limite de {castCheck?.maxAprimoramentoPm} PM.
                     </Alert>
                   )}
+                </Box>
+              </>
+            )}
+
+            {profile.castOptions.length > 0 && (
+              <>
+                <Divider />
+                <Box>
+                  <Typography
+                    variant='subtitle1'
+                    sx={{
+                      fontWeight: 'bold',
+                      mb: 1,
+                    }}
+                  >
+                    Opções de lançamento
+                  </Typography>
+                  {profile.castOptions.map((option) => (
+                    <FormControlLabel
+                      key={option.key}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        mb: 0.5,
+                      }}
+                      control={
+                        <Checkbox
+                          size='small'
+                          checked={option.active}
+                          disabled={hasTruqueSelected}
+                          onChange={() => toggleCastOption(option.key)}
+                        />
+                      }
+                      label={
+                        <Typography variant='body2' sx={{ pt: 0.75 }}>
+                          <strong>+{option.addPm} PM:</strong> {option.label}{' '}
+                          <Typography
+                            component='span'
+                            variant='caption'
+                            sx={{ color: 'text.secondary' }}
+                          >
+                            ({option.source})
+                          </Typography>
+                        </Typography>
+                      }
+                    />
+                  ))}
                 </Box>
               </>
             )}

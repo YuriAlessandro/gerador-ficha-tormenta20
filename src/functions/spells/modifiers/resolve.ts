@@ -1,11 +1,15 @@
 import type CharacterSheet from '../../../interfaces/CharacterSheet';
 import type { DiceRoll } from '../../../interfaces/DiceRoll';
 import type { Spell } from '../../../interfaces/Spells';
-import type { SpellEffectBonusKind } from '../../../interfaces/SpellModifiers';
+import type {
+  SpellEffectBonusKind,
+  SpellModifierEffect,
+} from '../../../interfaces/SpellModifiers';
 import {
   applyRollBonus,
   AugmentedRoll,
   isHealingRollLabel,
+  maximizeRoll,
 } from '../../spellRollAugmentation';
 import { getSpellBasePm } from '../engenhoca';
 import { collectSheetSpellModifiers } from './collect';
@@ -54,8 +58,25 @@ export interface SpellCastProfile {
    * elegível: se está marcada e quantas vagas a fonte já usou.
    */
   spellChoices: SpellChoiceSlot[];
+  /** Opções de lançamento disponíveis para esta magia (Magia Pungente…). */
+  castOptions: SpellCastOptionSlot[];
+  /** PM somados pelas opções marcadas. */
+  castOptionPm: number;
+  /** Rolagens maximizadas (Espírito dos Solstícios). */
+  maximize: boolean;
+  /** Novo tipo das rolagens de dano (Magia Sagrada/Profana). */
+  damageTypeOverride?: string;
   /** Linhas legíveis do que se aplica, com a fonte, para a UI. */
   notes: string[];
+}
+
+export interface SpellCastOptionSlot {
+  /** `fonte:id`, estável — é o que `ResolveSpellCastOptions.castOptions` usa. */
+  key: string;
+  source: string;
+  label: string;
+  addPm: number;
+  active: boolean;
 }
 
 export interface SpellChoiceSlot {
@@ -70,6 +91,8 @@ export interface SpellChoiceSlot {
 export interface ResolveSpellCastOptions {
   /** Esotérico escolhido no lançamento (padrão: o primeiro em uso). */
   esoteric?: string;
+  /** Chaves das opções de lançamento marcadas. */
+  castOptions?: string[];
 }
 
 const sign = (n: number): string => (n >= 0 ? `+${n}` : `${n}`);
@@ -112,6 +135,9 @@ export function resolveSpellCast(
     effectTempPV: [],
     esotericOptions: [],
     spellChoices: [],
+    castOptions: [],
+    castOptionPm: 0,
+    maximize: false,
     notes: [],
   };
 
@@ -149,76 +175,118 @@ export function resolveSpellCast(
     options.esoteric && profile.esotericOptions.includes(options.esoteric)
       ? options.esoteric
       : profile.esotericOptions[0];
+  const applyEffect = (
+    effect: SpellModifierEffect,
+    source: string,
+    // Efeitos de uma opção marcada não viram notas: a opção já aparece.
+    quiet = false
+  ): void => {
+    const note = (text: string) => {
+      if (!quiet) profile.notes.push(text);
+    };
+    switch (effect.type) {
+      case 'PmReduction':
+        if (effect.cumulative) {
+          cumulative += effect.value;
+          cumulativeSources.push(source);
+        } else if (effect.value > bestNonCumulative) {
+          bestNonCumulative = effect.value;
+          bestSource = source;
+        }
+        break;
+      case 'PmHalve':
+        profile.pmHalve = true;
+        note(`Custo pela metade (${source})`);
+        break;
+      case 'RollBonus': {
+        const total =
+          effect.rolls === 'healing' ? profile.healing : profile.damage;
+        const fromAttribute = effect.flatAttribute
+          ? Math.max(
+              effect.flatAttributeMin ?? -Infinity,
+              sheet?.atributos?.[effect.flatAttribute]?.value ?? 0
+            )
+          : 0;
+        const flat = (effect.flat ?? 0) + fromAttribute;
+        total.perDie += effect.perDie ?? 0;
+        total.flat += flat;
+        const text = describeRollBonus(
+          effect.rolls === 'healing' ? 'cura' : 'dano',
+          effect.perDie,
+          flat
+        );
+        if (text) note(`${text} (${source})`);
+        break;
+      }
+      case 'RollMaximize':
+        profile.maximize = true;
+        break;
+      case 'DamageTypeOverride':
+        profile.damageTypeOverride = effect.damageType;
+        break;
+      case 'SpellDC':
+        profile.dcBonus += effect.value;
+        note(`${sign(effect.value)} na CD (${source})`);
+        break;
+      case 'AprimoramentoPm':
+        if (effect.value > profile.aprimoramentoPm) {
+          profile.aprimoramentoPm = effect.value;
+          aprimoramentoSource = source;
+        }
+        break;
+      case 'ExtraRoll':
+        profile.extraRolls.push({
+          id: `spell-modifier:${source}:${effect.label}`,
+          label: `${effect.label} (${source})`,
+          dice: effect.dice,
+          damageType: effect.damageType,
+        });
+        break;
+      case 'EffectBonusIncrease':
+        profile.effectBonusIncrease.push({
+          kind: effect.kind,
+          value: effect.value,
+        });
+        break;
+      case 'EffectThreatMargin':
+        profile.effectThreatMargin.push({
+          kind: effect.kind,
+          value: effect.value,
+        });
+        break;
+      case 'EffectTempPV':
+        profile.effectTempPV.push({
+          kind: effect.kind,
+          multiplier: effect.multiplier,
+        });
+        break;
+      case 'CastOption': {
+        const key = `${source}:${effect.id}`;
+        if (profile.castOptions.some((o) => o.key === key)) break;
+        const active = !!options.castOptions?.includes(key);
+        profile.castOptions.push({
+          key,
+          source,
+          label: effect.label,
+          addPm: effect.addPm,
+          active,
+        });
+        if (active) {
+          profile.castOptionPm += effect.addPm;
+          (effect.effects ?? [])
+            .filter((sub) => sub.type !== 'CastOption')
+            .forEach((sub) => applyEffect(sub, source, true));
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  };
+
   matching
     .filter((m) => !m.esoteric || m.source === profile.esoteric)
-    .forEach(({ source, modifier: { effect } }) => {
-      switch (effect.type) {
-        case 'PmReduction':
-          if (effect.cumulative) {
-            cumulative += effect.value;
-            cumulativeSources.push(source);
-          } else if (effect.value > bestNonCumulative) {
-            bestNonCumulative = effect.value;
-            bestSource = source;
-          }
-          break;
-        case 'PmHalve':
-          profile.pmHalve = true;
-          profile.notes.push(`Custo pela metade (${source})`);
-          break;
-        case 'RollBonus': {
-          const total =
-            effect.rolls === 'healing' ? profile.healing : profile.damage;
-          total.perDie += effect.perDie ?? 0;
-          total.flat += effect.flat ?? 0;
-          const text = describeRollBonus(
-            effect.rolls === 'healing' ? 'cura' : 'dano',
-            effect.perDie,
-            effect.flat
-          );
-          if (text) profile.notes.push(`${text} (${source})`);
-          break;
-        }
-        case 'SpellDC':
-          profile.dcBonus += effect.value;
-          profile.notes.push(`${sign(effect.value)} na CD (${source})`);
-          break;
-        case 'AprimoramentoPm':
-          if (effect.value > profile.aprimoramentoPm) {
-            profile.aprimoramentoPm = effect.value;
-            aprimoramentoSource = source;
-          }
-          break;
-        case 'ExtraRoll':
-          profile.extraRolls.push({
-            id: `spell-modifier:${source}:${effect.label}`,
-            label: `${effect.label} (${source})`,
-            dice: effect.dice,
-            damageType: effect.damageType,
-          });
-          break;
-        case 'EffectBonusIncrease':
-          profile.effectBonusIncrease.push({
-            kind: effect.kind,
-            value: effect.value,
-          });
-          break;
-        case 'EffectThreatMargin':
-          profile.effectThreatMargin.push({
-            kind: effect.kind,
-            value: effect.value,
-          });
-          break;
-        case 'EffectTempPV':
-          profile.effectTempPV.push({
-            kind: effect.kind,
-            multiplier: effect.multiplier,
-          });
-          break;
-        default:
-          break;
-      }
-    });
+    .forEach(({ source, modifier: { effect } }) => applyEffect(effect, source));
 
   if (aprimoramentoSource) {
     profile.notes.push(
@@ -259,18 +327,31 @@ export function getSpellDisplayPmCost(
   );
 }
 
-/** Aplica os bônus de cura/dano do perfil às rolagens (já aumentadas). */
+/**
+ * Aplica o perfil às rolagens da magia (já aumentadas pelos aprimoramentos):
+ * bônus de cura/dano, troca do tipo de dano e, por último, maximização.
+ */
 export function applySpellRollModifiers(
   rolls: AugmentedRoll[],
-  profile: Pick<SpellCastProfile, 'healing' | 'damage'>
+  profile: Pick<
+    SpellCastProfile,
+    'healing' | 'damage' | 'maximize' | 'damageTypeOverride'
+  >
 ): AugmentedRoll[] {
   return rolls.map((roll) => {
+    let result = roll;
     if (isHealingRollLabel(roll.label)) {
-      return applyRollBonus(roll, profile.healing.perDie, profile.healing.flat);
+      result = applyRollBonus(
+        roll,
+        profile.healing.perDie,
+        profile.healing.flat
+      );
+    } else if (isDamageRollLabel(roll.label, roll.damageType)) {
+      result = applyRollBonus(roll, profile.damage.perDie, profile.damage.flat);
+      if (profile.damageTypeOverride) {
+        result = { ...result, damageType: profile.damageTypeOverride };
+      }
     }
-    if (isDamageRollLabel(roll.label, roll.damageType)) {
-      return applyRollBonus(roll, profile.damage.perDie, profile.damage.flat);
-    }
-    return roll;
+    return profile.maximize ? maximizeRoll(result) : result;
   });
 }

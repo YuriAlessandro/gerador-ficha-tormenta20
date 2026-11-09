@@ -304,6 +304,21 @@ const DRUIDA: ClassDescription = {
     {
       name: 'Espírito dos Solstícios',
       text: 'Você transita entre os extremos do mundo natural. Quando lança uma magia, pode gastar +4 PM para maximizar os efeitos numéricos variáveis dela. Por exemplo, uma magia Curar Ferimentos aprimorada para curar 5d8+5 PV irá curar automaticamente 45 PV, sem a necessidade de rolar dados. Uma magia sem efeitos variáveis não pode ser afetada por este poder.',
+      spellModifiers: [
+        {
+          effect: {
+            type: 'CastOption',
+            id: 'solsticios',
+            label: 'maximiza os efeitos numéricos',
+            addPm: 4,
+            effects: [
+              {
+                type: 'RollMaximize',
+              },
+            ],
+          },
+        },
+      ],
       requirements: [
         [
           { type: RequirementType.PODER, name: 'Aspecto do Inverno' },
@@ -366,6 +381,16 @@ const DRUIDA: ClassDescription = {
     {
       name: 'Liberdade da Pradaria',
       text: 'Você recebe +2 em Reflexos. Se estiver ao ar livre, sempre que lança uma magia, pode gastar 1 PM para aumentar o alcance dela em um passo (de toque para curto, de curto para médio ou de médio para longo).',
+      spellModifiers: [
+        {
+          effect: {
+            type: 'CastOption',
+            id: 'pradaria',
+            label: 'ao ar livre: alcance +1 passo',
+            addPm: 1,
+          },
+        },
+      ],
       requirements: [],
       sheetBonuses: [
         {

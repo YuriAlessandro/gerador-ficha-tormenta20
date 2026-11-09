@@ -24,6 +24,13 @@ export interface SpellModifierFilter {
   ranges?: string[];
   /** Círculos (1–5). */
   circles?: number[];
+  /** Execuções exatas ("Padrão", "Movimento", "Completa"). */
+  executions?: string[];
+  /**
+   * Energia que o devoto canaliza ("positiva"/"negativa"); divindade que
+   * canaliza "qualquer" passa nas duas.
+   */
+  channelEnergy?: 'positiva' | 'negativa';
   /**
    * Só as magias que o jogador marcou para ESTA fonte (Foco em Magia: "escolha
    * uma magia"). Ver `SpellModifierChoiceSpec`.
@@ -33,6 +40,8 @@ export interface SpellModifierFilter {
   healing?: boolean;
   /** Só magias com rolagem de dano ("magias de dano"). */
   damaging?: boolean;
+  /** Só magias que permitem teste de resistência. */
+  resisted?: boolean;
   /**
    * Só se o personagem tem esta classe (principal, variante ou multiclasse
    * conjuradora) — "magias de bardo".
@@ -57,6 +66,26 @@ export type SpellModifierEffect =
       rolls: 'healing' | 'damage';
       perDie?: number;
       flat?: number;
+      /** Soma um atributo (Urro Divino: Constituição, mínimo +1). */
+      flatAttribute?: Atributo;
+      flatAttributeMin?: number;
+    }
+  /** Maximiza as rolagens da magia (Espírito dos Solstícios). */
+  | { type: 'RollMaximize' }
+  /** Muda o tipo de dano das rolagens de dano (Magia Sagrada/Profana). */
+  | { type: 'DamageTypeOverride'; damageType: string }
+  /**
+   * Opção que o jogador liga NA HORA de lançar, pagando `addPm` (Magia
+   * Pungente, Magia Acelerada, Urro Divino…). Os `effects` só valem com a
+   * opção marcada; sem `effects`, a opção só cobra o PM e entra no registro
+   * do lançamento (o efeito fica no texto: execução, alcance…).
+   */
+  | {
+      type: 'CastOption';
+      id: string;
+      label: string;
+      addPm: number;
+      effects?: SpellModifierEffect[];
     }
   /** Bônus na CD para resistir à magia. */
   | { type: 'SpellDC'; value: number }

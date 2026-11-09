@@ -56,6 +56,19 @@ const magicPowers: Record<string, GeneralPower> = {
     name: 'Magia Acelerada',
     description:
       'Muda a execução da magia para ação livre. Você só pode aplicar este aprimoramento em magias com execução de movimento, padrão ou completa e só pode lançar uma magia como ação livre por rodada. Custo: +4 PM.',
+    spellModifiers: [
+      {
+        filter: {
+          executions: ['Movimento', 'Padrão', 'Completa'],
+        },
+        effect: {
+          type: 'CastOption',
+          id: 'acelerada',
+          label: 'execução vira ação livre (1 por rodada)',
+          addPm: 4,
+        },
+      },
+    ],
     type: GeneralPowerType.DESTINO,
     requirements: [
       [{ type: RequirementType.TEXT, text: 'Lançar magias de 2º círculo' }],
@@ -65,6 +78,16 @@ const magicPowers: Record<string, GeneralPower> = {
     name: 'Magia Ampliada',
     description:
       'Aumenta o alcance da magia em um passo (de curto para médio, de médio para longo) ou dobra a área de efeito da magia. Por exemplo, uma Bola de Fogo ampliada tem seu alcance aumentado para longo ou sua área aumentada para 12m de raio. Custo: +2 PM.',
+    spellModifiers: [
+      {
+        effect: {
+          type: 'CastOption',
+          id: 'ampliada',
+          label: 'alcance +1 passo ou área dobrada',
+          addPm: 2,
+        },
+      },
+    ],
     type: GeneralPowerType.MAGIA,
     requirements: [[{ type: RequirementType.HABILIDADE, name: 'Magias' }]],
   },
@@ -72,6 +95,16 @@ const magicPowers: Record<string, GeneralPower> = {
     name: 'Magia Discreta',
     description:
       'Você lança a magia sem gesticular e falar, usando apenas concentração. Isso permite lançar magias com as mãos presas, amordaçado etc. Também permite lançar magias arcanas usando armadura sem teste de Misticismo. Outros personagens só percebem que você lançou uma magia se passarem num teste de Misticismo (CD 20). Custo: +2 PM.',
+    spellModifiers: [
+      {
+        effect: {
+          type: 'CastOption',
+          id: 'discreta',
+          label: 'sem gestos nem palavras',
+          addPm: 2,
+        },
+      },
+    ],
     type: GeneralPowerType.MAGIA,
     requirements: [[{ type: RequirementType.HABILIDADE, name: 'Magias' }]],
   },

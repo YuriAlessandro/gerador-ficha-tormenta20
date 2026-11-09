@@ -559,6 +559,22 @@ const ARCANISTA: ClassDescription = {
     {
       name: 'Magia Pungente',
       text: 'Quando lança uma magia, você pode pagar 1 PM para aumentar em +2 a CD para resistir a ela.',
+      spellModifiers: [
+        {
+          effect: {
+            type: 'CastOption',
+            id: 'pungente',
+            label: '+2 na CD',
+            addPm: 1,
+            effects: [
+              {
+                type: 'SpellDC',
+                value: 2,
+              },
+            ],
+          },
+        },
+      ],
       requirements: [],
     },
     {
