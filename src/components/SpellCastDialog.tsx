@@ -963,7 +963,10 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                         key={name}
                         label={name}
                         size='small'
-                        color='primary'
+                        // Secundária: o tema pinta todo chip primário de
+                        // fundo sólido, e escolhido/não escolhido ficavam
+                        // iguais.
+                        color='secondary'
                         variant={
                           profile.esoterics.includes(name)
                             ? 'filled'
