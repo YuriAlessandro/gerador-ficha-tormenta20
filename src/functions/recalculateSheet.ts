@@ -58,6 +58,7 @@ import {
   getClassLevel,
   getMulticlassAvailableAbilities,
   findClassDescription,
+  getHighestSpellCircle,
 } from './multiclass';
 import {
   LEARNED_CLASS_ABILITY_LEVEL,
@@ -295,7 +296,7 @@ const resolveClassLevel = (
  * conjurador). Considera a classe principal e multiclasse.
  */
 const maxSpellCircleOf = (sheet: CharacterSheet): number =>
-  sheet.classe?.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) ?? 0;
+  getHighestSpellCircle(sheet);
 
 export const calculateBonusValue = (
   sheet: CharacterSheet,

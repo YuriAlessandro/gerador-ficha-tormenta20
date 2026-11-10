@@ -193,6 +193,7 @@ import {
   getClassSetupAbilities,
   getBaseAbilitiesForLevelUp,
   resolveClassSetup,
+  getHighestSpellCircle,
 } from './multiclass';
 import {
   LEARNED_CLASS_ABILITY_LEVEL,
@@ -1647,8 +1648,7 @@ function applyOptionGrantedSpells(
     available = action.availableSpells;
     customAttribute = action.customAttribute;
   } else {
-    const highestCircle =
-      sheet.classe.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) || 1;
+    const highestCircle = getHighestSpellCircle(sheet, action.allowedType) || 1;
     for (let circle = 1; circle <= highestCircle; circle += 1) {
       if (action.allowedType === 'Arcane') {
         available.push(...getArcaneSpellsOfCircle(circle));
@@ -2541,8 +2541,7 @@ export const applyPower = (
         });
       } else if (sheetAction.action.type === 'learnAnySpellFromHighestCircle') {
         const highestCircle = Math.min(
-          sheet.classe.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) ||
-            1,
+          getHighestSpellCircle(sheet, sheetAction.action.allowedType) || 1,
           sheetAction.action.maxCircle ?? Infinity
         );
 
@@ -5547,9 +5546,7 @@ const calculateBonusValue = (
     if (bonus.base.kind === 'fixed') v = bonus.base.value;
     else if (bonus.base.kind === 'level') v = sheet.nivel;
     else if (bonus.base.kind === 'spellCircle')
-      v =
-        sheet.classe?.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) ??
-        0;
+      v = getHighestSpellCircle(sheet);
     else if (bonus.base.kind === 'attribute')
       v = sheet.atributos[bonus.base.attribute]?.value ?? 0;
     if (bonus.capByLevel) v = Math.min(v, sheet.nivel);
