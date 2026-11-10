@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            07/11/2026 (v4.38).
+            10/11/2026 (v4.38).
           </p>
 
           <p>
@@ -129,6 +129,14 @@ const Changelog: React.FC = () => {
                   das cópias também desfaz só o aumento dela. Fichas que já
                   ficaram sem o bônus: remova a cópia a mais e adicione de novo,
                   escolhendo o atributo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o poder{' '}
+                  <strong>Conhecimento Mágico</strong> em personagens
+                  multiclasse agora oferece magias de todos os círculos que a
+                  classe conjuradora alcança. Antes, um Lutador 6 / Arcanista 5
+                  só via magias de 1º círculo, e um Arcanista com níveis em
+                  outra classe via círculos acima do que podia lançar.
                 </li>
               </ul>
 
