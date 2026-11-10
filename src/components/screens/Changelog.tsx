@@ -89,6 +89,20 @@ const Changelog: React.FC = () => {
                   mover só parte de uma pilha, como 3 de 10 rações.
                 </li>
                 <li>
+                  <strong>Novo:</strong> a <strong>Tela do Jogador</strong>{' '}
+                  agora tem <strong>playlists</strong>. Na nova aba Trilhas,
+                  monte listas de músicas colando um ou vários links do YouTube
+                  de uma vez (o nome de cada faixa é preenchido sozinho) e
+                  arraste para ordenar. A playlist passa sozinha de uma música
+                  para a outra e toca <strong>em sequência</strong>, em ordem{' '}
+                  <strong>aleatória</strong> ou repetindo{' '}
+                  <strong>só a faixa atual</strong>. No Ao vivo, a trilha ganhou
+                  um mini-player com faixa anterior, próxima e a lista de
+                  faixas, e cada playlist vira um card para tocar com um clique.
+                  Uma cena pode tocar uma faixa única ou uma playlist inteira, e
+                  você é avisado quando um vídeo não pode ser tocado na tela.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> a exportação para o{' '}
                   <strong>Foundry VTT</strong> (sistema Tormenta20 1.6.6,
                   importável a partir da 1.6.2) agora traz atributos, perícias,
