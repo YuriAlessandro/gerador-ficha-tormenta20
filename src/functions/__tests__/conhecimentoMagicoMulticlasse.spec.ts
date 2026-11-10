@@ -99,6 +99,21 @@ describe('Conhecimento Mágico em multiclasse', () => {
     );
   });
 
+  it('ficha recarregada (serializada) mantém o 2º círculo', () => {
+    const loaded = JSON.parse(
+      JSON.stringify(makeLutadorFeiticeiro(5))
+    ) as CharacterSheet;
+
+    expect(getHighestSpellCircle(loaded, 'Arcane')).toBe(2);
+
+    // Ficha anterior a `multiclassSetups`: subtipo inferido do spellPath gravado
+    delete loaded.multiclassSetups;
+    expect(getHighestSpellCircle(loaded, 'Arcane')).toBe(2);
+    expect(circlesOf(offeredSpells(loaded))).toEqual(
+      new Set([spellsCircles.c1, spellsCircles.c2])
+    );
+  });
+
   it('aprende magias de 2º círculo no nível em que chega a Arcanista 5', () => {
     const picked = dataRegistry
       .getArcaneSpellsByCircleAndSupplements(2, [])
