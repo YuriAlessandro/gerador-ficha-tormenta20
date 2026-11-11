@@ -2,6 +2,7 @@ import { ClassPower } from '../../../../../interfaces/Class';
 import { RequirementType } from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
 import { Atributo } from '../../atributos';
+import { MAGO_VERMELHO_SHEET_BONUSES } from '../../powers/classPowerSheetBonuses';
 
 /**
  * Poderes de Bardo do suplemento Heróis de Arton
@@ -86,6 +87,7 @@ const BARDO_POWERS: ClassPower[] = [
     name: 'Mago Vermelho',
     text: 'Se estiver empunhando uma arma leve ou ágil, você soma o círculo máximo de magias que pode lançar nos testes de ataque e nas rolagens de dano com ela. Além disso, a mão da arma é considerada livre para lançar magias.',
     requirements: [[{ type: RequirementType.PERICIA, name: Skill.MISTICISMO }]],
+    sheetBonuses: MAGO_VERMELHO_SHEET_BONUSES,
   },
   {
     name: 'Música: Marcha Vitoriosa',
