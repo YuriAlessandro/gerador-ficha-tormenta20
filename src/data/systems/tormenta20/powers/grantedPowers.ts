@@ -981,6 +981,27 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     name: 'Urro Divino',
     description:
       'Quando faz um ataque ou lança uma magia, você pode pagar 1 PM para somar sua Constituição (mínimo +1) à rolagem de dano desse ataque ou magia.',
+    spellModifiers: [
+      {
+        filter: {
+          damaging: true,
+        },
+        effect: {
+          type: 'CastOption',
+          id: 'urro',
+          label: '+Constituição no dano',
+          addPm: 1,
+          effects: [
+            {
+              type: 'RollBonus',
+              rolls: 'damage',
+              flatAttribute: Atributo.CONSTITUICAO,
+              flatAttributeMin: 1,
+            },
+          ],
+        },
+      },
+    ],
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Megalokk' }]],
   },

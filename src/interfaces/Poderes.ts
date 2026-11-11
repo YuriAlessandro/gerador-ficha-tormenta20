@@ -1,3 +1,4 @@
+import type { SpellModifier, SpellModifierChoiceSpec } from './SpellModifiers';
 import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 // eslint-disable-next-line
@@ -41,6 +42,12 @@ export enum RequirementType {
   CHASSIS = 'CHASSIS',
   HERANCA = 'HERANCA',
   TIER_LIMIT = 'TIER_LIMIT',
+  /**
+   * "Lançar magias" avaliado pela ficha. `value` = círculo mínimo (omitido =
+   * qualquer); `name` = tradição ('arcane' | 'divine', omitido = qualquer).
+   * Ver `sheetCastsSpells`.
+   */
+  LANCAR_MAGIAS = 'LANCAR_MAGIAS',
 }
 
 export interface Requirement {
@@ -132,6 +139,10 @@ export interface GeneralPower extends CountsAsTormentaPower, PowerTaggable {
   canRepeat?: boolean;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
+  /** Efeitos sobre magias (ver `interfaces/SpellModifiers.ts`). */
+  spellModifiers?: SpellModifier[];
+  /** "Escolha N magias" dos `spellModifiers` com `filter.chosen`. */
+  spellChoice?: SpellModifierChoiceSpec;
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
   customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário
   // Nome definido pelo usuário. Quando presente, tem precedência sobre `name`
@@ -169,6 +180,10 @@ export type OriginPower = CountsAsTormentaPower & {
   swappableAtLevelUp?: boolean;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
+  /** Efeitos sobre magias (ver `interfaces/SpellModifiers.ts`). */
+  spellModifiers?: SpellModifier[];
+  /** "Escolha N magias" dos `spellModifiers` com `filter.chosen`. */
+  spellChoice?: SpellModifierChoiceSpec;
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
   customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário
   // Nome definido pelo usuário. Quando presente, tem precedência sobre `name`

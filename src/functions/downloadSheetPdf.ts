@@ -1,6 +1,5 @@
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
-import { manaExpenseByCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import Equipment from '@/interfaces/Equipment';
 import Skill, { CompleteSkill } from '@/interfaces/Skills';
@@ -8,6 +7,8 @@ import { Spell } from '@/interfaces/Spells';
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { getSpellDisplayName } from './spells/spellDisplayName';
 import { getEngenhocaAparatos } from './spells/engenhoca';
+import { getSpellDisplayPmCost } from './spells/modifiers';
+import { getSpellResistDC } from './spells/spellDC';
 import { calculateCurrencySpaces } from './general';
 import { isMulticlass, getMulticlassDisplayName } from './multiclass';
 import {
@@ -274,13 +275,7 @@ const getCircleLabel = (circle: string): string => {
   return match ? `${match[1]}º` : '';
 };
 
-const getSpellPmCost = (spell: Spell): number => {
-  const base = spell.manaExpense ?? manaExpenseByCircle[spell.spellCircle] ?? 0;
-  const reduction = spell.manaReduction ?? 0;
-  return Math.max(0, base - reduction);
-};
-
-const generateSpellText = (spell: Spell): string => {
+const generateSpellText = (spell: Spell, sheet: CharacterSheet): string => {
   const meta = [
     getCircleLabel(spell.spellCircle),
     spell.school,
@@ -288,8 +283,17 @@ const generateSpellText = (spell: Spell): string => {
     spell.alcance,
     spell.duracao,
     // Engenhoca não paga o custo base da magia na ativação.
-    spell.engenhoca ? 'ativação por Ofício' : `${getSpellPmCost(spell)}PM`,
-  ].join(', ');
+    spell.engenhoca
+      ? 'ativação por Ofício'
+      : `${getSpellDisplayPmCost(sheet, spell)}PM`,
+    // A CD de cada magia: os bônus por magia (Foco em Magia, Varinha arcana)
+    // fazem uma diferir da outra.
+    spell.resistencia && !spell.engenhoca
+      ? `CD ${getSpellResistDC(sheet, spell)}`
+      : undefined,
+  ]
+    .filter(Boolean)
+    .join(', ');
   if (spell.engenhoca) {
     const aparatos = getEngenhocaAparatos(spell.engenhoca).map((a) => a.nome);
     const details = [
@@ -730,7 +734,7 @@ export const fillSheetPdf: (
           if (circleCompare !== 0) return circleCompare;
           return a.nome.localeCompare(b.nome);
         })
-        .map(generateSpellText)
+        .map((spell) => generateSpellText(spell, sheet))
         .join('\n');
   const spellsFieldFontSize = (): number => {
     if (spellsText.length > 7000) return 6;

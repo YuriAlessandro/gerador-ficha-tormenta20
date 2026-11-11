@@ -343,6 +343,13 @@ export const HEROIS_ARTON_MUSICAL_INSTRUMENTS: Equipment[] = [
     descricao:
       'Suas Músicas e magias de bardo de cura recuperam +1 PV por dado de cura.',
     group: 'Item Geral',
+    // As Músicas (habilidades de bardo) ficam no texto.
+    spellModifiers: [
+      {
+        filter: { casterClass: 'Bardo', healing: true },
+        effect: { type: 'RollBonus', rolls: 'healing', perDie: 1 },
+      },
+    ],
     preco: 300,
     spaces: 1,
   },

@@ -12,6 +12,14 @@ const CLERIGO_POWERS: ClassPower[] = [
     requirements: [
       [{ type: RequirementType.PODER, name: 'Autoridade Eclesiástica' }],
     ],
+    // "o custo de uma de suas magias de 1º círculo… diminui em –1 PM".
+    spellChoice: {
+      count: { type: 'fixed', value: 1 },
+      eligible: { circles: [1] },
+    },
+    spellModifiers: [
+      { filter: { chosen: true }, effect: { type: 'PmReduction', value: 1 } },
+    ],
     sheetBonuses: [
       {
         source: { type: 'power', name: 'Acólito Escudeiro' },
@@ -96,6 +104,12 @@ const CLERIGO_POWERS: ClassPower[] = [
     name: 'Égide da Fé',
     text: 'Quando você lança Escudo da Fé, a magia também fornece 5 PV temporários para cada +1 na Defesa. Esses PV temporários duram até o fim da cena.',
     requirements: [[{ type: RequirementType.MAGIA, name: 'Escudo da Fé' }]],
+    spellModifiers: [
+      {
+        filter: { spellNames: ['Escudo da Fé'] },
+        effect: { type: 'EffectTempPV', kind: 'defense', multiplier: 5 },
+      },
+    ],
   },
   {
     name: 'Força da Devoção',
@@ -130,6 +144,20 @@ const CLERIGO_POWERS: ClassPower[] = [
   {
     name: 'Punição Divina',
     text: 'Uma vez por rodada, quando lança uma magia divina com tempo de execução de ação de movimento em si mesmo, você pode gastar +2 PM fazer um ataque como ação livre.',
+    spellModifiers: [
+      {
+        filter: {
+          tradition: 'divine',
+          executions: ['Movimento'],
+        },
+        effect: {
+          type: 'CastOption',
+          id: 'punicao',
+          label: 'em si mesmo: ataque como ação livre',
+          addPm: 2,
+        },
+      },
+    ],
     requirements: [[{ type: RequirementType.PODER, name: 'Prece de Combate' }]],
   },
   {

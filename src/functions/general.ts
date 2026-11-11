@@ -4963,6 +4963,22 @@ export function applyManualLevelUp(
 
   updatedSheet.completeSkills = newCompleteSkills;
 
+  // Magia escolhida para o poder do nível (Foco em Magia). Só a do poder
+  // selecionado: voltar e trocar de poder não deixa escolha órfã.
+  const levelPower = {
+    class: selections.selectedClassPower,
+    general: selections.selectedGeneralPower,
+    almaLivre: selections.selectedAlmaLivrePower,
+  }[selections.powerChoice];
+  const levelPowerChoices =
+    levelPower && selections.spellModifierChoices?.[levelPower.name];
+  if (levelPower && levelPowerChoices) {
+    updatedSheet.spellModifierChoices = {
+      ...updatedSheet.spellModifierChoices,
+      [levelPower.name]: levelPowerChoices,
+    };
+  }
+
   // Aplicar magias selecionadas manualmente
   if (selections.spellsLearned && selections.spellsLearned.length > 0) {
     // Filter out duplicates before adding

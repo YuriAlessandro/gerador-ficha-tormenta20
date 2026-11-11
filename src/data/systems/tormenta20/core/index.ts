@@ -50,11 +50,13 @@ export interface SupplementSpells {
 export interface SupplementImprovements {
   weapons?: ItemMod[];
   armors?: ItemMod[];
+  esoterics?: ItemMod[];
 }
 
 export interface SupplementEnchantments {
   weapons?: ItemE[];
   armors?: ItemE[];
+  esoterics?: ItemE[];
 }
 
 export interface SupplementData {

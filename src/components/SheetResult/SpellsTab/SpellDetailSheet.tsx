@@ -9,6 +9,7 @@ import {
   Typography,
 } from '@mui/material';
 import { Spell } from '@/interfaces/Spells';
+import type { SpellCastProfile } from '@/functions/spells/modifiers';
 import { getSpellDisplayName } from '@/functions/spells/spellDisplayName';
 import { SpellTradition } from '@/functions/spells/spellTradition';
 import SpellDetailBody, { EngenhocaRowInfo } from './SpellDetailBody';
@@ -21,8 +22,11 @@ export interface SpellDetailSheetProps {
   compact: boolean;
   spell: Spell | null;
   onCast?: () => void;
+  onSpellChoiceToggle?: (key: string) => void;
   engenhocaInfo?: EngenhocaRowInfo;
   tradition?: SpellTradition;
+  castProfile?: SpellCastProfile;
+  spellDC?: number;
 }
 
 /**
@@ -42,8 +46,11 @@ const SpellDetailSheet: React.FC<SpellDetailSheetProps> = ({
   compact,
   spell,
   onCast,
+  onSpellChoiceToggle,
   engenhocaInfo,
   tradition,
+  castProfile,
+  spellDC,
 }) => (
   <Drawer
     anchor={compact ? 'bottom' : 'right'}
@@ -93,8 +100,11 @@ const SpellDetailSheet: React.FC<SpellDetailSheetProps> = ({
         <SpellDetailBody
           spell={spell}
           onCast={onCast}
+          onSpellChoiceToggle={onSpellChoiceToggle}
           engenhocaInfo={engenhocaInfo}
           tradition={tradition}
+          castProfile={castProfile}
+          spellDC={spellDC}
         />
       </Box>
     )}

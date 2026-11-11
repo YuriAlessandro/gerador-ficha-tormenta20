@@ -10,6 +10,17 @@ const magicPowers: Record<string, GeneralPower> = {
     name: 'Celebrar Ritual',
     description:
       'Você pode lançar magias como rituais. Isso dobra seu limite de PM, mas muda a execução para 1 hora (ou o dobro, o que for maior) e exige um gasto de T$ 10 por PM gasto (em incensos, oferendas...). Assim, um arcanista de 8º nível pode lançar uma magia de 16 PM gastando T$ 160.',
+    spellModifiers: [
+      {
+        effect: {
+          type: 'CastOption',
+          id: 'ritual',
+          label: 'como ritual: dobra o limite de PM (1 hora, T$ 10 por PM)',
+          addPm: 0,
+          effects: [{ type: 'PmLimit', multiplier: 2 }],
+        },
+      },
+    ],
     type: GeneralPowerType.MAGIA,
     requirements: [
       [
@@ -42,21 +53,50 @@ const magicPowers: Record<string, GeneralPower> = {
       'Escolha uma magia que possa lançar. Seu custo diminui em –1 PM (cumulativo com outras reduções de custo). Você pode escolher este poder outras vezes para magias diferentes.',
     type: GeneralPowerType.MAGIA,
     allowSeveralPicks: true,
+    // Uma magia por vez que o poder foi escolhido; marcada na aba de magias.
+    spellChoice: { count: { type: 'picks' } },
+    spellModifiers: [
+      {
+        filter: { chosen: true },
+        effect: { type: 'PmReduction', value: 1, cumulative: true },
+      },
+    ],
     requirements: [[{ type: RequirementType.HABILIDADE, name: 'Magias' }]],
   },
   MAGIA_ACELERADA: {
     name: 'Magia Acelerada',
     description:
       'Muda a execução da magia para ação livre. Você só pode aplicar este aprimoramento em magias com execução de movimento, padrão ou completa e só pode lançar uma magia como ação livre por rodada. Custo: +4 PM.',
-    type: GeneralPowerType.DESTINO,
-    requirements: [
-      [{ type: RequirementType.TEXT, text: 'Lançar magias de 2º círculo' }],
+    spellModifiers: [
+      {
+        filter: {
+          executions: ['Movimento', 'Padrão', 'Completa'],
+        },
+        effect: {
+          type: 'CastOption',
+          id: 'acelerada',
+          label: 'execução vira ação livre (1 por rodada)',
+          addPm: 4,
+        },
+      },
     ],
+    type: GeneralPowerType.DESTINO,
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS, value: 2 }]],
   },
   MAGIA_AMPLIADA: {
     name: 'Magia Ampliada',
     description:
       'Aumenta o alcance da magia em um passo (de curto para médio, de médio para longo) ou dobra a área de efeito da magia. Por exemplo, uma Bola de Fogo ampliada tem seu alcance aumentado para longo ou sua área aumentada para 12m de raio. Custo: +2 PM.',
+    spellModifiers: [
+      {
+        effect: {
+          type: 'CastOption',
+          id: 'ampliada',
+          label: 'alcance +1 passo ou área dobrada',
+          addPm: 2,
+        },
+      },
+    ],
     type: GeneralPowerType.MAGIA,
     requirements: [[{ type: RequirementType.HABILIDADE, name: 'Magias' }]],
   },
@@ -64,6 +104,16 @@ const magicPowers: Record<string, GeneralPower> = {
     name: 'Magia Discreta',
     description:
       'Você lança a magia sem gesticular e falar, usando apenas concentração. Isso permite lançar magias com as mãos presas, amordaçado etc. Também permite lançar magias arcanas usando armadura sem teste de Misticismo. Outros personagens só percebem que você lançou uma magia se passarem num teste de Misticismo (CD 20). Custo: +2 PM.',
+    spellModifiers: [
+      {
+        effect: {
+          type: 'CastOption',
+          id: 'discreta',
+          label: 'sem gestos nem palavras',
+          addPm: 2,
+        },
+      },
+    ],
     type: GeneralPowerType.MAGIA,
     requirements: [[{ type: RequirementType.HABILIDADE, name: 'Magias' }]],
   },
@@ -71,6 +121,7 @@ const magicPowers: Record<string, GeneralPower> = {
     name: 'Magia Ilimitada',
     description:
       'Você soma seu atributo-chave no limite de PM que pode gastar numa magia. Por exemplo, um arcanista de 5º nível com Int 4 e este poder pode gastar até 9 PM em cada magia.',
+    spellModifiers: [{ effect: { type: 'PmLimit', attribute: 'key' } }],
     type: GeneralPowerType.MAGIA,
     requirements: [[{ type: RequirementType.HABILIDADE, name: 'Magias' }]],
   },

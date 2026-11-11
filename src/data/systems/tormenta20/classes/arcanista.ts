@@ -1,5 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import _ from 'lodash';
+import { buildSchoolChoiceAction } from '../magias/schoolChoice';
 import { getRandomItemFromArray } from '../../../../functions/randomUtils';
 import {
   ClassDescription,
@@ -397,6 +398,9 @@ const ARCANISTA: ClassDescription = {
       name: 'Alta Arcana',
       text: 'No 20º nível, seu domínio das artes arcanas é total. O custo em PM de suas magias arcanas é reduzido à metade (após aplicar aprimoramentos e quaisquer outros efeitos que reduzam custo).',
       nivel: 20,
+      spellModifiers: [
+        { filter: { tradition: 'arcane' }, effect: { type: 'PmHalve' } },
+      ],
     },
   ],
   powers: [
@@ -497,6 +501,14 @@ const ARCANISTA: ClassDescription = {
         [{ type: RequirementType.TIPO_ARCANISTA, name: 'Bruxo' }],
         [{ type: RequirementType.TIPO_ARCANISTA, name: 'Mago' }],
       ],
+      sheetActions: [
+        buildSchoolChoiceAction(
+          { type: 'power', name: 'Especialista em Escola' },
+          'especialistaEmEscola',
+          { type: 'SpellDC', value: 2 },
+          (school) => `+2 na CD das magias de ${school}.`
+        ),
+      ],
     },
     {
       name: 'Familiar',
@@ -547,6 +559,22 @@ const ARCANISTA: ClassDescription = {
     {
       name: 'Magia Pungente',
       text: 'Quando lança uma magia, você pode pagar 1 PM para aumentar em +2 a CD para resistir a ela.',
+      spellModifiers: [
+        {
+          effect: {
+            type: 'CastOption',
+            id: 'pungente',
+            label: '+2 na CD',
+            addPm: 1,
+            effects: [
+              {
+                type: 'SpellDC',
+                value: 2,
+              },
+            ],
+          },
+        },
+      ],
       requirements: [],
     },
     {
@@ -557,6 +585,14 @@ const ARCANISTA: ClassDescription = {
           { type: RequirementType.PODER, name: 'Especialista em Escola' },
           { type: RequirementType.NIVEL, value: 8 },
         ],
+      ],
+      sheetActions: [
+        buildSchoolChoiceAction(
+          { type: 'power', name: 'Mestre em Escola' },
+          'mestreEmEscola',
+          { type: 'PmReduction', value: 1 },
+          (school) => `–1 PM nas magias de ${school}.`
+        ),
       ],
     },
     {

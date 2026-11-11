@@ -27,6 +27,7 @@ import Race from '../../interfaces/Race';
 import Skill from '../../interfaces/Skills';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import CharacterSheet from '../../interfaces/CharacterSheet';
+import { Spell, spellsCircles } from '../../interfaces/Spells';
 
 import SOTERRADO from '../../data/systems/tormenta20/ameacas-de-arton/races/soterrado';
 import TROG_ANAO from '../../data/systems/tormenta20/ameacas-de-arton/races/trog-anao';
@@ -52,6 +53,17 @@ function sheetOf(race: Race, overrides: Partial<Race> = {}): CharacterSheet {
   sheet.raca = { ...race, ...overrides };
   return sheet;
 }
+
+/** Requisito "Lançar magias" (Dupla Conjuração, Magia Ofídica). */
+const A_SPELL: Spell = {
+  nome: 'Magia Qualquer',
+  execucao: 'Padrão',
+  alcance: 'Curto',
+  duracao: 'Instantânea',
+  description: '',
+  spellCircle: spellsCircles.c1,
+  school: 'Evoc',
+};
 
 describe('Raças Variantes herdam os poderes de raça da base', () => {
   it('Soterrado alcança os poderes de Osteon', () => {
@@ -101,6 +113,7 @@ describe('"considerado um X para efeitos relacionados a raça"', () => {
       value: 2,
     };
     sheet.generalPowers = [racePowers.DUPLA_INTELIGENCIA];
+    sheet.spells = [A_SPELL];
     expect(isPowerAvailable(sheet, racePowers.DUPLA_CONJURACAO)).toBe(true);
   });
 
@@ -145,7 +158,14 @@ describe('"considerado um X para efeitos relacionados a raça"', () => {
 describe('Magia Ofídica exige a herança do Moreau, não só a raça', () => {
   it('Moreau da Serpente alcança Magia Ofídica', () => {
     const sheet = sheetOf(MOREAU, { heritage: 'Serpente' });
+    sheet.spells = [A_SPELL];
     expect(isPowerAvailable(sheet, racePowers.MAGIA_OFIDICA)).toBe(true);
+  });
+
+  it('Moreau da Serpente que não lança magias NÃO alcança', () => {
+    const sheet = sheetOf(MOREAU, { heritage: 'Serpente' });
+    sheet.spells = [];
+    expect(isPowerAvailable(sheet, racePowers.MAGIA_OFIDICA)).toBe(false);
   });
 
   it('Moreau de outra herança NÃO alcança', () => {

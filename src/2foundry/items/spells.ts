@@ -3,9 +3,12 @@ import { getEffectiveAttributeModifier } from '../../functions/effectiveAttribut
 import { getDerivedSpells } from '../../functions/spells/derivedSpells';
 import {
   getEngenhocaResistDC,
-  getSpellBasePm,
   getSpellCircleNumber,
 } from '../../functions/spells/engenhoca';
+import {
+  getSpellDisplayPmCost,
+  resolveSpellCast,
+} from '../../functions/spells/modifiers';
 import { getSpellDCBonus } from '../../functions/spells/spellDC';
 import { getSpellDisplayName } from '../../functions/spells/spellDisplayName';
 import { getSpellTradition } from '../../functions/spells/spellTradition';
@@ -202,10 +205,7 @@ export function buildSpellItems(sheet: CharacterSheet): FoundryItem[] {
     if (!derived) item.flags = { tormenta20: { favorito: true } };
 
     if (isRecord(item.system.ativacao)) {
-      item.system.ativacao.custo = Math.max(
-        0,
-        getSpellBasePm(spell) - (spell.manaReduction ?? 0)
-      );
+      item.system.ativacao.custo = getSpellDisplayPmCost(sheet, spell);
     }
 
     // A CD só é calculada pelo sistema quando a magia tem atributo E texto de
@@ -215,7 +215,12 @@ export function buildSpellItems(sheet: CharacterSheet): FoundryItem[] {
       : spell.customKeyAttr ?? keyAttribute;
     if (attribute && isRecord(item.system.resistencia)) {
       item.system.resistencia.atributo = ATTRIBUTE_KEYS[attribute];
-      item.system.resistencia.bonus = getResistanceBonus(sheet, spell, dcBonus);
+      // Bônus da ficha (o sistema soma 10 + ½ nível + atributo) e, fora de
+      // engenhoca, o da própria magia (Foco em Magia, Varinha arcana, Tomo
+      // hermético).
+      item.system.resistencia.bonus =
+        getResistanceBonus(sheet, spell, dcBonus) +
+        (spell.engenhoca ? 0 : resolveSpellCast(sheet, spell).dcBonus);
     }
 
     return item;

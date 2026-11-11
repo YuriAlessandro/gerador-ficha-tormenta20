@@ -11,6 +11,10 @@ import {
 
 import { dataRegistry } from '../../../data/registry';
 import { ItemMod } from '../../../interfaces/Rewards';
+import {
+  SpecialMaterial,
+  SpecialMaterialEffect,
+} from '../../../interfaces/SpecialMaterials';
 import { SupplementId } from '../../../types/supplement.types';
 import {
   addModificationWithPrerequisites,
@@ -20,7 +24,7 @@ import {
   validateModificationRequirement,
 } from '../../../utils/superiorItemsValidation';
 
-export type ModificationItemType = 'weapon' | 'armor' | 'shield';
+export type ModificationItemType = 'weapon' | 'armor' | 'shield' | 'esoteric';
 
 export interface ItemModificationsEditorProps {
   itemType: ModificationItemType;
@@ -34,6 +38,16 @@ export interface ItemModificationsEditorProps {
   showMaterialEffectPreview?: boolean;
   maxCost?: number;
   onError?: (message: string) => void;
+}
+
+/** O efeito do material para o tipo de item (texto). */
+function materialEffectFor(
+  material: SpecialMaterial,
+  itemType: ModificationItemType
+): SpecialMaterialEffect | undefined {
+  if (itemType === 'weapon') return material.weaponEffect;
+  if (itemType === 'esoteric') return material.esotericEffect;
+  return material.armorEffect;
 }
 
 /**
@@ -52,8 +66,7 @@ function getMaterialOptions(
   dataRegistry
     .getSpecialMaterialsBySupplements(userSupplements)
     .forEach((material) => {
-      const effect =
-        itemType === 'weapon' ? material.weaponEffect : material.armorEffect;
+      const effect = materialEffectFor(material, itemType);
       if (!effect) return;
       if (itemType === 'shield' && effect.type === 'Armadura') return;
       options.push({ value: material.name, label: effect.material });
@@ -69,7 +82,9 @@ function getModificationsForType(
 ): ItemMod[] {
   const improvements =
     dataRegistry.getImprovementsBySupplements(userSupplements);
-  return itemType === 'weapon' ? improvements.weapons : improvements.armors;
+  if (itemType === 'weapon') return improvements.weapons;
+  if (itemType === 'esoteric') return improvements.esoterics;
+  return improvements.armors;
 }
 
 const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
@@ -155,19 +170,31 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
   };
 
   const totalCost = calculateModificationCost(selectedModifications);
+
+  // Canônico (Deuses de Arton): a divindade das inscrições do item.
+  const deityOptions = useMemo(
+    () =>
+      dataRegistry
+        .getDeitiesWithSupplementPowers(userSupplements)
+        .map((deity) => deity.name)
+        .sort((a, b) => a.localeCompare(b, 'pt-BR')),
+    [userSupplements]
+  );
+  const setModDeity = (modName: string, deity: string | null) =>
+    onChange(
+      selectedModifications.map((mod) =>
+        mod.mod === modName ? { ...mod, deity: deity ?? undefined } : mod
+      )
+    );
   const hasMaterialEspecial = selectedModifications.some(
     (mod) => mod.mod === 'Material especial'
   );
   const materialData = selectedMaterial
     ? dataRegistry.getSpecialMaterialByName(selectedMaterial)
     : null;
-  let materialEffect = null;
-  if (materialData) {
-    materialEffect =
-      itemType === 'weapon'
-        ? materialData.weaponEffect
-        : materialData.armorEffect;
-  }
+  const materialEffect = materialData
+    ? materialEffectFor(materialData, itemType) ?? null
+    : null;
 
   return (
     <Grid container spacing={2}>
@@ -290,6 +317,27 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
           disabled={disabled}
         />
       </Grid>
+      {selectedModifications
+        .filter((mod) => mod.choosesDeity)
+        .map((mod) => (
+          <Grid size={12} key={`deity-${mod.mod}`}>
+            <Autocomplete
+              options={deityOptions}
+              value={mod.deity ?? null}
+              onChange={(_event, value) => setModDeity(mod.mod, value)}
+              disabled={disabled}
+              renderInput={(params) => (
+                <TextField
+                  // eslint-disable-next-line react/jsx-props-no-spreading
+                  {...params}
+                  label={`Divindade (${mod.mod})`}
+                  placeholder='Escolha a divindade das inscrições'
+                  helperText='A CD das suas magias sobe +1 se você for devoto dela.'
+                />
+              )}
+            />
+          </Grid>
+        ))}
       {hasMaterialEspecial && (
         <Grid size={12}>
           <Autocomplete

@@ -29,6 +29,14 @@ import Equipment, {
 import Skill from '../../../../interfaces/Skills';
 
 describe('isWieldable', () => {
+  it('esotérico é empunhável (precisa estar na mão para ser usado)', () => {
+    const varinha = {
+      nome: 'Varinha arcana',
+      group: 'Esotérico',
+    } as unknown as Equipment;
+    expect(isWieldable(varinha)).toBe(true);
+  });
+
   test('weapons are wieldable', () => {
     const sword: Equipment = { id: 'a', nome: 'Espada', group: 'Arma' };
     expect(isWieldable(sword)).toBe(true);
@@ -468,6 +476,38 @@ describe('migrateLegacyEquipState', () => {
   };
 
   type Input = MigratableSheetView & { bag: { equipments: MigratableBagView } };
+
+  const varinha = { id: 'e1', nome: 'Varinha arcana', group: 'Esotérico' };
+
+  test('esotérico vai para a mão que sobrar depois da arma de uma mão', () => {
+    const input: Input = {
+      bag: { equipments: { Arma: [oneHandedSword], Esotérico: [varinha] } },
+    };
+    const result = migrateLegacyEquipState(input);
+    expect(result.mainHandItemId).toBe('w1');
+    expect(result.offHandItemId).toBe('e1');
+  });
+
+  test('sem arma, o esotérico vai para a mão principal', () => {
+    const input: Input = {
+      bag: { equipments: { Esotérico: [varinha] } },
+    };
+    expect(migrateLegacyEquipState(input).mainHandItemId).toBe('e1');
+  });
+
+  test('escudo + arma de uma mão: sem mão livre, o esotérico fica guardado', () => {
+    const input: Input = {
+      bag: {
+        equipments: {
+          Escudo: [shield],
+          Arma: [oneHandedSword],
+          Esotérico: [varinha],
+        },
+      },
+    };
+    const result = migrateLegacyEquipState(input);
+    expect([result.mainHandItemId, result.offHandItemId]).toEqual(['w1', 's1']);
+  });
 
   test('legacy sheet with armor + shield + 1H weapon: seeds all three slots', () => {
     const input: Input = {

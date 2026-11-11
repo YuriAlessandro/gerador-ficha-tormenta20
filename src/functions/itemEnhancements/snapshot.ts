@@ -33,6 +33,7 @@ export function toAppliedModification(
 ): AppliedModification {
   const applied: AppliedModification = { mod: mod.mod };
   if (specialMaterial) applied.specialMaterial = specialMaterial;
+  if (mod.deity) applied.deity = mod.deity;
 
   if (mod.effect) {
     applied.effect = mod.effect;

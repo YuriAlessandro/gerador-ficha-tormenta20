@@ -12,6 +12,11 @@ import { manaExpenseByCircle } from '@/data/systems/tormenta20/magias/generalSpe
 import { useContainerWidth } from '@/hooks/useContainerWidth';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import CharacterSheet from '@/interfaces/CharacterSheet';
+import {
+  resolveSpellCast,
+  SpellCastContext,
+  SpellCastProfile,
+} from '@/functions/spells/modifiers';
 import type {
   ActiveEffectUsageOption,
   ActivePowerDefinition,
@@ -136,10 +141,13 @@ export interface SpellsDisplayProps {
     pmSpent: number,
     spell: Spell,
     castLogged?: boolean,
-    castAugments?: CastAugment[]
+    castAugments?: CastAugment[],
+    castContext?: SpellCastContext
   ) => void;
   isMago?: boolean;
   onToggleMemorized?: (spell: Spell) => void;
+  /** Marca/desmarca a magia para uma fonte de "escolha N magias". */
+  onSpellChoiceToggle?: (key: string, spell: Spell) => void;
   onToggleAlwaysPrepared?: (spell: Spell) => void;
   onKeyAttributeChange?: (newAttr: Atributo) => void;
   bonusSpellDC?: number;
@@ -202,6 +210,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
   onSpellCast,
   isMago,
   onToggleMemorized,
+  onSpellChoiceToggle,
   onToggleAlwaysPrepared,
   onKeyAttributeChange,
   bonusSpellDC,
@@ -247,6 +256,22 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
     });
     return map;
   }, [sheet, spells, derived, bonus]);
+
+  // Um perfil por magia (motor de modificadores), calculado uma vez para a
+  // lista, o detalhe e o diálogo de lançamento.
+  const castProfileByName = useMemo(() => {
+    const map = new Map<string, SpellCastProfile>();
+    spells.forEach((spell) =>
+      map.set(spell.nome, resolveSpellCast(sheet, spell))
+    );
+    return map;
+  }, [sheet, spells]);
+
+  /** CD própria da magia — só quando poderes/itens a alteram. */
+  const spellDCOf = (spell: Spell): number | undefined => {
+    const dcBonus = castProfileByName.get(spell.nome)?.dcBonus ?? 0;
+    return dcBonus !== 0 ? resistance + dcBonus : undefined;
+  };
 
   const engenhocaCounter = useMemo(
     () =>
@@ -410,7 +435,8 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
       pmSpent: number,
       castSpell: Spell,
       castLogged?: boolean,
-      castAugments?: CastAugment[]
+      castAugments?: CastAugment[],
+      castContext?: SpellCastContext
     ) => {
       const broke = engenhocaBrokeRef.current && !!castSpell.engenhoca;
       engenhocaBrokeRef.current = false;
@@ -420,7 +446,7 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
             engenhoca: { ...castSpell.engenhoca, enguicada: true },
           }
         : castSpell;
-      onSpellCast?.(pmSpent, reported, castLogged, castAugments);
+      onSpellCast?.(pmSpent, reported, castLogged, castAugments, castContext);
     },
     [onSpellCast]
   );
@@ -538,6 +564,9 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
                   onOpenCast={() => handleOpenCast(spell)}
                   isMago={isMago}
                   onToggleMemorized={onToggleMemorized}
+                  onSpellChoiceToggle={
+                    derived ? undefined : onSpellChoiceToggle
+                  }
                   onToggleAlwaysPrepared={onToggleAlwaysPrepared}
                   activeEffect={
                     canUseActiveEffects
@@ -554,6 +583,8 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
                     canEditEngenhoca ? handleRepairEngenhoca : undefined
                   }
                   tradition={getSpellTradition(spell.nome)}
+                  castProfile={castProfileByName.get(spell.nome)}
+                  spellDC={spellDCOf(spell)}
                 />
               ))}
             </Box>
@@ -575,6 +606,15 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
         }
         tradition={
           detailSpell ? getSpellTradition(detailSpell.nome) : undefined
+        }
+        castProfile={
+          detailSpell ? castProfileByName.get(detailSpell.nome) : undefined
+        }
+        spellDC={detailSpell ? spellDCOf(detailSpell) : undefined}
+        onSpellChoiceToggle={
+          detailSpell && onSpellChoiceToggle && !derived
+            ? (source) => onSpellChoiceToggle(source, detailSpell)
+            : undefined
         }
       />
 
@@ -612,6 +652,11 @@ const SpellsDisplay: React.FC<SpellsDisplayProps> = ({
           onUpdateRolls={onUpdateRolls}
           characterName={characterName}
           castCheck={castingCheck}
+          castProfile={castProfileByName.get(castingSpell.nome)}
+          resolveProfile={(options) =>
+            resolveSpellCast(sheet, castingSpell, options)
+          }
+          baseSpellDC={resistance}
         />
       )}
     </Box>

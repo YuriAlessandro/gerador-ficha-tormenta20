@@ -9,6 +9,12 @@ import { SupplementId } from '../../../../types/supplement.types';
 export const AMEACAS_ARTON_SPECIAL_MATERIALS: SpecialMaterial[] = [
   {
     name: 'casco de monstro',
+    esotericEffect: {
+      material: 'Casco de Monstro',
+      type: 'Esotérico',
+      effect:
+        'Quando lança uma magia, você recebe redução de dano 5 contra o próximo dano que sofrer até sua próxima rodada',
+    },
     supplementId: SupplementId.TORMENTA20_AMEACAS_ARTON,
     weaponEffect: {
       material: 'Casco de Monstro',
@@ -25,6 +31,24 @@ export const AMEACAS_ARTON_SPECIAL_MATERIALS: SpecialMaterial[] = [
   },
   {
     name: 'couraça de kaiju',
+    esotericEffect: {
+      material: 'Couraça de Kaiju',
+      type: 'Esotérico',
+      effect:
+        'Exige uma peça. Quando lança uma magia que causa dano, você pode gastar 2 PM para ignorar efeitos dos alvos que reduzem o dano dessa magia, como Durão ou Evasão (exceto redução de dano e o efeito de passar no teste de resistência contra a magia)',
+    },
+    esotericSpellModifiers: [
+      {
+        filter: { damaging: true },
+        effect: {
+          type: 'CastOption',
+          id: 'couraca-de-kaiju',
+          label:
+            'ignora efeitos dos alvos que reduzem o dano (Durão, Evasão), exceto RD',
+          addPm: 2,
+        },
+      },
+    ],
     supplementId: SupplementId.TORMENTA20_AMEACAS_ARTON,
     weaponEffect: {
       material: 'Couraça de Kaiju',
@@ -41,6 +65,18 @@ export const AMEACAS_ARTON_SPECIAL_MATERIALS: SpecialMaterial[] = [
   },
   {
     name: 'couro de bulette',
+    esotericEffect: {
+      material: 'Couro de Bulette',
+      type: 'Esotérico',
+      effect:
+        'Exige uma peça. Quando lança uma magia de ácido que causa dano, você pode rolar novamente qualquer resultado 1 nas rolagens de dano (mesmo em rodadas subsequentes)',
+    },
+    esotericSpellModifiers: [
+      {
+        filter: { damageTypes: ['ácido'] },
+        effect: { type: 'RerollOnes', damageTypes: ['ácido'] },
+      },
+    ],
     supplementId: SupplementId.TORMENTA20_AMEACAS_ARTON,
     armorEffect: {
       material: 'Couro de Bulette',
@@ -51,6 +87,22 @@ export const AMEACAS_ARTON_SPECIAL_MATERIALS: SpecialMaterial[] = [
   },
   {
     name: 'cristal de sol',
+    esotericEffect: {
+      material: 'Cristal de Sol',
+      type: 'Esotérico',
+      effect:
+        'Exige uma peça. Quando lança uma magia de fogo, você pode gastar 1 PM. Se fizer isso, criaturas que falhem em seu teste de resistência contra a magia ficam em chamas (se a magia já deixa a vítima em chamas, em vez disso o dano das chamas aumenta em +1d6 cumulativo)',
+    },
+    esotericSpellModifiers: [
+      {
+        filter: { damageTypes: ['fogo'], resisted: true },
+        effect: {
+          type: 'ExtraAprimoramento',
+          addPm: 1,
+          text: 'criaturas que falhem na resistência ficam em chamas (se a magia já deixa em chamas, o dano das chamas aumenta em +1d6, cumulativo)',
+        },
+      },
+    ],
     supplementId: SupplementId.TORMENTA20_AMEACAS_ARTON,
     weaponEffect: {
       material: 'Cristal de Sol',
@@ -67,6 +119,18 @@ export const AMEACAS_ARTON_SPECIAL_MATERIALS: SpecialMaterial[] = [
   },
   {
     name: 'lanajuste',
+    esotericEffect: {
+      material: 'Lanajuste',
+      type: 'Esotérico',
+      effect:
+        'Quando lança uma magia que causa dano de corte, você pode rolar novamente qualquer resultado 1 na rolagem de dano',
+    },
+    esotericSpellModifiers: [
+      {
+        filter: { damageTypes: ['corte'] },
+        effect: { type: 'RerollOnes', damageTypes: ['corte'] },
+      },
+    ],
     supplementId: SupplementId.TORMENTA20_AMEACAS_ARTON,
     weaponEffect: {
       material: 'Lanajuste',
@@ -83,6 +147,12 @@ export const AMEACAS_ARTON_SPECIAL_MATERIALS: SpecialMaterial[] = [
   },
   {
     name: 'pena de kraken',
+    esotericEffect: {
+      material: 'Pena de Kraken',
+      type: 'Esotérico',
+      effect:
+        'Exige uma peça. Se o item fornece algum bônus numérico, ele aumenta em +1',
+    },
     supplementId: SupplementId.TORMENTA20_AMEACAS_ARTON,
     weaponEffect: {
       material: 'Pena de Kraken',
@@ -99,6 +169,12 @@ export const AMEACAS_ARTON_SPECIAL_MATERIALS: SpecialMaterial[] = [
   },
   {
     name: 'prata',
+    esotericEffect: {
+      material: 'Prata',
+      type: 'Esotérico',
+      effect:
+        'Suas magias causam +2 pontos de dano em espíritos e mortos-vivos',
+    },
     supplementId: SupplementId.TORMENTA20_AMEACAS_ARTON,
     weaponEffect: {
       material: 'Prata',
@@ -115,6 +191,12 @@ export const AMEACAS_ARTON_SPECIAL_MATERIALS: SpecialMaterial[] = [
   },
   {
     name: 'quitina razza',
+    esotericEffect: {
+      material: 'Quitina Razza',
+      type: 'Esotérico',
+      effect:
+        'Exige uma peça. Sempre que rolar o resultado máximo em um dado do dano básico da magia (sem contar aprimoramentos e outros efeitos), role um dado extra, repetindo o processo a cada resultado máximo',
+    },
     supplementId: SupplementId.TORMENTA20_AMEACAS_ARTON,
     weaponEffect: {
       material: 'Quitina Razza',

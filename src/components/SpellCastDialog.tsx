@@ -38,7 +38,16 @@ import {
   isStackableAprimoramento,
   isTruqueAprimoramento,
   AugmentedRoll,
+  maximizeRoll,
 } from '@/functions/spellRollAugmentation';
+import {
+  applySpellRollModifiers,
+  computeSpellPmCost,
+  resolveSpellCast,
+  ResolveSpellCastOptions,
+  SpellCastContext,
+  SpellCastProfile,
+} from '@/functions/spells/modifiers';
 import { Spell, Aprimoramento, CastAugment } from '../interfaces/Spells';
 import { manaExpenseByCircle } from '../data/systems/tormenta20/magias/generalSpells';
 import { getSpellDisplayName } from '../functions/spells/spellDisplayName';
@@ -124,16 +133,31 @@ interface SpellCastDialogProps {
   // histórico — a ficha usa isso pra não publicar um segundo card igual.
   // `castAugments` são os aprimoramentos escolhidos — o efeito ativo da magia
   // usa para pré-selecionar o tier pago.
+  // `castContext`: esotéricos/opções escolhidos e os efeitos ativos das
+  // opções marcadas (Barreira Mística), oferecidos depois do da magia.
   onCast: (
     pmSpent: number,
     spell: Spell,
     castLogged?: boolean,
-    castAugments?: CastAugment[]
+    castAugments?: CastAugment[],
+    castContext?: SpellCastContext
   ) => void;
   onUpdateRolls?: (spell: Spell, newRolls: DiceRoll[]) => void;
   characterName?: string;
   /** Teste obrigatório antes do lançamento (Usurpar). */
   castCheck?: SpellCastCheck;
+  /**
+   * O que os poderes e itens da ficha fazem com esta magia (motor de
+   * modificadores). Ausente = só a redução gravada na própria magia.
+   */
+  castProfile?: SpellCastProfile;
+  /**
+   * Perfil para outro esotérico ("uma magia só recebe os benefícios de um
+   * esotérico por vez"): o diálogo oferece a escolha quando há mais de um.
+   */
+  resolveProfile?: (options: ResolveSpellCastOptions) => SpellCastProfile;
+  /** CD base das magias da ficha; o diálogo soma o bônus do perfil. */
+  baseSpellDC?: number;
 }
 
 const isStackable = isStackableAprimoramento;
@@ -146,6 +170,7 @@ const toPlainRoll = (roll: DiceRoll): DiceRoll => ({
   dice: roll.dice,
   description: roll.description,
   damageType: roll.damageType,
+  rerollOnes: roll.rerollOnes,
 });
 
 const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
@@ -159,6 +184,9 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   onUpdateRolls,
   characterName,
   castCheck,
+  castProfile,
+  resolveProfile,
+  baseSpellDC,
 }) => {
   const theme = useTheme();
   const { showDiceResult, logExternalRoll } = useDiceRoll();
@@ -207,45 +235,94 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   );
   const displayName = getSpellDisplayName(spell);
 
-  const manaReduction = spell.manaReduction ?? 0;
-
-  const effectiveBasePM = useMemo(
-    () => Math.max(0, basePM - manaReduction),
-    [basePM, manaReduction]
+  const [chosenEsoterics, setChosenEsoterics] = useState<string[] | null>(null);
+  // Opções de lançamento marcadas (Magia Pungente, Urro Divino…).
+  const [activeCastOptions, setActiveCastOptions] = useState<string[]>([]);
+  const profile = useMemo(() => {
+    if (resolveProfile && (chosenEsoterics || activeCastOptions.length > 0)) {
+      return resolveProfile({
+        esoterics: chosenEsoterics ?? undefined,
+        castOptions: activeCastOptions,
+      });
+    }
+    return castProfile ?? resolveSpellCast(undefined, spell);
+  }, [castProfile, resolveProfile, chosenEsoterics, activeCastOptions, spell]);
+  // Aprimoramentos da magia + os acrescentados por poderes e itens
+  // (Proeminência Solar). Os índices das seleções valem sobre esta lista.
+  const aprimoramentos = useMemo(
+    () => [...(spell.aprimoramentos ?? []), ...profile.extraAprimoramentos],
+    [spell.aprimoramentos, profile.extraAprimoramentos]
   );
+  // Limite 1: clicar troca. Limite maior (Esoterismo): clicar soma, e o mais
+  // antigo sai quando passa do limite.
+  const toggleEsoteric = useCallback(
+    (name: string) => {
+      const current = profile.esoterics;
+      if (profile.esotericLimit <= 1) {
+        setChosenEsoterics([name]);
+      } else if (current.includes(name)) {
+        setChosenEsoterics(current.filter((n) => n !== name));
+      } else {
+        setChosenEsoterics([...current, name].slice(-profile.esotericLimit));
+      }
+    },
+    [profile.esoterics, profile.esotericLimit]
+  );
+  const toggleCastOption = useCallback((key: string) => {
+    setActiveCastOptions((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  }, []);
+  // CD própria só quando poderes/itens a alteram.
+  const spellDC =
+    baseSpellDC !== undefined && profile.dcBonus !== 0
+      ? baseSpellDC + profile.dcBonus
+      : undefined;
+  // Engenhoca (`basePmOverride`) não paga o custo da magia: não há o que
+  // reduzir — mantém o comportamento de antes, em que a redução só abatia o
+  // custo base.
+  const costProfile = useMemo(
+    () =>
+      basePmOverride !== undefined
+        ? { pmReduction: 0, pmHalve: false }
+        : profile,
+    [basePmOverride, profile]
+  );
+  const manaReduction = costProfile.pmReduction;
+  const manaReductionLabel = profile.pmReductionSources.join(', ') || 'redução';
 
   const hasTruqueSelected = useMemo(() => {
     let found = false;
     selections.forEach((count, index) => {
-      const aprimoramento = spell.aprimoramentos?.[index];
+      const aprimoramento = aprimoramentos[index];
       if (aprimoramento && count > 0 && isTruque(aprimoramento)) {
         found = true;
       }
     });
     return found;
-  }, [selections, spell.aprimoramentos]);
+  }, [selections, aprimoramentos]);
 
   const hasNonTruqueSelected = useMemo(() => {
     let found = false;
     selections.forEach((count, index) => {
-      const aprimoramento = spell.aprimoramentos?.[index];
+      const aprimoramento = aprimoramentos[index];
       if (aprimoramento && count > 0 && !isTruque(aprimoramento)) {
         found = true;
       }
     });
     return found;
-  }, [selections, spell.aprimoramentos]);
+  }, [selections, aprimoramentos]);
 
   const aprimoramentoCost = useMemo(() => {
     let total = 0;
     selections.forEach((count, index) => {
-      const aprimoramento = spell.aprimoramentos?.[index];
+      const aprimoramento = aprimoramentos[index];
       if (aprimoramento && count > 0) {
         total += aprimoramento.addPm * count;
       }
     });
     return total;
-  }, [selections, spell.aprimoramentos]);
+  }, [selections, aprimoramentos]);
 
   const aprimoramentoPmDelta = castCheck?.aprimoramentoPmDelta ?? 0;
 
@@ -253,23 +330,39 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     if (hasTruqueSelected) {
       return 0;
     }
+    // PM "para gastar em aprimoramentos" (Bolsa de pó, Tomo de guerra) só
+    // abatem o custo dos aprimoramentos, nunca o da magia.
     const adjustedAprimoramentos =
       aprimoramentoCost > 0
-        ? Math.max(0, aprimoramentoCost + aprimoramentoPmDelta)
+        ? Math.max(
+            0,
+            aprimoramentoCost + aprimoramentoPmDelta - profile.aprimoramentoPm
+          )
         : 0;
-    return effectiveBasePM + adjustedAprimoramentos;
+    // A redução vale sobre o custo TOTAL, com piso de 1 PM (JdA) — inclusive
+    // o PM das opções de lançamento.
+    return computeSpellPmCost(
+      basePM + adjustedAprimoramentos + profile.castOptionPm,
+      costProfile
+    );
   }, [
-    effectiveBasePM,
+    basePM,
+    costProfile,
+    profile.castOptionPm,
     aprimoramentoCost,
     aprimoramentoPmDelta,
     hasTruqueSelected,
+    profile.aprimoramentoPm,
   ]);
 
   // Custo que entra na CD do teste: sem o desconto do `aprimoramentoPmDelta`
   // (o Comutador barateia o PM, não a dificuldade de ativar).
   const checkPMCost = hasTruqueSelected
     ? 0
-    : effectiveBasePM + aprimoramentoCost;
+    : computeSpellPmCost(
+        basePM + aprimoramentoCost + profile.castOptionPm,
+        costProfile
+      );
 
   const aprimoramentoOverLimit =
     castCheck?.maxAprimoramentoPm !== undefined &&
@@ -277,23 +370,46 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
 
   const effectivePM = currentPM + (tempPM ?? 0);
   const insufficientPM = effectivePM < totalPMCost;
+  // Limite de PM gastos (JdA p. 224). Engenhoca tem o próprio teto. "Você
+  // sempre pode usar a habilidade em seu custo mínimo": o limite nunca fica
+  // abaixo do custo da magia sem aprimoramentos (magia de 2º círculo vinda de
+  // poder num personagem de 1º nível).
+  const pmLimit =
+    basePmOverride === undefined && profile.pmLimit !== undefined
+      ? Math.max(profile.pmLimit, computeSpellPmCost(basePM, costProfile))
+      : undefined;
+  const pmOverLimit = pmLimit !== undefined && totalPMCost > pmLimit;
 
   // Aprimoramentos ativos, no formato consumido pelo motor de aumento.
   const activeSelections = useMemo<AprimoramentoSelection[]>(() => {
     const result: AprimoramentoSelection[] = [];
     selections.forEach((count, index) => {
-      const aprimoramento = spell.aprimoramentos?.[index];
+      const aprimoramento = aprimoramentos[index];
       if (aprimoramento && count > 0) {
         result.push({ aprimoramento, count });
       }
     });
     return result;
-  }, [selections, spell.aprimoramentos]);
+  }, [selections, aprimoramentos]);
 
   // Rolagens aumentadas automaticamente pelos aprimoramentos ativos.
+  // Depois, os bônus de poderes/itens (ex.: Mago Branco, +1 PV por dado de
+  // cura) — inclusive sobre os dados que os aprimoramentos somaram.
+  // Por fim, as rolagens extras de poderes/itens (Costela de lich) — fora de
+  // `localRolls` de propósito: não são da magia e não podem ser gravadas nela
+  // pelo `onUpdateRolls`.
   const effectiveRolls = useMemo(
-    () => augmentSpellRolls(localRolls, activeSelections),
-    [localRolls, activeSelections]
+    () => [
+      ...applySpellRollModifiers(
+        augmentSpellRolls(localRolls, activeSelections),
+        profile
+      ),
+      ...profile.extraRolls.map((roll) => {
+        const extra = { ...roll, baseDice: roll.dice, isAugmented: false };
+        return profile.maximize ? maximizeRoll(extra) : extra;
+      }),
+    ],
+    [localRolls, activeSelections, profile]
   );
 
   // Rolagens exibidas/executadas: edição manual quando houver, senão o
@@ -316,6 +432,10 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     [effectiveRolls]
   );
 
+  // Chave estável (e não o array): o perfil pode ser recriado com a ficha
+  // aberta, e isso não pode zerar as escolhas do jogador.
+  const extraRollKey = profile.extraRolls.map((r) => r.id).join('|');
+
   useEffect(() => {
     if (open) {
       setSelections(new Map());
@@ -327,11 +447,18 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
         id: roll.id || uuid(),
       }));
       setLocalRolls(rollsWithIds);
-      // Select all rolls by default
-      setSelectedRollIds(new Set(rollsWithIds.map((r) => r.id as string)));
+      // Select all rolls by default (inclusive as extras de poderes/itens).
+      setSelectedRollIds(
+        new Set([
+          ...rollsWithIds.map((r) => r.id as string),
+          ...extraRollKey.split('|').filter(Boolean),
+        ])
+      );
       setActiveCheckToggles(new Set());
+      setChosenEsoterics(null);
+      setActiveCastOptions([]);
     }
-  }, [open, spell.rolls]);
+  }, [open, spell.rolls, extraRollKey]);
 
   const handleAprimoramentoToggle = useCallback((index: number) => {
     setSelections((prev) => {
@@ -504,13 +631,17 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
       ...buildSpellAbilityMeta(spell, pmSpent),
       name: displayName,
     };
+    const optionsNote = profile.castOptions
+      .filter((option) => option.active)
+      .map((option) => `${option.label} (${option.source})`)
+      .join(', ');
     const extraNote = (() => {
       if (checkFailed)
         return (
           castCheck?.failureNote ??
           'Usurpar falhou: a magia é perdida, mas os PM são gastos.'
         );
-      return adjustment.note;
+      return [adjustment.note, optionsNote].filter(Boolean).join(' · ');
     })();
     const abilityWithNote = extraNote
       ? {
@@ -560,7 +691,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     // Na falha do teste não há efeito a oferecer — a magia não aconteceu.
     const castAugments: CastAugment[] = [];
     selections.forEach((count, index) => {
-      const aprimoramento = spell.aprimoramentos?.[index];
+      const aprimoramento = aprimoramentos[index];
       if (aprimoramento && count > 0) {
         castAugments.push({
           text: aprimoramento.text,
@@ -569,7 +700,18 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
         });
       }
     });
-    onCast(pmSpent, spell, castLogged, castAugments);
+    const castEffectKeys = checkFailed
+      ? []
+      : profile.castOptions
+          .filter((option) => option.active && option.activeEffectKey)
+          .map((option) => option.activeEffectKey as string);
+    onCast(pmSpent, spell, castLogged, castAugments, {
+      effectKeys: castEffectKeys,
+      resolveOptions: {
+        esoterics: profile.esoterics,
+        castOptions: activeCastOptions,
+      },
+    });
 
     onClose();
   }, [
@@ -766,23 +908,76 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
               </Typography>
               <Stack
                 direction='row'
-                spacing={2}
+                spacing={1}
+                useFlexGap
                 sx={{
                   alignItems: 'center',
+                  flexWrap: 'wrap',
                 }}
               >
-                <Typography>
+                <Typography sx={{ mr: 1 }}>
                   <strong>Custo Base:</strong> {basePM} PM
                 </Typography>
                 {manaReduction > 0 && (
                   <Chip
-                    label={`-${manaReduction} PM (redução)`}
+                    label={`-${manaReduction} PM (${manaReductionLabel})`}
                     size='small'
                     color='success'
                     variant='outlined'
                   />
                 )}
+                {spellDC !== undefined && spell.resistencia && (
+                  <Chip
+                    label={`CD ${spellDC}`}
+                    size='small'
+                    color='primary'
+                    variant='outlined'
+                  />
+                )}
+                {profile.notes.map((note) => (
+                  <Chip
+                    key={note}
+                    label={note}
+                    size='small'
+                    color='success'
+                    variant='outlined'
+                  />
+                ))}
               </Stack>
+              {resolveProfile &&
+                profile.esotericOptions.length > profile.esotericLimit && (
+                  <Stack
+                    direction='row'
+                    spacing={1}
+                    useFlexGap
+                    sx={{ alignItems: 'center', flexWrap: 'wrap', mt: 1 }}
+                  >
+                    <Typography variant='body2' sx={{ mr: 0.5 }}>
+                      <strong>
+                        {profile.esotericLimit > 1
+                          ? `Esotéricos (até ${profile.esotericLimit}):`
+                          : 'Esotérico:'}
+                      </strong>
+                    </Typography>
+                    {profile.esotericOptions.map((name) => (
+                      <Chip
+                        key={name}
+                        label={name}
+                        size='small'
+                        // Secundária: o tema pinta todo chip primário de
+                        // fundo sólido, e escolhido/não escolhido ficavam
+                        // iguais.
+                        color='secondary'
+                        variant={
+                          profile.esoterics.includes(name)
+                            ? 'filled'
+                            : 'outlined'
+                        }
+                        onClick={() => toggleEsoteric(name)}
+                      />
+                    ))}
+                  </Stack>
+                )}
             </Box>
 
             {showActiveEffectHint && (
@@ -844,7 +1039,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
 
             <SpellAreaGuideSection spell={spell} isMobile={isMobile} />
 
-            {spell.aprimoramentos && spell.aprimoramentos.length > 0 && (
+            {aprimoramentos && aprimoramentos.length > 0 && (
               <>
                 <Divider />
                 <Box>
@@ -857,7 +1052,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                   >
                     Aprimoramentos
                   </Typography>
-                  {spell.aprimoramentos.map((apr, idx) =>
+                  {aprimoramentos.map((apr, idx) =>
                     renderAprimoramento(apr, idx)
                   )}
                   {aprimoramentoOverLimit && (
@@ -866,6 +1061,56 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                       do limite de {castCheck?.maxAprimoramentoPm} PM.
                     </Alert>
                   )}
+                </Box>
+              </>
+            )}
+
+            {profile.castOptions.length > 0 && (
+              <>
+                <Divider />
+                <Box>
+                  <Typography
+                    variant='subtitle1'
+                    sx={{
+                      fontWeight: 'bold',
+                      mb: 1,
+                    }}
+                  >
+                    Opções de lançamento
+                  </Typography>
+                  {profile.castOptions.map((option) => (
+                    <FormControlLabel
+                      key={option.key}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        mb: 0.5,
+                      }}
+                      control={
+                        <Checkbox
+                          size='small'
+                          checked={option.active}
+                          disabled={hasTruqueSelected}
+                          onChange={() => toggleCastOption(option.key)}
+                        />
+                      }
+                      label={
+                        <Typography variant='body2' sx={{ pt: 0.75 }}>
+                          {option.addPm > 0 && (
+                            <strong>+{option.addPm} PM: </strong>
+                          )}
+                          {option.label}{' '}
+                          <Typography
+                            component='span'
+                            variant='caption'
+                            sx={{ color: 'text.secondary' }}
+                          >
+                            ({option.source})
+                          </Typography>
+                        </Typography>
+                      }
+                    />
+                  ))}
                 </Box>
               </>
             )}
@@ -996,6 +1241,14 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                             />
                           )}
                         </Stack>
+                        {roll.rerollOnes && (
+                          <Typography
+                            variant='caption'
+                            sx={{ display: 'block', color: 'text.secondary' }}
+                          >
+                            Resultados 1 são rolados de novo.
+                          </Typography>
+                        )}
                         {roll.description && (
                           <Typography
                             variant='caption'
@@ -1056,6 +1309,16 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
               {insufficientPM && (
                 <Typography variant='body2' color='error'>
                   {insufficientPM && ' (PM insuficiente!)'}
+                </Typography>
+              )}
+              {pmLimit !== undefined && (
+                <Typography
+                  variant='body2'
+                  color={pmOverLimit ? 'error' : 'text.secondary'}
+                >
+                  {pmOverLimit
+                    ? `Passa do limite de ${pmLimit} PM por magia.`
+                    : `Limite de ${pmLimit} PM por magia.`}
                 </Typography>
               )}
             </Box>
@@ -1126,7 +1389,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
             onClick={handleCast}
             startIcon={<CasinoIcon />}
             color={insufficientPM && shouldSpendPM ? 'warning' : 'primary'}
-            disabled={aprimoramentoOverLimit}
+            disabled={aprimoramentoOverLimit || pmOverLimit}
           >
             {castCheck?.actionLabel ?? 'Usar magia'} com {totalPMCost} PM
           </Button>

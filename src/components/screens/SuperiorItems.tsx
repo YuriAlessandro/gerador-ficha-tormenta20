@@ -51,7 +51,7 @@ import { dataRegistry } from '../../data/registry';
 import ItemModificationsEditor from '../SheetResult/BackpackModal/ItemModificationsEditor';
 import { getCategorizedCombatItems } from '../../utils/itemGeneratorEquipment';
 
-type ItemType = 'weapon' | 'armor' | 'shield';
+type ItemType = 'weapon' | 'armor' | 'shield' | 'esoteric';
 
 interface ItemOption {
   label: string;
@@ -99,7 +99,9 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
   const getModifications = (itemType: ItemType): ItemMod[] => {
     const improvements =
       dataRegistry.getImprovementsBySupplements(userSupplements);
-    return itemType === 'weapon' ? improvements.weapons : improvements.armors;
+    if (itemType === 'weapon') return improvements.weapons;
+    if (itemType === 'esoteric') return improvements.esoterics;
+    return improvements.armors;
   };
 
   const getValidMods = (
@@ -193,6 +195,8 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
       items = armorsByType[subType as keyof typeof armorsByType] || [];
     } else if (itemType === 'shield') {
       items = shields;
+    } else if (itemType === 'esoteric') {
+      items = dataRegistry.getEquipmentBySupplements(userSupplements).esoteric;
     }
 
     // Sort by origin (core first, then supplements alphabetically) so the
@@ -319,32 +323,26 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
           const specialMaterial = getSpecialMaterial();
           const materialData =
             dataRegistry.getSpecialMaterialByName(specialMaterial);
-          const relevantEffect =
-            state.selectedItemType === 'weapon'
-              ? materialData?.weaponEffect
-              : materialData?.armorEffect;
+          let relevantEffect = materialData?.armorEffect;
+          if (state.selectedItemType === 'weapon') {
+            relevantEffect = materialData?.weaponEffect;
+          } else if (state.selectedItemType === 'esoteric') {
+            relevantEffect = materialData?.esotericEffect;
+          }
 
           return {
             ...mod,
             mod: `Material ${specialMaterial}`,
             description:
               relevantEffect?.effect || `Material ${specialMaterial}`,
-            appliesTo: state.selectedItemType as
-              | 'weapon'
-              | 'armor'
-              | 'shield'
-              | 'all',
+            appliesTo: state.selectedItemType ?? undefined,
           };
         }
 
         return {
           ...mod,
           description: mod.description || '',
-          appliesTo: state.selectedItemType as
-            | 'weapon'
-            | 'armor'
-            | 'shield'
-            | 'all',
+          appliesTo: state.selectedItemType ?? undefined,
         };
       }),
       timestamp: new Date(),
@@ -403,32 +401,26 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
         if (mod.mod === 'Material especial' && selectedMaterial) {
           const materialData =
             dataRegistry.getSpecialMaterialByName(selectedMaterial);
-          const relevantEffect =
-            state.selectedItemType === 'weapon'
-              ? materialData?.weaponEffect
-              : materialData?.armorEffect;
+          let relevantEffect = materialData?.armorEffect;
+          if (state.selectedItemType === 'weapon') {
+            relevantEffect = materialData?.weaponEffect;
+          } else if (state.selectedItemType === 'esoteric') {
+            relevantEffect = materialData?.esotericEffect;
+          }
 
           return {
             ...mod,
             mod: `Material ${selectedMaterial}`,
             description:
               relevantEffect?.effect || `Material ${selectedMaterial}`,
-            appliesTo: state.selectedItemType as
-              | 'weapon'
-              | 'armor'
-              | 'shield'
-              | 'all',
+            appliesTo: state.selectedItemType ?? undefined,
           };
         }
 
         return {
           ...mod,
           description: mod.description || '',
-          appliesTo: state.selectedItemType as
-            | 'weapon'
-            | 'armor'
-            | 'shield'
-            | 'all',
+          appliesTo: state.selectedItemType ?? undefined,
         };
       }),
       timestamp: new Date(),
@@ -502,11 +494,13 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
                   <MenuItem value='weapon'>Armas</MenuItem>
                   <MenuItem value='armor'>Armaduras</MenuItem>
                   <MenuItem value='shield'>Escudos</MenuItem>
+                  <MenuItem value='esoteric'>Esotéricos</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
 
-            {state.selectedItemType && state.selectedItemType !== 'shield' && (
+            {(state.selectedItemType === 'weapon' ||
+              state.selectedItemType === 'armor') && (
               <Grid size={{ xs: 12, md: 4 }}>
                 <FormControl fullWidth>
                   <InputLabel>Subtipo</InputLabel>
@@ -650,6 +644,7 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
                         {item.itemType === 'weapon' && 'Arma'}
                         {item.itemType === 'armor' && 'Armadura'}
                         {item.itemType === 'shield' && 'Escudo'}
+                        {item.itemType === 'esoteric' && 'Esotérico'}
                         {' • '}
                         {new Date(item.timestamp).toLocaleString()}
                       </Typography>
