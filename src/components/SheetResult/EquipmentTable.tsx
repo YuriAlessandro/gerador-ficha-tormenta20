@@ -11,6 +11,11 @@ import {
 } from '@/functions/equipmentStats';
 import { useContainerWidth } from '@/hooks/useContainerWidth';
 import { getSupplementInitials } from '@/functions/equipmentDisplay';
+import {
+  getContainerIds,
+  getLocationLabel,
+  isCarried,
+} from '@/functions/bagStorage';
 import RollButton from '../RollButton';
 import { CATEGORY_ORDER, itemTypeStyles } from './BackpackModal/itemTypeStyles';
 import WieldingControl from './BackpackModal/WieldingControl';
@@ -160,6 +165,8 @@ const EquipmentRow: React.FC<{
   warning?: string;
   wieldingSlot: WieldingSlot;
   wielding?: EquipmentTableWielding;
+  /** Local quando o item não está com o personagem ("Alforje", "Guardado"). */
+  locationLabel?: string;
 }> = ({
   item,
   stats,
@@ -169,6 +176,7 @@ const EquipmentRow: React.FC<{
   warning,
   wieldingSlot,
   wielding,
+  locationLabel,
 }) => {
   const spaces = getItemSpaces(item);
   // `—` significa "espaço não definido", não "zero": um item que o jogador
@@ -209,6 +217,16 @@ const EquipmentRow: React.FC<{
         </Tooltip>
       )}
       {countLabel && <Chip label={countLabel} size='small' sx={QTY_CHIP_SX} />}
+      {locationLabel && (
+        <Chip
+          label={locationLabel}
+          title='Não conta na sua carga'
+          size='small'
+          variant='outlined'
+          color='info'
+          sx={SUPPLEMENT_CHIP_SX}
+        />
+      )}
       {supplement && (
         <Chip
           label={supplement}
@@ -313,12 +331,18 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({
       else byGroup.set(item.group, [item]);
     });
 
+    // Subtotal = o que o personagem CARREGA, para somar com o total da ficha.
+    const containerIds = getContainerIds(items);
     return CATEGORY_ORDER.filter((group) => byGroup.has(group)).map((group) => {
       const groupItems = byGroup.get(group) as Equipment[];
       return {
         group,
         items: groupItems,
-        spaces: groupItems.reduce((acc, item) => acc + getItemSpaces(item), 0),
+        spaces: groupItems.reduce(
+          (acc, item) =>
+            isCarried(item, containerIds) ? acc + getItemSpaces(item) : acc,
+          0
+        ),
       };
     });
   }, [items]);
@@ -425,6 +449,7 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({
                   wielding ? getWieldingSlot(item.id, wielding.state) : null
                 }
                 wielding={wielding}
+                locationLabel={getLocationLabel(item, items)}
               />
             ))}
           </Box>

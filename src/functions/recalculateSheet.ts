@@ -58,6 +58,7 @@ import {
   getClassLevel,
   getMulticlassAvailableAbilities,
   findClassDescription,
+  getHighestSpellCircle,
 } from './multiclass';
 import {
   LEARNED_CLASS_ABILITY_LEVEL,
@@ -295,7 +296,7 @@ const resolveClassLevel = (
  * conjurador). Considera a classe principal e multiclasse.
  */
 const maxSpellCircleOf = (sheet: CharacterSheet): number =>
-  sheet.classe?.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) ?? 0;
+  getHighestSpellCircle(sheet);
 
 export const calculateBonusValue = (
   sheet: CharacterSheet,
@@ -767,6 +768,32 @@ const injectDeusMenorPmBonus = (sheet: CharacterSheet): CharacterSheet => {
   return updatedSheet;
 };
 
+/**
+ * Arma do "empunhando uma arma corpo a corpo em uma das mãos e nada na outra"
+ * (Estilo de Uma Arma, Ataque Preciso). `undefined` se a condição não vale.
+ */
+const getOneHandedMeleeWeapon = (
+  sheet: CharacterSheet
+): Equipment | undefined => {
+  // Exatamente uma mão ocupada e as demais vazias: arma de duas mãos ocupa duas
+  // (mesmo id nos dois slots) e um item em mão extra também tira o "nada na
+  // outra" de quem tem Quatro Braços.
+  if (countOccupiedHands(sheet) !== 1) return undefined;
+  const [occupiedId] = getWieldedItemIds(sheet);
+
+  // O item empunhado precisa ser uma arma corpo a corpo (escudos ficam em
+  // `Escudo`, então não casam aqui).
+  const weapon = (sheet.bag.equipments.Arma || []).find(
+    (w) => w.id === occupiedId
+  );
+  if (!weapon || !isWeaponMelee(weapon)) return undefined;
+  // "(exceto ataques desarmados)" — o Ataque Desarmado e as armas naturais
+  // desarmadas também moram em `Arma`.
+  if (weapon.weaponTags?.includes('desarmado')) return undefined;
+
+  return weapon;
+};
+
 const injectEstiloDeUmaArmaBonuses = (
   sheet: CharacterSheet
 ): CharacterSheet => {
@@ -775,21 +802,8 @@ const injectEstiloDeUmaArmaBonuses = (
   );
   if (!hasPower) return sheet;
 
-  // Exatamente uma mão ocupada e as demais vazias: arma de duas mãos ocupa duas
-  // (mesmo id nos dois slots) e um item em mão extra também tira o "nada na
-  // outra" de quem tem Quatro Braços.
-  if (countOccupiedHands(sheet) !== 1) return sheet;
-  const [occupiedId] = getWieldedItemIds(sheet);
-
-  // O item empunhado precisa ser uma arma corpo a corpo (escudos ficam em
-  // `Escudo`, então não casam aqui).
-  const weapon = (sheet.bag.equipments.Arma || []).find(
-    (w) => w.id === occupiedId
-  );
-  if (!weapon || !isWeaponMelee(weapon)) return sheet;
-  // "(exceto ataques desarmados)" — o Ataque Desarmado e as armas naturais
-  // desarmadas também moram em `Arma`.
-  if (weapon.weaponTags?.includes('desarmado')) return sheet;
+  const weapon = getOneHandedMeleeWeapon(sheet);
+  if (!weapon) return sheet;
 
   const updatedSheet = _.cloneDeep(sheet);
   updatedSheet.sheetBonuses.push(
@@ -806,6 +820,44 @@ const injectEstiloDeUmaArmaBonuses = (
         meleeOnly: true,
       },
       modifier: { type: 'Fixed', value: 2 },
+    }
+  );
+
+  return updatedSheet;
+};
+
+/**
+ * Ataque Preciso: mesma condição de empunhadura do Estilo de Uma Arma, com +2
+ * na margem de ameaça e +1 no multiplicador de crítico da arma.
+ */
+const injectAtaquePrecisoBonuses = (sheet: CharacterSheet): CharacterSheet => {
+  const hasPower = (sheet.generalPowers || []).some(
+    (p) => p.name === 'Ataque Preciso'
+  );
+  if (!hasPower) return sheet;
+
+  const weapon = getOneHandedMeleeWeapon(sheet);
+  if (!weapon) return sheet;
+
+  const updatedSheet = _.cloneDeep(sheet);
+  updatedSheet.sheetBonuses.push(
+    {
+      source: { type: 'power', name: 'Ataque Preciso' },
+      target: {
+        type: 'WeaponThreatMargin',
+        weaponName: weapon.nome,
+        meleeOnly: true,
+      },
+      modifier: { type: 'Fixed', value: 2 },
+    },
+    {
+      source: { type: 'power', name: 'Ataque Preciso' },
+      target: {
+        type: 'WeaponCriticalMultiplier',
+        weaponName: weapon.nome,
+        meleeOnly: true,
+      },
+      modifier: { type: 'Fixed', value: 1 },
     }
   );
 
@@ -1699,6 +1751,50 @@ export function reverseHistoryEntries(
 }
 
 /**
+ * Desfaz os aumentos de atributo das instâncias removidas de um poder
+ * repetível que continua na ficha (tirou 1 de 2 Aumentos de Atributo). Cada
+ * instância grava uma entrada `AttributeIncreasedByAumentoDeAtributo`; saem as
+ * últimas, uma por instância a menos. A remoção total segue pelo
+ * `reverseSheetActionsForPower`.
+ */
+function reverseRemovedAttributeIncreaseInstances(
+  sheet: CharacterSheet,
+  originalPowers: { name: string; canRepeat?: boolean }[],
+  newPowers: { name: string }[]
+): void {
+  const countOf = (powers: { name: string }[], name: string) =>
+    powers.filter((p) => p.name === name).length;
+
+  const repeatableNames = new Set(
+    originalPowers.filter((p) => p.canRepeat).map((p) => p.name)
+  );
+
+  repeatableNames.forEach((powerName) => {
+    const remaining = countOf(newPowers, powerName);
+    const removed = countOf(originalPowers, powerName) - remaining;
+    if (remaining === 0 || removed <= 0) return;
+
+    const increaseEntries = sheet.sheetActionHistory.filter(
+      (entry) =>
+        entry.powerName === powerName &&
+        entry.changes.some(
+          (change) => change.type === 'AttributeIncreasedByAumentoDeAtributo'
+        )
+    );
+    // Só o excedente: ficha antiga com instância sem entrada não perde a
+    // entrada de uma instância que ficou.
+    const excess = Math.min(removed, increaseEntries.length - remaining);
+    if (excess <= 0) return;
+
+    const toRevert = increaseEntries.slice(-excess);
+    reverseHistoryEntries(sheet, toRevert, powerName);
+    sheet.sheetActionHistory = sheet.sheetActionHistory.filter(
+      (entry) => !toRevert.includes(entry)
+    );
+  });
+}
+
+/**
  * Reverts the side effects of a power/ability identified by `powerName` by
  * walking its `sheetActionHistory` entries and undoing arrays mutated outside
  * `sheetBonuses` (which is wiped in Step 1 of `recalculateSheet`).
@@ -1999,6 +2095,14 @@ export function recalculateSheet(
     removedPowerNames.forEach((powerName) => {
       reverseSheetActionsForPower(updatedSheet, powerName);
     });
+
+    // Poder repetível com MENOS instâncias, mas não zerado (tirou 1 de 2
+    // Aumentos de Atributo): a comparação por nome acima não vê nada.
+    reverseRemovedAttributeIncreaseInstances(
+      updatedSheet,
+      [...(originalSheet.classPowers || []), ...originalGeneralPowers],
+      [...newClassPowers, ...newGeneralPowers]
+    );
 
     // If the user removed a general power that a race ability deterministically
     // replays from a stored choice (Osteon "Memória Póstuma", Yidishan
@@ -2439,10 +2543,12 @@ export function recalculateSheet(
     }
   });
 
-  // Step 8.5: Inject Estilo de Uma Arma bonuses (condicional à empunhadura).
+  // Step 8.5: Inject Estilo de Uma Arma / Ataque Preciso bonuses (condicional
+  // à empunhadura).
   // Precisa rodar APÓS sheetBonuses estarem populados e ANTES dos Steps 9-10
   // (Defesa), 13 (armas) e 14 (RD), que consomem os bônus injetados.
   updatedSheet = injectEstiloDeUmaArmaBonuses(updatedSheet);
+  updatedSheet = injectAtaquePrecisoBonuses(updatedSheet);
   updatedSheet = injectEstiloDeArmaEEscudoBonuses(updatedSheet);
   updatedSheet = injectHeavyArmorPowerBonuses(updatedSheet);
   // Depois dos demais: a Carapaça Kappa inspeciona se algo mais já soma

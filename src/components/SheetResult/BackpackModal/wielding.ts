@@ -564,6 +564,9 @@ export function canMergeStacks(a: Equipment, b: Equipment): boolean {
   if (a.hasManualEdits || b.hasManualEdits) return false;
   if (a.customDisplayName || b.customDisplayName) return false;
   if (a.descricao !== b.descricao) return false;
+  // Locais diferentes (com você × Alforje/guardado) nunca fundem: a pilha do
+  // Alforje seria absorvida pela que está com você e voltaria para a carga.
+  if ((a.storedIn ?? '') !== (b.storedIn ?? '')) return false;
   const empty = (arr?: unknown[]): boolean => !arr || arr.length === 0;
   return (
     empty(a.modifications) &&

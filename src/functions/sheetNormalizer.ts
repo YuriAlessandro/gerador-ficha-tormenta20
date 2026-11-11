@@ -64,6 +64,7 @@ import {
   CORPO_ABERRANTE_SHEET_BONUSES,
   PELE_CORROMPIDA_SHEET_BONUSES,
 } from '../data/systems/tormenta20/powers/tormentaPowerSheetBonuses';
+import { CITADINO_SHEET_BONUSES } from '../data/systems/tormenta20/herois-de-arton/powers/racePowers';
 import { updateUnarmedRolls } from './unarmedDamage';
 import {
   refreshFeiticeiroLinhagemAbility,
@@ -117,7 +118,8 @@ function getGrantedPowersByName(): Map<string, GeneralPower> {
 // Os estilos de combate (Estilo Clássico, Estilo de Duas Mãos, Estilo de
 // Arremesso) eram texto puro ou só parcialmente automatizados — sem o refresh,
 // a ficha de quem já tinha o poder continuaria sem o bônus. Idem Pele de Aço e
-// Defesa Armada, que eram texto puro.
+// Defesa Armada, que eram texto puro. Idem Citadino (poder racial de Heróis de
+// Arton).
 const REFRESHED_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
   ['Arqueiro', ARQUEIRO_SHEET_BONUSES],
   ['Esgrimista', ESGRIMISTA_SHEET_BONUSES],
@@ -132,6 +134,7 @@ const REFRESHED_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
   ['Estilo de Arremesso', ESTILO_DE_ARREMESSO_SHEET_BONUSES],
   ['Pele de Aço', PELE_DE_ACO_SHEET_BONUSES],
   ['Defesa Armada', DEFESA_ARMADA_SHEET_BONUSES],
+  ['Citadino', CITADINO_SHEET_BONUSES],
 ]);
 
 function refreshPowerBonuses<

@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            30/10/2026 (v4.37).
+            10/11/2026 (v4.38).
           </p>
 
           <p>
@@ -74,6 +74,86 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.38</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> agora dá para separar os itens da{' '}
+                  <strong>mochila</strong> por local. Pelo novo botão de bagagem
+                  em cada item, você leva o item para o <strong>Alforje</strong>{' '}
+                  (até 10 espaços, carregados pela montaria), para um{' '}
+                  <strong>veículo</strong> (Carroça, Carruagem, Canoa, Balão
+                  goblin e os veículos de Heróis de Arton, cada um com sua
+                  capacidade) ou deixa <strong>guardado</strong> fora da
+                  aventura. O que não está com você não conta na sua carga, e
+                  cada local mostra quantos espaços estão ocupados. Dá para
+                  mover só parte de uma pilha, como 3 de 10 rações.
+                </li>
+                <li>
+                  <strong>Novo:</strong> a <strong>Tela do Jogador</strong>{' '}
+                  agora tem <strong>playlists</strong>. Na nova aba Trilhas,
+                  monte listas de músicas colando um ou vários links do YouTube
+                  de uma vez (o nome de cada faixa é preenchido sozinho) e
+                  arraste para ordenar. A playlist passa sozinha de uma música
+                  para a outra e toca <strong>em sequência</strong>, em ordem{' '}
+                  <strong>aleatória</strong> ou repetindo{' '}
+                  <strong>só a faixa atual</strong>. No Ao vivo, a trilha ganhou
+                  um mini-player com faixa anterior, próxima e a lista de
+                  faixas, e cada playlist vira um card para tocar com um clique.
+                  Uma cena pode tocar uma faixa única ou uma playlist inteira, e
+                  você é avisado quando um vídeo não pode ser tocado na tela.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> a exportação para o{' '}
+                  <strong>Foundry VTT</strong> (sistema Tormenta20 1.6.6,
+                  importável a partir da 1.6.2) agora traz atributos, perícias,
+                  Defesa e carga batendo com a ficha, sem somar a raça duas
+                  vezes. Ajustes temporários de atributo vão como efeitos
+                  ligados, as magias saem com a CD da ficha (inclusive as do
+                  Usurpar), e armas empunhadas, magias e poderes com rolagem já
+                  aparecem na frente da ficha do Foundry.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o poder{' '}
+                  <strong>Ataque Preciso</strong> agora é aplicado na ficha
+                  automaticamente: empunhando uma arma corpo a corpo em uma mão
+                  e nada na outra, a arma recebe +2 na margem de ameaça e +1 no
+                  multiplicador de crítico, assim como o Estilo de Uma Arma já
+                  fazia com a Defesa e o ataque.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a melhoria{' '}
+                  <strong>Devotado</strong> (Deuses de Arton) agora exige a
+                  melhoria <strong>Inscrito</strong>, como no livro. Ao escolher
+                  Devotado, Inscrito é adicionado junto; ao remover Inscrito,
+                  Devotado sai também.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o poder racial{' '}
+                  <strong>Citadino</strong> (Heróis de Arton) agora soma +2 em
+                  Atuação, Diplomacia, Enganação, Intimidação e Jogatina. Antes
+                  o bônus só aparecia na descrição. Fichas já salvas com o poder
+                  também passam a somar.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o poder{' '}
+                  <strong>Aumento de Atributo</strong> escolhido mais de uma vez
+                  pelo editor de poderes (ou em fichas aleatórias de nível alto)
+                  agora dá o +1 de cada escolha. Antes o poder aparecia
+                  repetido, mas só o primeiro aumentava o atributo. Remover uma
+                  das cópias também desfaz só o aumento dela. Fichas que já
+                  ficaram sem o bônus: remova a cópia a mais e adicione de novo,
+                  escolhendo o atributo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o poder{' '}
+                  <strong>Conhecimento Mágico</strong> em personagens
+                  multiclasse agora oferece magias de todos os círculos que a
+                  classe conjuradora alcança. Antes, um Lutador 6 / Arcanista 5
+                  só via magias de 1º círculo, e um Arcanista com níveis em
+                  outra classe via círculos acima do que podia lançar.
+                </li>
+              </ul>
+
               <h3>4.37</h3>
 
               <Typography variant='body1' sx={{ mt: 2 }}>

@@ -1,13 +1,15 @@
 // `_id`/`_stats` são nomes de campo do Foundry, não escolha nossa.
 /* eslint-disable no-underscore-dangle */
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
+import { Atributo } from '../../data/systems/tormenta20/atributos';
+import { Armas } from '../../data/systems/tormenta20/equipamentos';
 import generateRandomSheet from '../../functions/general';
+import { getSkillTotal } from '../../functions/skills/skillTotal';
 import { collectSheetPowers } from '../../functions/powers/collectSheetPowers';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
 import { spellsCircles } from '../../interfaces/Spells';
 import Equipment from '../../interfaces/Equipment';
-import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { spellsCircle2 } from '../../data/systems/tormenta20/magias/generalSpells';
 import { SupplementId } from '../../types/supplement.types';
 import { convertToFoundry } from '..';
@@ -26,8 +28,15 @@ import {
   WEAPON_PROFICIENCIES,
   WEAPON_PURPOSES,
 } from '../enums';
-import { parseCritical } from '../items/equipment';
-import { FoundryData, FoundryItem, FoundryJSON, FoundryRoll } from '../types';
+import { parseCritical, splitWeaponDamage } from '../items/equipment';
+import { FOUNDRY_SKILLS, getTrainingBonus } from '../skills';
+import {
+  FoundryData,
+  FoundryEffect,
+  FoundryItem,
+  FoundryJSON,
+  FoundryRoll,
+} from '../types';
 
 const generate = (classe: string, nivel: number): CharacterSheet =>
   generateRandomSheet({
@@ -125,6 +134,69 @@ function expectValidItems(items: FoundryItem[]) {
 
 const ofType = (json: FoundryJSON, type: string) =>
   json.items.filter((item) => item.type === type);
+
+/** Efeitos que o Foundry aplica ao ator: os dele e os transferidos dos itens. */
+const appliedEffects = (json: FoundryJSON): FoundryEffect[] =>
+  [
+    ...json.effects,
+    ...json.items.flatMap((item) => item.effects).filter((e) => e.transfer),
+  ].filter((effect) => !effect.disabled && !effect.system.onuse);
+
+const sumChanges = (json: FoundryJSON, keys: string[]): number =>
+  appliedEffects(json)
+    .flatMap((effect) => effect.system.changes)
+    .filter((change) => keys.includes(change.key))
+    .reduce((sum, change) => sum + Number(change.value), 0);
+
+/** `prepareAtributos` do sistema: base + racial + bônus dos efeitos ligados. */
+const foundryAttribute = (json: FoundryJSON, key: string): number => {
+  const attribute = data(data(json.system.atributos)[key]);
+  return (
+    Number(attribute.base) +
+    Number(attribute.racial) +
+    sumChanges(json, [`system.atributos.${key}.bonus`])
+  );
+};
+
+const SIZE_MODIFIERS: Record<string, number> = {
+  min: 5,
+  peq: 2,
+  med: 0,
+  gra: -2,
+  eno: -5,
+  col: -10,
+};
+
+/** `prepareSkill` do sistema sobre o JSON exportado. */
+const foundrySkillTotal = (json: FoundryJSON, key: string): number => {
+  const skill = data(data(json.system.pericias)[key]);
+  const level = ofType(json, 'classe').reduce(
+    (sum, item) => sum + Number(item.system.niveis),
+    0
+  );
+  const armorPenalty = ofType(json, 'equipamento')
+    .filter((item) => item.system.equipado)
+    .reduce(
+      (sum, item) => sum + Number(data(item.system.armadura).penalidade ?? 0),
+      0
+    );
+  const size = String(data(json.system.tracos).tamanho);
+  return (
+    Math.floor(level / 2) +
+    foundryAttribute(json, String(skill.atributo)) +
+    (skill.treinado ? getTrainingBonus(level) : 0) +
+    sumChanges(json, [
+      `system.pericias.${key}.bonus`,
+      'system.pericias.*.bonus',
+    ]) +
+    (skill.pda ? armorPenalty : 0) +
+    (skill.size ? SIZE_MODIFIERS[size] ?? 0 : 0) +
+    Number(skill.outros)
+  );
+};
+
+const weaponNamed = (json: FoundryJSON, name: string) =>
+  ofType(json, 'arma').find((item) => item.name === name) as FoundryItem;
 
 describe('convertToFoundry', () => {
   it('exporta todos os poderes e magias de um Arcanista', () => {
@@ -370,6 +442,16 @@ describe('convertToFoundry', () => {
         modifier: fixed(10),
       },
     ];
+    // O recálculo soma os bônus de perícia no `others` da ficha.
+    const skillOthers: Partial<Record<Skill, number>> = {
+      [Skill.FURTIVIDADE]: 3,
+      [Skill.PERCEPCAO]: 1,
+      [Skill.VONTADE]: -2,
+    };
+    sheet.completeSkills = sheet.completeSkills?.map((skill) => ({
+      ...skill,
+      others: skillOthers[skill.name] ?? 0,
+    }));
 
     const json = convertToFoundry(sheet);
     expectValidItems(json.items);
@@ -403,7 +485,13 @@ describe('convertToFoundry', () => {
       expect.objectContaining({ key: 'system.pericias.perc.bonus', value: 1 }),
     ]);
 
-    expect(json.system.pericias).toMatchObject({ vont: { outros: -2 } });
+    // Os bônus que viraram efeito não se repetem no `outros`; a condição, sem
+    // efeito, fica nele.
+    expect(json.system.pericias).toMatchObject({
+      furt: { outros: 0 },
+      perc: { outros: 0 },
+      vont: { outros: -2 },
+    });
     // Defesa 17 = 10 (base) + 1 (Des) + 2 (efeito) + 4 (resto, em `outros`).
     expect(data(json.system.attributes).defesa).toMatchObject({ outros: 4 });
   });
@@ -534,6 +622,273 @@ describe('convertToFoundry', () => {
       (item) => item.name === 'Florete'
     );
     expect(rollsOf(weapon)[0].parts[1][0]).toBe('atua');
+  });
+
+  it.each([
+    ['Guerreiro', 6],
+    ['Arcanista', 5],
+    ['Ladino', 8],
+  ])(
+    'perícias de um %s chegam ao Foundry com o total da ficha',
+    (classe, nivel) => {
+      const sheet = generate(classe, Number(nivel));
+      const json = convertToFoundry(sheet);
+
+      (sheet.completeSkills ?? []).forEach((skill) => {
+        const key = FOUNDRY_SKILLS[skill.name];
+        if (!key) return;
+        expect([skill.name, foundrySkillTotal(json, key)]).toEqual([
+          skill.name,
+          getSkillTotal(sheet, skill),
+        ]);
+      });
+    }
+  );
+
+  it('ocupa o slot de raça com um item zerado, sem somar a raça de novo', () => {
+    const sheet = generate('Guerreiro', 1);
+    const json = convertToFoundry(sheet);
+
+    const races = ofType(json, 'race');
+    expect(races).toHaveLength(1);
+    expect(races[0]).toMatchObject({
+      name: sheet.raca.name,
+      system: {
+        atributos: { for: 0, des: 0, con: 0, int: 0, sab: 0, car: 0 },
+        grants: [],
+        skills: [],
+      },
+    });
+    // O atributo racial já está no `base`.
+    Object.entries(ATTRIBUTE_KEYS).forEach(([name, key]) => {
+      expect(foundryAttribute(json, key)).toBe(
+        sheet.atributos[name as Atributo].value
+      );
+    });
+  });
+
+  it('o ajuste manual de atributos sai como efeito ligado no ator', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.bonusAtributos = { [Atributo.FORCA]: 2 };
+    sheet.atributosTemporarios = { [Atributo.FORCA]: 2 };
+
+    const json = convertToFoundry(sheet);
+    const manual = json.effects.find(
+      (effect) => effect.name === 'Ajuste manual de atributos'
+    );
+    expect(manual).toMatchObject({ disabled: false });
+    expect(manual?.system.changes).toEqual([
+      expect.objectContaining({ key: 'system.atributos.for.bonus', value: 2 }),
+    ]);
+    expect(
+      json.effects.find((effect) => effect.name === 'Efeitos ativos da ficha')
+    ).toBeUndefined();
+    expect(foundryAttribute(json, 'for')).toBe(
+      sheet.atributos[Atributo.FORCA].value + 2
+    );
+  });
+
+  it('delta de atributo de efeito ativo vira efeito e não entra na Defesa duas vezes', () => {
+    const sheet = createMockCharacterSheet();
+    const dex = sheet.atributos[Atributo.DESTREZA].value;
+    sheet.atributosTemporarios = { [Atributo.DESTREZA]: 2 };
+    sheet.defesa = 10 + dex + 2;
+
+    const json = convertToFoundry(sheet);
+    const active = json.effects.find(
+      (effect) => effect.name === 'Efeitos ativos da ficha'
+    );
+    expect(active).toMatchObject({ disabled: false });
+    expect(foundryAttribute(json, 'des')).toBe(dex + 2);
+    // O Foundry soma o +2 pela Destreza: nada dele fica no `outros`.
+    expect(data(json.system.attributes).defesa).toMatchObject({ outros: 0 });
+  });
+
+  it('a CD das magias leva os bônus da ficha; engenhoca usa Inteligência', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.bonusSpellDC = 1;
+    sheet.sheetBonuses = [
+      {
+        source: { type: 'power', name: 'Poder de Teste' },
+        target: { type: 'SpellDC' },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ];
+    sheet.overrideKeyAttribute = Atributo.CARISMA;
+    const base = {
+      execucao: 'Padrão',
+      alcance: 'Curto',
+      alvo: '1 criatura',
+      duracao: 'Instantânea',
+      resistencia: 'Vontade anula',
+      description: '',
+      spellCircle: spellsCircles.c1,
+      school: 'Evoc' as const,
+    };
+    sheet.spells = [
+      { ...base, nome: 'Magia Comum' },
+      {
+        ...base,
+        nome: 'Engenhoca',
+        engenhoca: { aparatos: ['estabilizador'] },
+      },
+    ];
+
+    const json = convertToFoundry(sheet);
+    const spell = (name: string) =>
+      data(
+        ofType(json, 'magia').find((item) => item.name.startsWith(name))?.system
+          .resistencia ?? null
+      );
+    expect(spell('Magia Comum')).toMatchObject({ atributo: 'car', bonus: 3 });
+    // +2 do Estabilizador.
+    expect(spell('Engenhoca')).toMatchObject({ atributo: 'int', bonus: 5 });
+  });
+
+  it('magias da lista derivada (Usurpar) também saem', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.classe = {
+      ...sheet.classe,
+      spellPath: {
+        initialSpells: 0,
+        spellType: 'Divine',
+        keyAttribute: Atributo.CARISMA,
+        spellAccess: 'allOfType',
+        qtySpellsLearnAtLevel: () => 0,
+        spellCircleAvailableAtLevel: () => 1,
+      },
+    };
+
+    const spells = ofType(convertToFoundry(sheet), 'magia');
+    expect(spells.length).toBeGreaterThan(10);
+    // Lista enorme: não vai para os favoritos.
+    spells.forEach((item) => expect(item.flags).toEqual({}));
+  });
+
+  it('dano de uma e de duas mãos vira adaptável; dano igual, arma dupla', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.bag
+      .getEquipments()
+      .Arma.push(
+        { ...Armas.ESPADA_BASTARDA },
+        { nome: 'Bordão', group: 'Arma', dano: '1d6/1d6' }
+      );
+
+    const json = convertToFoundry(sheet);
+    const bastarda = weaponNamed(json, 'Espada Bastarda');
+    const [, damage] = rollsOf(bastarda);
+    expect(damage.parts[0][0]).toBe('1d10');
+    expect(damage.adaptavel).toBe('1d12');
+    expect(bastarda.system.propriedades).toMatchObject({ ada: true });
+
+    const bordao = weaponNamed(json, 'Bordão');
+    expect(rollsOf(bordao)[1].parts[0][0]).toBe('1d6');
+    expect(bordao.system.propriedades).toMatchObject({ dup: true });
+  });
+
+  it('arma sem proficiência leva −5 e o atributo de ataque nunca fica em branco', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.bag
+      .getEquipments()
+      .Arma.push(
+        { ...Armas.ESPADA_BASTARDA, atkBonus: 1 },
+        { nome: 'Adaga', group: 'Arma', dano: '1d4', weaponTags: ['leve'] }
+      );
+
+    const json = convertToFoundry(sheet);
+    // A ficha de teste não tem proficiência com armas exóticas.
+    expect(rollsOf(weaponNamed(json, 'Espada Bastarda'))[0].parts[2][0]).toBe(
+      '-4'
+    );
+    ofType(json, 'arma').forEach((weapon) =>
+      expect(rollsOf(weapon)[0].parts[1][1]).toMatch(
+        /^(for|des|con|int|sab|car)$/
+      )
+    );
+  });
+
+  it('armas em mãos e magias vão para os favoritos da ficha', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.bag
+      .getEquipments()
+      .Arma.push(
+        { nome: 'Espada', group: 'Arma', dano: '1d8', id: 'w1' },
+        { nome: 'Arco', group: 'Arma', dano: '1d6', id: 'w2' }
+      );
+    sheet.mainHandItemId = 'w1';
+    sheet.spells = [
+      {
+        nome: 'Magia Que Não Existe',
+        execucao: 'Padrão',
+        alcance: 'Curto',
+        alvo: '1 criatura',
+        duracao: 'Instantânea',
+        description: '',
+        spellCircle: spellsCircles.c1,
+        school: 'Evoc',
+      },
+    ];
+
+    const json = convertToFoundry(sheet);
+    const favorite = { tormenta20: { favorito: true } };
+    expect(weaponNamed(json, 'Espada').flags).toEqual(favorite);
+    expect(weaponNamed(json, 'Arco').flags).toEqual({});
+    expect(ofType(json, 'magia')[0].flags).toEqual(favorite);
+  });
+
+  it('descrição de aprimoramento com várias linhas sai num elemento só', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.spells = [
+      {
+        nome: 'Magia Que Não Existe',
+        execucao: 'Padrão',
+        alcance: 'Curto',
+        alvo: '1 criatura',
+        duracao: 'Instantânea',
+        description: '',
+        spellCircle: spellsCircles.c1,
+        school: 'Evoc',
+        aprimoramentos: [{ addPm: 1, text: 'linha um\nlinha <dois>' }],
+      },
+    ];
+
+    const [effect] = ofType(convertToFoundry(sheet), 'magia')[0].effects;
+    // Até a 1.6.5 o diálogo de uso quebra com mais de um elemento raiz.
+    expect(effect.description).toBe('<p>linha um<br>linha &lt;dois&gt;</p>');
+  });
+
+  it('carimba a versão alvo, limita a carga e desliga as melhorias nas duas chaves', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.maxSpaces = 0;
+    sheet.nome = '  ';
+    sheet.bag.getEquipments().Arma.push({
+      nome: 'Espada',
+      group: 'Arma',
+      dano: '1d8',
+      modifications: [{ mod: 'Certeira' }],
+    } as unknown as (typeof Armas)['ESPADA_BASTARDA']);
+
+    const json = convertToFoundry(sheet);
+    expect(json._stats.systemVersion).toBe('1.6.6');
+    expect(json.name).toBe('Personagem');
+    expect(
+      Number(data(data(json.system.attributes).carga).base)
+    ).toBeGreaterThanOrEqual(1);
+    expect(weaponNamed(json, 'Espada').system).toMatchObject({
+      enableAutoUpgrades: false,
+      upgrades: { enableAutoUpgrades: false },
+    });
+  });
+});
+
+describe('splitWeaponDamage', () => {
+  it.each([
+    ['1d8', { dice: '1d8', double: false }],
+    ['1d10/1d12', { dice: '1d10', adaptable: '1d12', double: false }],
+    ['2d4/2d4', { dice: '2d4', double: true }],
+    [undefined, { dice: '', double: false }],
+  ])('%s', (dano, expected) => {
+    expect(splitWeaponDamage(dano)).toEqual(expected);
   });
 });
 

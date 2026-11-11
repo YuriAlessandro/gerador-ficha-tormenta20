@@ -49,6 +49,7 @@ import {
   getDerivedSpellsNotice,
 } from '@/functions/spells/derivedSpells';
 import { buildUsurparCastCheck } from '@/functions/spells/usurpar';
+import { getSpellDCBonus } from '@/functions/spells/spellDC';
 import { getPoderCapturadoDefinition } from '@/functions/powers/poderCapturadoEffects';
 import {
   getManeuverBonus,
@@ -170,7 +171,6 @@ import {
   SpellCastContext,
   toggleSpellModifierChoice,
 } from '@/functions/spells/modifiers';
-import { getSheetSpellDCBonus } from '@/functions/spells/spellDC';
 import PoderCapturadoEditDrawer from './EditDrawers/PoderCapturadoEditDrawer';
 import PoderCapturadoAction from './PoderCapturadoAction';
 import LevelUpWizardModal from '../LevelUpWizard/LevelUpWizardModal';
@@ -2242,10 +2242,10 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const spellDCBonus = useMemo(
     () =>
-      getSheetSpellDCBonus({
+      getSpellDCBonus({
         bonusSpellDC: currentSheet.bonusSpellDC,
         sheetBonuses: currentSheet.sheetBonuses,
-      } as CharacterSheet),
+      }),
     [currentSheet.bonusSpellDC, currentSheet.sheetBonuses]
   );
 

@@ -52,6 +52,7 @@ export const universalImprovements: ItemMod[] = [
     max: 0,
     mod: 'Devotado',
     description: 'Reduz em –1 PM o custo de um poder concedido',
+    prerequisite: 'Inscrito',
     appliesTo: 'all',
     supplementId: SupplementId.TORMENTA20_DEUSES_ARTON,
   },

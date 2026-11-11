@@ -4,12 +4,30 @@ import {
   RequirementType,
 } from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
+import { SheetBonus } from '../../../../../interfaces/CharacterSheet';
 import { Atributo } from '../../atributos';
 import { ESTILO_CLASSICO_SHEET_BONUSES } from '../../powers/combatStyleSheetBonuses';
 
 /**
  * Poderes de Raça do suplemento Heróis de Arton
  */
+
+// Citadino: +2 nas perícias de Carisma, exceto Adestramento. Exportado porque
+// o `sheetNormalizer` refresca a cópia embutida nas fichas salvas (o poder era
+// texto puro).
+export const CITADINO_SHEET_BONUSES: SheetBonus[] = [
+  Skill.ATUACAO,
+  Skill.DIPLOMACIA,
+  Skill.ENGANACAO,
+  Skill.INTIMIDACAO,
+  Skill.JOGATINA,
+].map(
+  (name): SheetBonus => ({
+    source: { type: 'power', name: 'Citadino' },
+    target: { type: 'Skill', name },
+    modifier: { type: 'Fixed', value: 2 },
+  })
+);
 
 // Opções (os 6 atributos) para os picks de atributo-chave da Tradição Perdida.
 // O NOME de cada opção é o próprio `Atributo`, lido em `applyChosenAttributeTo`.
@@ -261,6 +279,7 @@ const racePowers: Record<string, GeneralPower> = {
       [{ type: RequirementType.RACA, name: 'Kliren' }],
       [{ type: RequirementType.RACA, name: 'Meio-Elfo' }],
     ],
+    sheetBonuses: CITADINO_SHEET_BONUSES,
   },
   COMANDAR_APRIMORADO: {
     name: 'Comandar Aprimorado',

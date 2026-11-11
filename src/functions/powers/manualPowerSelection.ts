@@ -42,6 +42,7 @@ import {
   isPowerAvailable,
 } from '../powers';
 import { getClassFamilyName, isSameClassFamily } from '../general';
+import { getHighestSpellCircle } from '../multiclass';
 import { getActiveWaivers } from './prerequisiteWaivers';
 import {
   findSchoolTargetByFamily,
@@ -937,13 +938,13 @@ export function getFilteredAvailableOptions(
 
     case 'learnAnySpellFromHighestCircle': {
       // Dynamically determine available spells from ANY circle up to the highest available
+      const allowedType = requirement.metadata?.allowedType || 'Both';
       const highestCircle = Math.min(
-        sheet.classe.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) || 1,
+        getHighestSpellCircle(sheet, allowedType) || 1,
         requirement.metadata?.maxCircle ?? Infinity
       );
 
       const allAvailableSpells: Spell[] = [];
-      const allowedType = requirement.metadata?.allowedType || 'Both';
 
       // Get spells from all circles from 1 up to the highest available
       // Using registry to include supplement spells

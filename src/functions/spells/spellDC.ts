@@ -8,7 +8,9 @@ import { resolveSpellCast } from './modifiers';
  * fixos de alvo `SpellDC`. Os bônus por magia (Foco em Magia, Varinha arcana)
  * vêm do motor de modificadores (`SpellCastProfile.dcBonus`).
  */
-export function getSheetSpellDCBonus(sheet: CharacterSheet): number {
+export function getSpellDCBonus(
+  sheet: Pick<CharacterSheet, 'bonusSpellDC' | 'sheetBonuses'>
+): number {
   let total = sheet.bonusSpellDC ?? 0;
   (sheet.sheetBonuses ?? [])
     .filter((b) => b.target.type === 'SpellDC')
@@ -38,7 +40,7 @@ export function getSpellResistDC(sheet: CharacterSheet, spell: Spell): number {
     10 +
     Math.floor((sheet.nivel ?? 1) / 2) +
     (sheet.atributos?.[attribute]?.value ?? 0) +
-    getSheetSpellDCBonus(sheet) +
+    getSpellDCBonus(sheet) +
     resolveSpellCast(sheet, spell).dcBonus
   );
 }
