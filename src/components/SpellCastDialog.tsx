@@ -170,6 +170,7 @@ const toPlainRoll = (roll: DiceRoll): DiceRoll => ({
   dice: roll.dice,
   description: roll.description,
   damageType: roll.damageType,
+  rerollOnes: roll.rerollOnes,
 });
 
 const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
@@ -1240,6 +1241,14 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                             />
                           )}
                         </Stack>
+                        {roll.rerollOnes && (
+                          <Typography
+                            variant='caption'
+                            sx={{ display: 'block', color: 'text.secondary' }}
+                          >
+                            Resultados 1 são rolados de novo.
+                          </Typography>
+                        )}
                         {roll.description && (
                           <Typography
                             variant='caption'

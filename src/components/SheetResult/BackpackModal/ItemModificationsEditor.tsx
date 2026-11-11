@@ -11,6 +11,10 @@ import {
 
 import { dataRegistry } from '../../../data/registry';
 import { ItemMod } from '../../../interfaces/Rewards';
+import {
+  SpecialMaterial,
+  SpecialMaterialEffect,
+} from '../../../interfaces/SpecialMaterials';
 import { SupplementId } from '../../../types/supplement.types';
 import {
   addModificationWithPrerequisites,
@@ -36,6 +40,16 @@ export interface ItemModificationsEditorProps {
   onError?: (message: string) => void;
 }
 
+/** O efeito do material para o tipo de item (texto). */
+function materialEffectFor(
+  material: SpecialMaterial,
+  itemType: ModificationItemType
+): SpecialMaterialEffect | undefined {
+  if (itemType === 'weapon') return material.weaponEffect;
+  if (itemType === 'esoteric') return material.esotericEffect;
+  return material.armorEffect;
+}
+
 /**
  * Opções de material especial: core + materiais dos suplementos ativos
  * (incluindo os registrados em runtime, como homebrew).
@@ -49,14 +63,10 @@ function getMaterialOptions(
   userSupplements: SupplementId[]
 ): { value: string; label: string }[] {
   const options: { value: string; label: string }[] = [];
-  // Materiais ainda não têm efeito de esotérico (e a lista de esotéricos não
-  // oferece "Material especial").
-  if (itemType === 'esoteric') return options;
   dataRegistry
     .getSpecialMaterialsBySupplements(userSupplements)
     .forEach((material) => {
-      const effect =
-        itemType === 'weapon' ? material.weaponEffect : material.armorEffect;
+      const effect = materialEffectFor(material, itemType);
       if (!effect) return;
       if (itemType === 'shield' && effect.type === 'Armadura') return;
       options.push({ value: material.name, label: effect.material });
@@ -166,13 +176,9 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
   const materialData = selectedMaterial
     ? dataRegistry.getSpecialMaterialByName(selectedMaterial)
     : null;
-  let materialEffect = null;
-  if (materialData) {
-    materialEffect =
-      itemType === 'weapon'
-        ? materialData.weaponEffect
-        : materialData.armorEffect;
-  }
+  const materialEffect = materialData
+    ? materialEffectFor(materialData, itemType) ?? null
+    : null;
 
   return (
     <Grid container spacing={2}>

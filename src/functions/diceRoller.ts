@@ -104,7 +104,13 @@ export function parseDamage(damageString: string): {
  * @param damageString String no formato "1d8+2", "2d6+5", "1d8+1d6+3", etc
  * @returns Objeto com os rolls individuais de todos os dados, modificador e total
  */
-export function rollDamage(damageString: string): DamageRoll | null {
+export function rollDamage(
+  damageString: string,
+  options: {
+    /** Cada resultado 1 é rolado de novo uma vez (Gelo eterno, Adamante). */
+    rerollOnes?: boolean;
+  } = {}
+): DamageRoll | null {
   const parsed = parseDamage(damageString);
 
   if (!parsed) {
@@ -113,7 +119,9 @@ export function rollDamage(damageString: string): DamageRoll | null {
 
   const { diceGroups, modifier, diceString } = parsed;
   const allRolls = diceGroups.flatMap((group) =>
-    rollDice(group.sides, group.count)
+    rollDice(group.sides, group.count).map((value) =>
+      options.rerollOnes && value === 1 ? rollDice(group.sides, 1)[0] : value
+    )
   );
 
   const diceTotal = allRolls.reduce((sum, roll) => sum + roll, 0);

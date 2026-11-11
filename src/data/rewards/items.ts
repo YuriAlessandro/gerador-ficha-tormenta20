@@ -2047,7 +2047,7 @@ export const weaponsModifications: ItemMod[] = [
  * pelo motor de modificadores de magia (`spellModifiers`) e só valem com o
  * esotérico empunhado; o item e as melhorias dele contam como UM esotérico.
  * Intervalos de d% da tabela de esotéricos superiores do tesouro.
- * Material especial fica de fora até os materiais terem efeito de esotérico.
+ * O efeito de "Material especial" vem do material (`esotericSpellModifiers`).
  */
 export const esotericModifications: ItemMod[] = [
   {
@@ -2112,6 +2112,12 @@ export const esotericModifications: ItemMod[] = [
     max: 45,
     mod: 'Macabro',
     description: '+2 em Intimidação; -2 em Diplomacia',
+  },
+  {
+    min: 46,
+    max: 54,
+    mod: 'Material especial',
+    description: 'Conforme o material',
   },
   {
     min: 55,

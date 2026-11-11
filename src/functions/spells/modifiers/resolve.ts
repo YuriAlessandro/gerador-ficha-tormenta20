@@ -60,6 +60,11 @@ export interface SpellCastProfile {
   damage: RollBonusTotal;
   /** Bônus de dano por tipo e dados extras (Aspecto do Inverno, Cetro). */
   typedDamage: TypedDamageBonus[];
+  /**
+   * Rolar de novo os resultados 1 no dano: um item por fonte; `damageTypes`
+   * ausente = qualquer rolagem de dano (Adamante).
+   */
+  rerollOnes: { damageTypes?: string[] }[];
   /** Aprimoramentos acrescentados (Proeminência Solar, Explosão Fulgente). */
   extraAprimoramentos: ExtraAprimoramento[];
   /**
@@ -183,6 +188,7 @@ export function resolveSpellCast(
     healing: { perDie: 0, flat: 0 },
     damage: { perDie: 0, flat: 0 },
     typedDamage: [],
+    rerollOnes: [],
     extraAprimoramentos: [],
     extraRolls: [],
     dcBonus: 0,
@@ -311,6 +317,14 @@ export function resolveSpellCast(
         }
         const text = parts.filter(Boolean).join(' e ');
         if (text) note(`${text} (${source})`);
+        break;
+      }
+      case 'RerollOnes': {
+        profile.rerollOnes.push({ damageTypes: effect.damageTypes });
+        const what = effect.damageTypes?.length
+          ? `dano de ${effect.damageTypes.join('/')}`
+          : 'dano';
+        note(`Rola de novo os resultados 1 no ${what} (${source})`);
         break;
       }
       case 'EsotericLimit':
@@ -489,7 +503,12 @@ export function applySpellRollModifiers(
   rolls: AugmentedRoll[],
   profile: Pick<
     SpellCastProfile,
-    'healing' | 'damage' | 'typedDamage' | 'maximize' | 'damageTypeOverride'
+    | 'healing'
+    | 'damage'
+    | 'typedDamage'
+    | 'maximize'
+    | 'damageTypeOverride'
+    | 'rerollOnes'
   >
 ): AugmentedRoll[] {
   return rolls.map((roll) => {
@@ -516,6 +535,12 @@ export function applySpellRollModifiers(
       const flat =
         profile.damage.flat + typed.reduce((sum, b) => sum + b.flat, 0);
       result = applyRollBonus(result, perDie, flat);
+      const rerolls = (profile.rerollOnes ?? []).some(
+        (reroll) =>
+          !reroll.damageTypes ||
+          (!!rollType && reroll.damageTypes.includes(rollType))
+      );
+      if (rerolls) result = { ...result, rerollOnes: true };
       if (profile.damageTypeOverride) {
         result = { ...result, damageType: profile.damageTypeOverride };
       }

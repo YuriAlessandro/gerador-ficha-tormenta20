@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { createMockCharacterSheet } from '../../../../__mocks__/characterSheet';
 import CharacterSheet from '../../../../interfaces/CharacterSheet';
 import Equipment from '../../../../interfaces/Equipment';
@@ -11,7 +12,13 @@ import generateRandomSheet from '../../../general';
 import { recalculateSheet } from '../../../recalculateSheet';
 import { countImprovements } from '../../../itemEnhancements/pricing';
 import { getInUseImprovementBonuses } from '../../../itemEnhancements/inUseImprovements';
-import { resolveSpellCast, toggleSpellModifierChoice } from '..';
+import { augmentSpellRolls } from '../../../spellRollAugmentation';
+import { rollDamage } from '../../../diceRoller';
+import {
+  applySpellRollModifiers,
+  resolveSpellCast,
+  toggleSpellModifierChoice,
+} from '..';
 
 const BOLA_DE_FOGO = spellsCircle2.bolaDeFogo;
 const SOPRO_DAS_UIVANTES = spellsCircle2.soproDasUivantes;
@@ -261,5 +268,101 @@ describe('Vigilante: +2 na Defesa só empunhado', () => {
     const wielded = withItems('vig');
     const stored = withItems('outro');
     expect(wielded.defesa - stored.defesa).toBe(2);
+  });
+});
+
+describe('material especial em esotérico', () => {
+  const withMaterial = (material: string): CharacterSheet =>
+    withEsoterics(
+      [
+        {
+          id: 'b',
+          nome: 'Bolsa de pó',
+          group: 'Esotérico',
+          modifications: [
+            { mod: 'Material especial', specialMaterial: material },
+          ],
+        } as Equipment,
+      ],
+      'b'
+    );
+
+  it('Mitral: opção de +2 PM para +2 na CD, com o material no rótulo', () => {
+    const sheet = withMaterial('mitral');
+    const profile = resolveSpellCast(sheet, BOLA_DE_FOGO);
+    expect(profile.esotericOptions).toEqual(['Bolsa de pó (Mitral)']);
+    const option = profile.castOptions.find((o) => o.label.includes('CD'));
+    expect(option).toMatchObject({ addPm: 2, active: false });
+    const active = resolveSpellCast(sheet, BOLA_DE_FOGO, {
+      castOptions: [option?.key as string],
+    });
+    expect(active.dcBonus).toBe(profile.dcBonus + 2);
+    expect(active.castOptionPm).toBe(2);
+  });
+
+  it('Gelo eterno: rola de novo os 1 só no dano de frio', () => {
+    const profile = resolveSpellCast(
+      withMaterial('gelo eterno'),
+      SOPRO_DAS_UIVANTES
+    );
+    const rolls = applySpellRollModifiers(
+      augmentSpellRolls(SOPRO_DAS_UIVANTES.rolls ?? [], []),
+      profile
+    );
+    expect(rolls.find((r) => /frio/i.test(r.label))?.rerollOnes).toBe(true);
+    expect(
+      rolls.find((r) => /impacto/i.test(r.label))?.rerollOnes
+    ).toBeUndefined();
+    expect(
+      resolveSpellCast(withMaterial('gelo eterno'), BOLA_DE_FOGO).rerollOnes
+    ).toEqual([]);
+  });
+
+  it('Adamante: +1 PM para rolar de novo os 1 em qualquer dano', () => {
+    const sheet = withMaterial('adamante');
+    const option = resolveSpellCast(sheet, BOLA_DE_FOGO).castOptions[0];
+    expect(option).toMatchObject({ addPm: 1 });
+    const off = applySpellRollModifiers(
+      augmentSpellRolls(BOLA_DE_FOGO.rolls ?? [], []),
+      resolveSpellCast(sheet, BOLA_DE_FOGO)
+    );
+    expect(off[0].rerollOnes).toBeUndefined();
+    const on = applySpellRollModifiers(
+      augmentSpellRolls(BOLA_DE_FOGO.rolls ?? [], []),
+      resolveSpellCast(sheet, BOLA_DE_FOGO, { castOptions: [option.key] })
+    );
+    expect(on[0].rerollOnes).toBe(true);
+  });
+
+  it('Cristal de sol (Ameaças de Arton): aprimoramento de +1 PM em magia de fogo', () => {
+    expect(
+      resolveSpellCast(withMaterial('cristal de sol'), BOLA_DE_FOGO)
+        .extraAprimoramentos
+    ).toEqual([expect.objectContaining({ addPm: 1 })]);
+    expect(
+      resolveSpellCast(withMaterial('cristal de sol'), SOPRO_DAS_UIVANTES)
+        .extraAprimoramentos
+    ).toEqual([]);
+  });
+
+  it('material só com texto não vira fonte de magia', () => {
+    expect(
+      resolveSpellCast(withMaterial('aço rubi'), BOLA_DE_FOGO).esotericOptions
+    ).toEqual([]);
+    expect(
+      dataRegistry.getSpecialMaterialByName('aço rubi')?.esotericEffect?.effect
+    ).toMatch(/ignora 10 pontos de redução de dano/);
+  });
+});
+
+describe('rolar de novo os resultados 1', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('o 1 é rolado de novo uma vez; sem a opção fica', () => {
+    const random = vi.spyOn(Math, 'random');
+    random.mockReturnValueOnce(0).mockReturnValueOnce(0.99);
+    expect(rollDamage('1d6', { rerollOnes: true })?.diceRolls).toEqual([6]);
+    random.mockReturnValueOnce(0);
+    expect(rollDamage('1d6')?.diceRolls).toEqual([1]);
   });
 });

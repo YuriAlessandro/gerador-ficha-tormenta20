@@ -323,10 +323,12 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
           const specialMaterial = getSpecialMaterial();
           const materialData =
             dataRegistry.getSpecialMaterialByName(specialMaterial);
-          const relevantEffect =
-            state.selectedItemType === 'weapon'
-              ? materialData?.weaponEffect
-              : materialData?.armorEffect;
+          let relevantEffect = materialData?.armorEffect;
+          if (state.selectedItemType === 'weapon') {
+            relevantEffect = materialData?.weaponEffect;
+          } else if (state.selectedItemType === 'esoteric') {
+            relevantEffect = materialData?.esotericEffect;
+          }
 
           return {
             ...mod,
@@ -399,10 +401,12 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
         if (mod.mod === 'Material especial' && selectedMaterial) {
           const materialData =
             dataRegistry.getSpecialMaterialByName(selectedMaterial);
-          const relevantEffect =
-            state.selectedItemType === 'weapon'
-              ? materialData?.weaponEffect
-              : materialData?.armorEffect;
+          let relevantEffect = materialData?.armorEffect;
+          if (state.selectedItemType === 'weapon') {
+            relevantEffect = materialData?.weaponEffect;
+          } else if (state.selectedItemType === 'esoteric') {
+            relevantEffect = materialData?.esotericEffect;
+          }
 
           return {
             ...mod,

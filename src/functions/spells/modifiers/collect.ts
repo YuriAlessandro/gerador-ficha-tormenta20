@@ -153,6 +153,17 @@ interface ResolvedImprovement {
   spellChoice?: SpellModifierChoiceSpec;
 }
 
+/** "Material especial" aparece pelo material: "Mitral", "Gelo Eterno". */
+function modificationLabel(mod: string, specialMaterial?: string): string {
+  if (mod !== 'Material especial' || !specialMaterial) return mod;
+  const material = dataRegistry.getSpecialMaterialByName(specialMaterial);
+  return (
+    material?.esotericEffect?.material ??
+    material?.weaponEffect?.material ??
+    specialMaterial
+  );
+}
+
 /**
  * Melhorias do item com efeito em magia (Poderoso, Canalizador, Harmonizado…),
  * lidas do catálogo pelo nome. A superior anula a que ela substitui
@@ -160,10 +171,21 @@ interface ResolvedImprovement {
  */
 function itemImprovements(item: Equipment): ResolvedImprovement[] {
   if (item.group !== 'Esotérico') return [];
-  const applied = (item.modifications ?? []).map((m) => m.mod);
-  return applied
-    .filter((mod) => !isModificationSuperseded(mod, applied))
-    .map((mod) => {
+  const appliedMods = item.modifications ?? [];
+  const applied = appliedMods.map((m) => m.mod);
+  return appliedMods
+    .filter(({ mod }) => !isModificationSuperseded(mod, applied))
+    .map(({ mod, specialMaterial }) => {
+      // Material especial: o efeito é o do material ("Mitral").
+      if (mod === 'Material especial') {
+        return {
+          mod: modificationLabel(mod, specialMaterial),
+          modifiers: specialMaterial
+            ? dataRegistry.getSpecialMaterialByName(specialMaterial)
+                ?.esotericSpellModifiers ?? []
+            : [],
+        };
+      }
       const data = dataRegistry.getImprovementByName(mod, 'esoteric');
       return {
         mod,
@@ -180,14 +202,15 @@ function itemImprovements(item: Equipment): ResolvedImprovement[] {
  * varinhas iguais harmonizadas para magias diferentes.
  */
 const itemLabel = (sheet: CharacterSheet, item: Equipment): string => {
-  const mods = (item.modifications ?? []).map(({ mod }) => {
+  const mods = (item.modifications ?? []).map(({ mod, specialMaterial }) => {
     const hasChoice =
       item.group === 'Esotérico' &&
       !!dataRegistry.getImprovementByName(mod, 'esoteric')?.spellChoice;
     const chosen = hasChoice
       ? sheet.spellModifierChoices?.[`${mod}@${item.id ?? item.nome}`] ?? []
       : [];
-    return chosen.length > 0 ? `${mod}: ${chosen.join(', ')}` : mod;
+    const label = modificationLabel(mod, specialMaterial);
+    return chosen.length > 0 ? `${label}: ${chosen.join(', ')}` : label;
   });
   return mods.length > 0 ? `${item.nome} (${mods.join(', ')})` : item.nome;
 };

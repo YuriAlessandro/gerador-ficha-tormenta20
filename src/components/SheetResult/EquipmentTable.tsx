@@ -11,6 +11,7 @@ import {
 } from '@/functions/equipmentStats';
 import { useContainerWidth } from '@/hooks/useContainerWidth';
 import { getSupplementInitials } from '@/functions/equipmentDisplay';
+import { dataRegistry } from '@/data/registry';
 import {
   getContainerIds,
   getLocationLabel,
@@ -190,11 +191,16 @@ const EquipmentRow: React.FC<{
   const supplement = getSupplementInitials(item.supplementName);
   // Melhorias de item superior: para esotérico, é o que mexe nas magias.
   const modificationsLabel = (item.modifications ?? [])
-    .map((m) =>
-      m.mod === 'Material especial' && m.specialMaterial
-        ? m.specialMaterial
-        : m.mod
-    )
+    .map((m) => {
+      if (m.mod !== 'Material especial' || !m.specialMaterial) return m.mod;
+      const material = dataRegistry.getSpecialMaterialByName(m.specialMaterial);
+      return (
+        material?.esotericEffect?.material ??
+        material?.weaponEffect?.material ??
+        material?.armorEffect?.material ??
+        m.specialMaterial
+      );
+    })
     .join(', ');
 
   const wieldControl =

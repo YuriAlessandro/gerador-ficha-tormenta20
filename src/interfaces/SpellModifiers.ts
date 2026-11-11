@@ -151,6 +151,12 @@ export type SpellModifierEffect =
    */
   | { type: 'ExtraAprimoramento'; addPm: number; text: string }
   /**
+   * Nas rolagens de dano (só destes tipos, se informados), cada resultado 1
+   * é rolado de novo uma vez (Gelo eterno: "pode rolar novamente qualquer
+   * resultado 1 na rolagem de dano dela").
+   */
+  | { type: 'RerollOnes'; damageTypes?: string[] }
+  /**
    * Limite de PM gastos na magia (JdA p. 224: nível na classe da magia).
    * `value` e `attribute` somam (Orbe cristalina: +1; Magia Ilimitada:
    * atributo-chave); `multiplier` vale depois (Celebrar Ritual: dobro).

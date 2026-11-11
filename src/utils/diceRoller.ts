@@ -101,7 +101,9 @@ export function isValidDamageString(dice: string): boolean {
  * descartaria silenciosamente notações mescladas.
  */
 export function executeDamageRoll(diceRoll: DiceRoll): RollResult | null {
-  const result = rollDamage(diceRoll.dice);
+  const result = rollDamage(diceRoll.dice, {
+    rerollOnes: diceRoll.rerollOnes,
+  });
   if (!result) return null;
 
   return {
