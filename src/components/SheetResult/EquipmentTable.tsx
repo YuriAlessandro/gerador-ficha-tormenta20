@@ -45,6 +45,8 @@ interface EquipmentTableProps {
   getItemWarning?: (item: Equipment) => string | undefined;
   /** Ausente = ficha só-leitura, sem botão de empunhar. */
   wielding?: EquipmentTableWielding;
+  /** Ações extras na linha do item (escolha de magia do Harmonizado). */
+  getItemActions?: (item: Equipment) => React.ReactNode;
 }
 
 interface EquipmentGroup {
@@ -165,6 +167,7 @@ const EquipmentRow: React.FC<{
   warning?: string;
   wieldingSlot: WieldingSlot;
   wielding?: EquipmentTableWielding;
+  actions?: React.ReactNode;
   /** Local quando o item não está com o personagem ("Alforje", "Guardado"). */
   locationLabel?: string;
 }> = ({
@@ -176,6 +179,7 @@ const EquipmentRow: React.FC<{
   warning,
   wieldingSlot,
   wielding,
+  actions,
   locationLabel,
 }) => {
   const spaces = getItemSpaces(item);
@@ -184,6 +188,14 @@ const EquipmentRow: React.FC<{
   const spacesLabel = item.spaces === undefined && !item.isAmmo ? '—' : spaces;
   const countLabel = getCountLabel(item);
   const supplement = getSupplementInitials(item.supplementName);
+  // Melhorias de item superior: para esotérico, é o que mexe nas magias.
+  const modificationsLabel = (item.modifications ?? [])
+    .map((m) =>
+      m.mod === 'Material especial' && m.specialMaterial
+        ? m.specialMaterial
+        : m.mod
+    )
+    .join(', ');
 
   const wieldControl =
     wielding && item.id && isWieldable(item) ? (
@@ -202,6 +214,11 @@ const EquipmentRow: React.FC<{
       <Typography variant='body2' sx={{ fontWeight: 500 }}>
         {item.customDisplayName || item.nome}
       </Typography>
+      {modificationsLabel && (
+        <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+          ({modificationsLabel})
+        </Typography>
+      )}
       {warning && (
         <Tooltip
           title={warning}
@@ -249,6 +266,7 @@ const EquipmentRow: React.FC<{
           characterName={characterName}
         />
       )}
+      {actions}
     </Box>
   );
 
@@ -318,6 +336,7 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({
   characterName,
   getItemWarning,
   wielding,
+  getItemActions,
 }) => {
   const [containerRef, containerWidth] = useContainerWidth<HTMLDivElement>();
 
@@ -449,6 +468,7 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({
                   wielding ? getWieldingSlot(item.id, wielding.state) : null
                 }
                 wielding={wielding}
+                actions={getItemActions?.(item)}
                 locationLabel={getLocationLabel(item, items)}
               />
             ))}

@@ -118,6 +118,7 @@ function modItemTypeFor(item: Equipment): ModificationItemType | null {
   if (item.group === 'Arma') return 'weapon';
   if (item.group === 'Armadura') return 'armor';
   if (item.group === 'Escudo') return 'shield';
+  if (item.group === 'Esotérico') return 'esoteric';
   return null;
 }
 
@@ -1368,9 +1369,9 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                 color: 'text.secondary',
               }}
             >
-              Modificações de item superior aplicam bônus numéricos
-              automaticamente sobre os valores base do item. Custo máximo: 5
-              pontos.
+              {modItemType === 'esoteric'
+                ? 'Melhorias de esotérico valem nas suas magias (e o Vigilante, na Defesa) enquanto o item estiver empunhado. Escolha a magia do Harmonizado no detalhe da magia ou pelo ícone do item em Equipamentos. Custo máximo: 5 pontos.'
+                : 'Modificações de item superior aplicam bônus numéricos automaticamente sobre os valores base do item. Custo máximo: 5 pontos.'}
             </Typography>
             {modError && (
               <Typography

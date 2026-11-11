@@ -123,7 +123,12 @@ export type SpellModifierEffect =
    * Não cumulativos entre si (Magia Instintiva, Heróis de Arton): vale o maior.
    */
   | { type: 'AprimoramentoPm'; value: number }
-  /** Rolagem extra somada ao lançamento (Costela de lich: +1d6 de trevas). */
+  /**
+   * Rolagem extra somada ao lançamento (Costela de lich: +1d6 de trevas).
+   * `damageType: 'spell'` = o tipo de dano da própria magia, o primeiro quando
+   * ela tem mais de um (Energético: "+1d6 pontos de dano do mesmo tipo"); o
+   * rótulo vira "Dano de <tipo>".
+   */
   | { type: 'ExtraRoll'; label: string; dice: string; damageType?: string }
   /**
    * Efeito ativo da magia: cada bônus de `kind` aumenta em +`value` (Luva de

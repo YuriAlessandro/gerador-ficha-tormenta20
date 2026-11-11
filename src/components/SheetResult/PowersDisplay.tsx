@@ -386,7 +386,7 @@ const PowersDisplay: React.FC<{
   const spellChoiceSources = useMemo(
     () =>
       new Set(
-        sheet ? getSheetSpellChoices(sheet).map((choice) => choice.source) : []
+        sheet ? getSheetSpellChoices(sheet).map((choice) => choice.key) : []
       ),
     [sheet]
   );
@@ -444,7 +444,7 @@ const PowersDisplay: React.FC<{
     const spellChoiceSlot =
       sheet && onSheetUpdate && spellChoiceSources.has(pw.name) ? (
         <PowerSpellChoiceAction
-          source={pw.name}
+          choiceKey={pw.name}
           instances={powerCount[pw.name] || 1}
           sheet={sheet}
           onSheetUpdate={onSheetUpdate}

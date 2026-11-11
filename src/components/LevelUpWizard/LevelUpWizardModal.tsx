@@ -1723,7 +1723,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             onChange={(values) =>
               setCurrentLevelSelection({
                 ...currentLevelSelection,
-                spellModifierChoices: { [info.choice.source]: values },
+                spellModifierChoices: { [info.choice.key]: values },
               })
             }
           />

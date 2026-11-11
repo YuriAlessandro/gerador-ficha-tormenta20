@@ -147,7 +147,7 @@ export interface SpellsDisplayProps {
   isMago?: boolean;
   onToggleMemorized?: (spell: Spell) => void;
   /** Marca/desmarca a magia para uma fonte de "escolha N magias". */
-  onSpellChoiceToggle?: (source: string, spell: Spell) => void;
+  onSpellChoiceToggle?: (key: string, spell: Spell) => void;
   onToggleAlwaysPrepared?: (spell: Spell) => void;
   onKeyAttributeChange?: (newAttr: Atributo) => void;
   bonusSpellDC?: number;

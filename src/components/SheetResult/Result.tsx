@@ -169,8 +169,10 @@ import { usesCharismaForDefense } from '@/functions/learnedClassAbility';
 import {
   ResolveSpellCastOptions,
   SpellCastContext,
+  getSheetSpellChoices,
   toggleSpellModifierChoice,
 } from '@/functions/spells/modifiers';
+import PowerSpellChoiceAction from './PowerSpellChoiceAction';
 import PoderCapturadoEditDrawer from './EditDrawers/PoderCapturadoEditDrawer';
 import PoderCapturadoAction from './PoderCapturadoAction';
 import LevelUpWizardModal from '../LevelUpWizard/LevelUpWizardModal';
@@ -1066,9 +1068,9 @@ const Result: React.FC<ResultProps> = (props) => {
   // "Escolha N magias" (Foco em Magia, Estola…): marca na ficha, o motor de
   // modificadores lê de `spellModifierChoices`.
   const handleSpellChoiceToggle = useCallback(
-    (source: string, spell: Spell) => {
+    (key: string, spell: Spell) => {
       if (!ownsSpell(spell)) return;
-      const choices = toggleSpellModifierChoice(currentSheet, source, spell);
+      const choices = toggleSpellModifierChoice(currentSheet, key, spell);
       if (!choices) return;
       const updatedSheet = { ...currentSheet, spellModifierChoices: choices };
       setCurrentSheet(updatedSheet);
@@ -2001,6 +2003,35 @@ const Result: React.FC<ResultProps> = (props) => {
       );
     },
     [currentSheet.enabledManeuvers, saveEnabledManeuvers]
+  );
+
+  // Escolha de magia de melhoria de esotérico (Harmonizado), pela linha do
+  // item. Só aparece com o item empunhado: fora da mão ele não vale.
+  const itemSpellChoiceKeys = useMemo(
+    () => getSheetSpellChoices(currentSheet).map((choice) => choice.key),
+    [currentSheet]
+  );
+  const getEquipmentItemActions = useCallback(
+    (item: Equipment): React.ReactNode => {
+      if (!onSheetUpdate || !item.id) return null;
+      const keys = itemSpellChoiceKeys.filter((key) =>
+        key.endsWith(`@${item.id}`)
+      );
+      if (keys.length === 0) return null;
+      return keys.map((key) => (
+        <PowerSpellChoiceAction
+          key={key}
+          choiceKey={key}
+          instances={1}
+          sheet={currentSheet}
+          onSheetUpdate={(updated) => {
+            setCurrentSheet(updated);
+            onSheetUpdate(updated);
+          }}
+        />
+      ));
+    },
+    [onSheetUpdate, itemSpellChoiceKeys, currentSheet]
   );
 
   // Empunhar pela tabela de equipamentos: varinhas e esotéricos não têm
@@ -3230,6 +3261,7 @@ const Result: React.FC<ResultProps> = (props) => {
               characterName={nome}
               getItemWarning={getFundamentalistWeaponWarning}
               wielding={equipmentWielding}
+              getItemActions={getEquipmentItemActions}
             />
             <Box
               sx={{

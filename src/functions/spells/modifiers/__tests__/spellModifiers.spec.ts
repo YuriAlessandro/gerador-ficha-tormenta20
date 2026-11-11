@@ -453,6 +453,7 @@ describe('fase C: escolher magias (spellChoice)', () => {
     const before = resolveSpellCast(sheet, BOLA_DE_FOGO);
     expect(before.spellChoices).toEqual([
       {
+        key: 'Foco em Magia',
         source: 'Foco em Magia',
         chosen: false,
         of: 'spell',
@@ -481,6 +482,7 @@ describe('fase C: escolher magias (spellChoice)', () => {
     const sheet = foco(2);
     sheet.spellModifierChoices = { 'Foco em Magia': ['Bola de Fogo'] };
     expect(resolveSpellCast(sheet, CURAR_FERIMENTOS).spellChoices[0]).toEqual({
+      key: 'Foco em Magia',
       source: 'Foco em Magia',
       chosen: false,
       of: 'spell',

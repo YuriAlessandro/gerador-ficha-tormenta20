@@ -7,7 +7,9 @@ import type {
   SpellModifierFilter,
 } from '../../../interfaces/SpellModifiers';
 import { isItemWielded } from '../../../components/SheetResult/BackpackModal/wielding';
+import { dataRegistry } from '../../../data/registry';
 import { getClassLevel } from '../../multiclass';
+import { isModificationSuperseded } from '../../modifications/modificationEffects';
 import {
   extractSpellModifierSource,
   getCatalogSpellModifierSource,
@@ -17,6 +19,12 @@ import {
 
 /** "Escolha N magias" já resolvido para a ficha. */
 export interface ResolvedSpellChoice {
+  /**
+   * Onde a escolha fica gravada (`spellModifierChoices[key]`): o nome do
+   * poder ou item; melhoria de item (Harmonizado), por item.
+   */
+  key: string;
+  /** Rótulo na interface. */
   source: string;
   max: number;
   /** Magias (ou escolas) marcadas pelo jogador, cortadas em `max`. */
@@ -27,7 +35,13 @@ export interface ResolvedSpellChoice {
 
 /** Um modificador e a fonte que o concede (para o rótulo na UI). */
 export interface SourcedSpellModifier {
+  /** Identidade da fonte (o esotérico escolhido no lançamento). */
   source: string;
+  /**
+   * Rótulo curto nas notas, quando difere da fonte: "Varinha arcana" para o
+   * efeito do próprio item, "Poderoso (Varinha arcana)" para a melhoria.
+   */
+  label?: string;
   modifier: SpellModifier;
   /** Vem de um esotérico — só um por magia (ver `resolveSpellCast`). */
   esoteric?: boolean;
@@ -73,7 +87,7 @@ function resolveEntry(
  * regra legada da mochila ("tudo está equipado"), senão toda ficha antiga
  * perderia o efeito de uma vez. Demais itens contam por estar na mochila.
  */
-function isItemInUse(sheet: CharacterSheet, item: Equipment): boolean {
+export function isItemInUse(sheet: CharacterSheet, item: Equipment): boolean {
   if (item.group !== 'Esotérico') return true;
   const hands = [
     sheet.mainHandItemId,
@@ -122,11 +136,61 @@ function resolveChoiceMax(
 
 interface Candidate {
   kind: SpellModifierSourceKind;
+  /** Nome no catálogo. */
   name: string;
+  /** Rótulo da fonte; item com melhorias: "Varinha arcana (Poderoso)". */
+  label: string;
   entry: SpellModifierEntry;
   isCustom: boolean;
   esoteric?: boolean;
+  /** Melhorias de item superior que mexem nas magias. */
+  improvements?: ResolvedImprovement[];
 }
+
+interface ResolvedImprovement {
+  mod: string;
+  modifiers: SpellModifier[];
+  spellChoice?: SpellModifierChoiceSpec;
+}
+
+/**
+ * Melhorias do item com efeito em magia (Poderoso, Canalizador, Harmonizado…),
+ * lidas do catálogo pelo nome. A superior anula a que ela substitui
+ * (Potencializador sobre Canalizador).
+ */
+function itemImprovements(item: Equipment): ResolvedImprovement[] {
+  if (item.group !== 'Esotérico') return [];
+  const applied = (item.modifications ?? []).map((m) => m.mod);
+  return applied
+    .filter((mod) => !isModificationSuperseded(mod, applied))
+    .map((mod) => {
+      const data = dataRegistry.getImprovementByName(mod, 'esoteric');
+      return {
+        mod,
+        modifiers: data?.spellModifiers ?? [],
+        spellChoice: data?.spellChoice,
+      };
+    })
+    .filter(({ modifiers }) => modifiers.length > 0);
+}
+
+/**
+ * Rótulo do item como fonte: "Varinha arcana (Poderoso)". Melhoria com escolha
+ * mostra a escolha — "(Harmonizado: Bola de Fogo)" —, o que também separa duas
+ * varinhas iguais harmonizadas para magias diferentes.
+ */
+const itemLabel = (sheet: CharacterSheet, item: Equipment): string => {
+  const mods = (item.modifications ?? []).map(({ mod }) => {
+    const hasChoice =
+      item.group === 'Esotérico' &&
+      !!dataRegistry.getImprovementByName(mod, 'esoteric')?.spellChoice;
+    const chosen = hasChoice
+      ? sheet.spellModifierChoices?.[`${mod}@${item.id ?? item.nome}`] ?? []
+      : [];
+    return chosen.length > 0 ? `${mod}: ${chosen.join(', ')}` : mod;
+  });
+  return mods.length > 0 ? `${item.nome} (${mods.join(', ')})` : item.nome;
+};
 
 /** Todos os modificadores de magia ativos na ficha, deduplicados por fonte. */
 export function collectSheetSpellModifiers(
@@ -139,6 +203,7 @@ export function collectSheetSpellModifiers(
     (power: { name: string }): Candidate => ({
       kind: 'power',
       name: power.name,
+      label: power.name,
       entry: power as SpellModifierEntry,
       isCustom,
     });
@@ -154,6 +219,7 @@ export function collectSheetSpellModifiers(
       (ability): Candidate => ({
         kind: 'ability',
         name: ability.name,
+        label: ability.name,
         entry: ability as SpellModifierEntry,
         isCustom: false,
       })
@@ -170,9 +236,11 @@ export function collectSheetSpellModifiers(
       candidates.push({
         kind: 'item',
         name: item.nome,
+        label: itemLabel(sheet, item),
         entry: item,
         isCustom: !!item.isCustom,
         esoteric: item.group === 'Esotérico',
+        improvements: itemImprovements(item),
       });
     });
   });
@@ -180,41 +248,79 @@ export function collectSheetSpellModifiers(
   // Quantas vezes cada fonte aparece ANTES de deduplicar ("uma magia por vez
   // que o poder foi escolhido").
   const picks = new Map<string, number>();
-  candidates.forEach(({ kind, name }) => {
-    const key = `${kind}:${name}`;
+  candidates.forEach(({ kind, label }) => {
+    const key = `${kind}:${label}`;
     picks.set(key, (picks.get(key) ?? 0) + 1);
   });
 
+  const toChoice = (
+    key: string,
+    source: string,
+    spec: SpellModifierChoiceSpec,
+    picked: number
+  ): ResolvedSpellChoice => {
+    const max = resolveChoiceMax(sheet, spec, picked);
+    return {
+      key,
+      source,
+      max,
+      chosen: (sheet.spellModifierChoices?.[key] ?? []).slice(0, max),
+      eligible: spec.eligible,
+      of: spec.of ?? 'spell',
+    };
+  };
+
   const result: SourcedSpellModifier[] = [];
   const seen = new Set<string>();
-  candidates.forEach(({ kind, name, entry, isCustom, esoteric }) => {
-    // Poder repetido (duas fontes, ou dois itens iguais) não dobra o efeito.
-    const key = `${kind}:${name}`;
-    if (seen.has(key)) return;
-    seen.add(key);
-    const { modifiers, spellChoice } = resolveEntry(
-      sheet,
-      kind,
-      name,
-      entry,
-      isCustom
-    );
-    if (modifiers.length === 0) return;
-    let choice: ResolvedSpellChoice | undefined;
-    if (spellChoice) {
-      const max = resolveChoiceMax(sheet, spellChoice, picks.get(key) ?? 1);
-      choice = {
-        source: name,
-        max,
-        chosen: (sheet.spellModifierChoices?.[name] ?? []).slice(0, max),
-        eligible: spellChoice.eligible,
-        of: spellChoice.of ?? 'spell',
-      };
+  candidates.forEach(
+    ({ kind, name, label, entry, isCustom, esoteric, improvements }) => {
+      // Poder repetido (duas fontes, ou dois itens iguais) não dobra o efeito.
+      const key = `${kind}:${label}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      const { modifiers, spellChoice } = resolveEntry(
+        sheet,
+        kind,
+        name,
+        entry,
+        isCustom
+      );
+      // A escolha do próprio item (Tomo hermético) segue gravada pelo nome.
+      const choice =
+        spellChoice && toChoice(name, name, spellChoice, picks.get(key) ?? 1);
+      modifiers.forEach((modifier) =>
+        result.push({
+          source: label,
+          ...(label !== name ? { label: name } : {}),
+          modifier,
+          esoteric,
+          choice,
+        })
+      );
+      // Melhorias: mesma fonte (o item continua sendo UM esotérico); a escolha
+      // do Harmonizado é por item, para duas varinhas não dividirem a magia.
+      (improvements ?? []).forEach((improvement) => {
+        const itemId = (entry as Equipment).id ?? name;
+        const improvementChoice =
+          improvement.spellChoice &&
+          toChoice(
+            `${improvement.mod}@${itemId}`,
+            `${improvement.mod} (${name})`,
+            improvement.spellChoice,
+            1
+          );
+        improvement.modifiers.forEach((modifier) =>
+          result.push({
+            source: label,
+            label: `${improvement.mod} (${name})`,
+            modifier,
+            esoteric,
+            choice: improvementChoice,
+          })
+        );
+      });
     }
-    modifiers.forEach((modifier) =>
-      result.push({ source: name, modifier, esoteric, choice })
-    );
-  });
+  );
 
   return result;
 }

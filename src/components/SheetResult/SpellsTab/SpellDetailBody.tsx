@@ -32,7 +32,7 @@ export interface SpellDetailBodyProps {
   spell: Spell;
   onCast?: () => void;
   /** Marca/desmarca a magia para uma fonte de "escolha N magias". */
-  onSpellChoiceToggle?: (source: string) => void;
+  onSpellChoiceToggle?: (key: string) => void;
   engenhocaInfo?: EngenhocaRowInfo;
   /** Tipo resolvido pelo pai (não é campo da magia). */
   tradition?: SpellTradition;
@@ -140,7 +140,7 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
           }
           return (
             <Tooltip
-              key={slot.source}
+              key={slot.key}
               arrow
               title={
                 full
@@ -157,7 +157,7 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
                   disabled={!onSpellChoiceToggle || full}
                   onClick={
                     onSpellChoiceToggle
-                      ? () => onSpellChoiceToggle(slot.source)
+                      ? () => onSpellChoiceToggle(slot.key)
                       : undefined
                   }
                   sx={MICRO_CHIP_SX}

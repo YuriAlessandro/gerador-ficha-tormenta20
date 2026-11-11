@@ -2042,6 +2042,99 @@ export const weaponsModifications: ItemMod[] = [
   },
 ];
 
+/**
+ * Melhorias para esotéricos (JdA, Tabela 3-8). Os efeitos nas magias entram
+ * pelo motor de modificadores de magia (`spellModifiers`) e só valem com o
+ * esotérico empunhado; o item e as melhorias dele contam como UM esotérico.
+ * Intervalos de d% da tabela de esotéricos superiores do tesouro.
+ * Material especial fica de fora até os materiais terem efeito de esotérico.
+ */
+export const esotericModifications: ItemMod[] = [
+  {
+    min: 1,
+    max: 4,
+    mod: 'Banhado a ouro',
+    description: '+2 em Diplomacia',
+  },
+  {
+    min: 71,
+    max: 85,
+    mod: 'Canalizador',
+    description: '+1 no limite de PM',
+    spellModifiers: [{ effect: { type: 'PmLimit', value: 1 } }],
+  },
+  {
+    min: 5,
+    max: 8,
+    mod: 'Cravejado de gemas',
+    description: '+2 em Enganação',
+  },
+  {
+    min: 9,
+    max: 12,
+    mod: 'Discreto',
+    description: '-1 espaço; +5 para ocultar',
+  },
+  {
+    min: 13,
+    max: 27,
+    mod: 'Energético',
+    description: '+1d6 no dano de magias',
+    spellModifiers: [
+      {
+        filter: { damaging: true },
+        effect: {
+          type: 'ExtraRoll',
+          label: 'Dano',
+          dice: '1d6',
+          damageType: 'spell',
+        },
+      },
+    ],
+  },
+  {
+    min: 28,
+    max: 42,
+    mod: 'Harmonizado',
+    description: 'Custo de uma magia diminui em -1 PM',
+    // "Escolha uma magia. Seu custo diminui em –1 PM." Trocar a magia exige
+    // um ritual (um dia e T$ 100) — fica no texto.
+    spellChoice: { count: { type: 'fixed', value: 1 } },
+    spellModifiers: [
+      {
+        filter: { chosen: true },
+        effect: { type: 'PmReduction', value: 1 },
+      },
+    ],
+  },
+  {
+    min: 43,
+    max: 45,
+    mod: 'Macabro',
+    description: '+2 em Intimidação; -2 em Diplomacia',
+  },
+  {
+    min: 55,
+    max: 70,
+    mod: 'Poderoso',
+    description: '+1 na CD de suas magias',
+    spellModifiers: [{ effect: { type: 'SpellDC', value: 1 } }],
+  },
+  {
+    min: 86,
+    max: 100,
+    mod: 'Vigilante',
+    description: '+2 na Defesa',
+    inUseSheetBonuses: [
+      {
+        source: { type: 'equipment', equipmentName: 'Vigilante' },
+        target: { type: 'Defense' },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
+  },
+];
+
 export const armorsModifications: ItemMod[] = [
   {
     min: 1,

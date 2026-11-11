@@ -14,7 +14,7 @@ import {
   isHealingRollLabel,
   maximizeRoll,
 } from '../../spellRollAugmentation';
-import { getRollDamageType } from '../damageTypes';
+import { getRollDamageType, getSpellDamageTypes } from '../damageTypes';
 import { getSpellBasePm } from '../engenhoca';
 import { getSpellKeyAttribute, getSpellPmLimitBase } from '../pmLimit';
 import { collectSheetSpellModifiers } from './collect';
@@ -118,6 +118,8 @@ export interface SpellCastOptionSlot {
 }
 
 export interface SpellChoiceSlot {
+  /** Onde a escolha fica gravada (ver `ResolvedSpellChoice.key`). */
+  key: string;
   source: string;
   /** A magia (ou a escola dela, se `of: 'school'`) está escolhida. */
   chosen: boolean;
@@ -205,10 +207,11 @@ export function resolveSpellCast(
   // Vagas de "escolha N magias" em que esta magia pode entrar (uma por fonte).
   const choiceSources = new Set<string>();
   collected.forEach(({ choice }) => {
-    if (!choice || choiceSources.has(choice.source)) return;
-    choiceSources.add(choice.source);
+    if (!choice || choiceSources.has(choice.key)) return;
+    choiceSources.add(choice.key);
     if (!spellMatchesFilter(spell, choice.eligible, sheet)) return;
     profile.spellChoices.push({
+      key: choice.key,
       source: choice.source,
       chosen: choiceValuesOf(spell, choice.of, choice.eligible).some((v) =>
         choice.chosen.includes(v)
@@ -234,10 +237,6 @@ export function resolveSpellCast(
     new Set(matching.filter((m) => m.esoteric).map((m) => m.source))
   );
 
-  const chosenOf = new Map<string, string[]>();
-  collected.forEach(({ choice }) => {
-    if (choice) chosenOf.set(choice.source, choice.chosen);
-  });
   const attributeValue = (attribute: string | undefined): number => {
     if (!sheet || !attribute) return 0;
     const key =
@@ -250,8 +249,13 @@ export function resolveSpellCast(
   const applyEffect = (
     effect: SpellModifierEffect,
     source: string,
+    // O que o jogador escolheu para a fonte do modificador (tipo de dano do
+    // Cetro elemental genérico).
+    chosen: string[] = [],
     // Efeitos de uma opção marcada não viram notas: a opção já aparece.
-    quiet = false
+    quiet = false,
+    // Fonte que identifica a opção de lançamento; `source` é só o rótulo.
+    optionSource = source
   ): void => {
     const note = (text: string) => {
       if (!quiet) profile.notes.push(text);
@@ -279,9 +283,7 @@ export function resolveSpellCast(
           : 0;
         const flat = (effect.flat ?? 0) + fromAttribute;
         const damageTypes =
-          effect.damageTypes === 'chosen'
-            ? chosenOf.get(source) ?? []
-            : effect.damageTypes;
+          effect.damageTypes === 'chosen' ? chosen : effect.damageTypes;
         const typed =
           effect.rolls === 'damage' && (!!damageTypes || !!effect.extraDice);
         if (typed) {
@@ -330,14 +332,25 @@ export function resolveSpellCast(
           aprimoramentoSource = source;
         }
         break;
-      case 'ExtraRoll':
+      case 'ExtraRoll': {
+        // 'spell': o tipo da própria magia (o primeiro, se tiver mais de um).
+        const damageType =
+          effect.damageType === 'spell'
+            ? getSpellDamageTypes(spell)[0]
+            : effect.damageType;
+        if (effect.damageType === 'spell' && !damageType) break;
+        const label =
+          effect.damageType === 'spell'
+            ? `Dano de ${damageType}`
+            : effect.label;
         profile.extraRolls.push({
-          id: `spell-modifier:${source}:${effect.label}`,
-          label: `${effect.label} (${source})`,
+          id: `spell-modifier:${source}:${label}`,
+          label: `${label} (${source})`,
           dice: effect.dice,
-          damageType: effect.damageType,
+          damageType,
         });
         break;
+      }
       case 'EffectBonusIncrease':
         profile.effectBonusIncrease.push({
           kind: effect.kind,
@@ -377,7 +390,7 @@ export function resolveSpellCast(
           (sub) => sub.type === 'EsotericLimit'
         );
         if (raisesEsotericLimit && profile.esotericOptions.length < 2) break;
-        const key = `${source}:${effect.id}`;
+        const key = `${optionSource}:${effect.id}`;
         if (profile.castOptions.some((o) => o.key === key)) break;
         const active = !!options.castOptions?.includes(key);
         profile.castOptions.push({
@@ -392,7 +405,9 @@ export function resolveSpellCast(
           profile.castOptionPm += effect.addPm;
           (effect.effects ?? [])
             .filter((sub) => sub.type !== 'CastOption')
-            .forEach((sub) => applyEffect(sub, source, true));
+            .forEach((sub) =>
+              applyEffect(sub, source, chosen, true, optionSource)
+            );
         }
         break;
       }
@@ -405,7 +420,9 @@ export function resolveSpellCast(
   // quantos esotéricos a 2ª etapa aceita.
   matching
     .filter((m) => !m.esoteric)
-    .forEach(({ source, modifier: { effect } }) => applyEffect(effect, source));
+    .forEach(({ source, label, modifier: { effect }, choice }) =>
+      applyEffect(effect, label ?? source, choice?.chosen, false, source)
+    );
 
   // 2ª etapa: os esotéricos que valem, até o limite.
   const picked = Array.from(new Set(options.esoterics ?? []))
@@ -417,7 +434,9 @@ export function resolveSpellCast(
   ].slice(0, profile.esotericLimit);
   matching
     .filter((m) => m.esoteric && profile.esoterics.includes(m.source))
-    .forEach(({ source, modifier: { effect } }) => applyEffect(effect, source));
+    .forEach(({ source, label, modifier: { effect }, choice }) =>
+      applyEffect(effect, label ?? source, choice?.chosen, false, source)
+    );
 
   if (aprimoramentoSource) {
     profile.notes.push(

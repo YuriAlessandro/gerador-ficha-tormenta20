@@ -72,6 +72,18 @@ export const modificationEffects: Record<string, ModificationEffect> = {
       { skill: Skill.DIPLOMACIA, value: 2 },
     ],
   },
+  // Esotéricos: as mesmas melhorias de "qualquer categoria", no masculino
+  // como o livro as nomeia para o item.
+  'Banhado a ouro': {
+    skillBonuses: [{ skill: Skill.DIPLOMACIA, value: 2 }],
+  },
+  'Cravejado de gemas': {
+    skillBonuses: [{ skill: Skill.ENGANACAO, value: 2 }],
+  },
+  Discreto: {
+    spacesDelta: -1,
+    skillBonuses: [{ skill: Skill.FURTIVIDADE, value: 5 }],
+  },
   Macabro: {
     skillBonuses: [
       { skill: Skill.INTIMIDACAO, value: 2 },
@@ -94,6 +106,8 @@ export const SUPERSEDED_MODIFICATIONS: Readonly<Record<string, string>> = {
   Atroz: 'Cruel',
   Pungente: 'Certeira',
   'Sob medida': 'Ajustada',
+  // Esotéricos (Heróis de Arton): o limite de PM total é +2, não +3.
+  Potencializador: 'Canalizador',
 };
 
 /**

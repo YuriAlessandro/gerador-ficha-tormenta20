@@ -11,8 +11,11 @@ import SpellChoiceDialog from './SpellsTab/SpellChoiceDialog';
 import { spellChoiceNoun } from './SpellsTab/SpellChoiceEditor';
 
 interface Props {
-  /** Nome da fonte (poder, habilidade ou item). */
-  source: string;
+  /**
+   * Chave da escolha (`ResolvedSpellChoice.key`): o nome do poder, ou
+   * "<melhoria>@<id do item>" para melhoria de esotérico (Harmonizado).
+   */
+  choiceKey: string;
   instances: number;
   sheet: CharacterSheet;
   onSheetUpdate: (updatedSheet: CharacterSheet) => void;
@@ -23,7 +26,7 @@ interface Props {
  * Aspecto da Primavera…). Com vaga sobrando, o botão leva um ponto de aviso.
  */
 const PowerSpellChoiceAction: React.FC<Props> = ({
-  source,
+  choiceKey,
   instances,
   sheet,
   onSheetUpdate,
@@ -31,8 +34,8 @@ const PowerSpellChoiceAction: React.FC<Props> = ({
   const [open, setOpen] = useState(false);
 
   const choice = useMemo(
-    () => getSheetSpellChoices(sheet).find((c) => c.source === source),
-    [sheet, source]
+    () => getSheetSpellChoices(sheet).find((c) => c.key === choiceKey),
+    [sheet, choiceKey]
   );
   const options = useMemo(
     () => (choice ? getSpellChoiceOptions(sheet, choice) : []),
@@ -55,7 +58,7 @@ const PowerSpellChoiceAction: React.FC<Props> = ({
         <IconButton
           size='small'
           onClick={() => setOpen(true)}
-          aria-label={`Escolher ${noun} de ${source}`}
+          aria-label={`Escolher ${noun} de ${choice.source}`}
         >
           <Badge color='warning' variant='dot' invisible={!pending}>
             <AutoFixHighIcon fontSize='small' color='primary' />
@@ -74,7 +77,7 @@ const PowerSpellChoiceAction: React.FC<Props> = ({
               ...sheet,
               spellModifierChoices: setSpellModifierChoices(
                 sheet,
-                source,
+                choice.key,
                 values
               ),
             })

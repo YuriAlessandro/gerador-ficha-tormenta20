@@ -11,22 +11,22 @@ import { resolveSpellCast } from './resolve';
  */
 export function toggleSpellModifierChoice(
   sheet: CharacterSheet,
-  source: string,
+  key: string,
   spell: Spell
 ): CharacterSheet['spellModifierChoices'] | undefined {
   const slot = resolveSpellCast(sheet, spell).spellChoices.find(
-    (s) => s.source === source
+    (s) => s.key === key
   );
   const value = slot?.value;
   if (!slot || !value) return undefined;
-  const current = sheet.spellModifierChoices?.[source] ?? [];
+  const current = sheet.spellModifierChoices?.[key] ?? [];
   if (slot.chosen) {
     // Desmarca tudo que esta magia registraria (tipo de dano: qualquer um
     // dos tipos dela que esteja marcado).
     const own = choiceValuesOf(spell, slot.of);
     return {
       ...sheet.spellModifierChoices,
-      [source]: current.filter((name) => !own.includes(name)),
+      [key]: current.filter((name) => !own.includes(name)),
     };
   }
   if (slot.used >= slot.max) return undefined;
@@ -34,7 +34,7 @@ export function toggleSpellModifierChoice(
   // ao marcar uma nova, para a lista não crescer fantasma.
   return {
     ...sheet.spellModifierChoices,
-    [source]: [...current.slice(0, slot.max - 1), value],
+    [key]: [...current.slice(0, slot.max - 1), value],
   };
 }
 
@@ -44,8 +44,8 @@ export function getSheetSpellChoices(
 ): ResolvedSpellChoice[] {
   const bySource = new Map<string, ResolvedSpellChoice>();
   collectSheetSpellModifiers(sheet).forEach(({ choice }) => {
-    if (choice && !bySource.has(choice.source)) {
-      bySource.set(choice.source, choice);
+    if (choice && !bySource.has(choice.key)) {
+      bySource.set(choice.key, choice);
     }
   });
   return Array.from(bySource.values());
@@ -89,11 +89,11 @@ export function getSpellChoiceOptions(
 /** Grava as escolhas de uma fonte (vazio remove a chave). */
 export function setSpellModifierChoices(
   sheet: CharacterSheet,
-  source: string,
+  key: string,
   values: string[]
 ): CharacterSheet['spellModifierChoices'] {
   const next = { ...sheet.spellModifierChoices };
-  if (values.length > 0) next[source] = Array.from(new Set(values));
-  else delete next[source];
+  if (values.length > 0) next[key] = Array.from(new Set(values));
+  else delete next[key];
   return Object.keys(next).length > 0 ? next : undefined;
 }

@@ -43,7 +43,9 @@ export function rehydrateModification(
   applied: AppliedModification,
   item: Equipment
 ): ItemMod {
-  const context = item.group === 'Arma' ? 'weapon' : 'defense';
+  let context: 'weapon' | 'defense' | 'esoteric' = 'defense';
+  if (item.group === 'Arma') context = 'weapon';
+  else if (item.group === 'Esotérico') context = 'esoteric';
   const catalog = dataRegistry.getImprovementByName(applied.mod, context);
   const mod: ItemMod = catalog
     ? { ...catalog }

@@ -22,7 +22,7 @@ export interface SpellDetailSheetProps {
   compact: boolean;
   spell: Spell | null;
   onCast?: () => void;
-  onSpellChoiceToggle?: (source: string) => void;
+  onSpellChoiceToggle?: (key: string) => void;
   engenhocaInfo?: EngenhocaRowInfo;
   tradition?: SpellTradition;
   castProfile?: SpellCastProfile;

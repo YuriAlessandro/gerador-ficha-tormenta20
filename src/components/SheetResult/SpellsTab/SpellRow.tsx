@@ -60,7 +60,7 @@ export interface SpellRowProps {
   onToggleMemorized?: (spell: Spell) => void;
   onToggleAlwaysPrepared?: (spell: Spell) => void;
   /** Marca/desmarca a magia para uma fonte de "escolha N magias". */
-  onSpellChoiceToggle?: (source: string, spell: Spell) => void;
+  onSpellChoiceToggle?: (key: string, spell: Spell) => void;
   /** Efeito ativo que esta magia aplica na ficha, quando tem um. */
   activeEffect?: ActivePowerDefinition | null;
   /** Com estes dois, a estrelinha aparece no rail. */
@@ -424,7 +424,7 @@ const SpellRow: React.FC<SpellRowProps> = ({
           onCast={enguicada ? undefined : onOpenCast}
           onSpellChoiceToggle={
             onSpellChoiceToggle
-              ? (source) => onSpellChoiceToggle(source, spell)
+              ? (key) => onSpellChoiceToggle(key, spell)
               : undefined
           }
           engenhocaInfo={engenhocaInfo}

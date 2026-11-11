@@ -20,7 +20,7 @@ import {
   validateModificationRequirement,
 } from '../../../utils/superiorItemsValidation';
 
-export type ModificationItemType = 'weapon' | 'armor' | 'shield';
+export type ModificationItemType = 'weapon' | 'armor' | 'shield' | 'esoteric';
 
 export interface ItemModificationsEditorProps {
   itemType: ModificationItemType;
@@ -49,6 +49,9 @@ function getMaterialOptions(
   userSupplements: SupplementId[]
 ): { value: string; label: string }[] {
   const options: { value: string; label: string }[] = [];
+  // Materiais ainda não têm efeito de esotérico (e a lista de esotéricos não
+  // oferece "Material especial").
+  if (itemType === 'esoteric') return options;
   dataRegistry
     .getSpecialMaterialsBySupplements(userSupplements)
     .forEach((material) => {
@@ -69,7 +72,9 @@ function getModificationsForType(
 ): ItemMod[] {
   const improvements =
     dataRegistry.getImprovementsBySupplements(userSupplements);
-  return itemType === 'weapon' ? improvements.weapons : improvements.armors;
+  if (itemType === 'weapon') return improvements.weapons;
+  if (itemType === 'esoteric') return improvements.esoterics;
+  return improvements.armors;
 }
 
 const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
