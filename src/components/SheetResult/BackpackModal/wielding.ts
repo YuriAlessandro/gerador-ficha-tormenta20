@@ -4,6 +4,7 @@ import Equipment, {
 } from '../../../interfaces/Equipment';
 import CharacterSheet from '../../../interfaces/CharacterSheet';
 import { sheetHasPowerNamed } from '../../../functions/powers/hasPowerNamed';
+import { isMusicalInstrument } from '../../../functions/musicalInstruments';
 
 /** Uma mão específica. `extra1`/`extra2` só existem com Quatro Braços. */
 export type SingleHandSlot = 'main' | 'off' | 'extra1' | 'extra2';
@@ -75,6 +76,8 @@ export function countOccupiedHands(state: WieldingState): number {
  */
 export function isTwoHanded(item: Equipment): boolean {
   if (item.twoHanded === true) return true;
+  // "Você precisa empunhar um instrumento musical com as duas mãos" (JdA).
+  if (isMusicalInstrument(item)) return true;
   return item.weaponTags?.includes('twoHanded') === true;
 }
 
@@ -96,6 +99,7 @@ export function isWieldable(item: Equipment): boolean {
   if (item.canBeWielded === false) return false;
   if (item.canBeWielded === true) return true;
   if (item.canBeUsedAsWeapon === true) return true;
+  if (isMusicalInstrument(item)) return true;
   return (
     item.group === 'Arma' ||
     item.group === 'Escudo' ||

@@ -1,3 +1,4 @@
+import { isMusicalInstrument } from '../../../functions/musicalInstruments';
 import Equipment, {
   AmmoType,
   AppliedEnchantment,
@@ -45,7 +46,9 @@ export function rehydrateModification(
 ): ItemMod {
   let context: 'weapon' | 'defense' | 'esoteric' = 'defense';
   if (item.group === 'Arma') context = 'weapon';
-  else if (item.group === 'Esotérico') context = 'esoteric';
+  else if (item.group === 'Esotérico' || isMusicalInstrument(item)) {
+    context = 'esoteric';
+  }
   const catalog = dataRegistry.getImprovementByName(applied.mod, context);
   const mod: ItemMod = catalog
     ? { ...catalog }

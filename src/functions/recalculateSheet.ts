@@ -145,7 +145,7 @@ import {
 import { syncFeiticeiroHerancas } from './powers/feiticeiroHeranca';
 import { applyTormentaAttributePenalty } from './tormentaCharismaPenalty';
 import { getInUseImprovementBonuses } from './itemEnhancements/inUseImprovements';
-import { isItemInUse } from './spells/modifiers/collect';
+import { actsAsEsoteric, isItemInUse } from './spells/modifiers/collect';
 
 /**
  * Finds a class definition by name and optional subname.
@@ -1536,7 +1536,10 @@ function applyEquipmentBonuses(sheet: CharacterSheet): CharacterSheet {
 
     // Melhorias de esotérico com bônus "em uso" (Vigilante: +2 na Defesa):
     // só com o item empunhado, como os efeitos dele nas magias.
-    if (equip.group === 'Esotérico' && isItemInUse(updatedSheet, equip)) {
+    if (
+      actsAsEsoteric(updatedSheet, equip) &&
+      isItemInUse(updatedSheet, equip)
+    ) {
       updatedSheet.sheetBonuses.push(...getInUseImprovementBonuses(equip));
     }
 

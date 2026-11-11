@@ -8,6 +8,7 @@ import type {
 } from '../../../interfaces/SpellModifiers';
 import { isItemWielded } from '../../../components/SheetResult/BackpackModal/wielding';
 import { dataRegistry } from '../../../data/registry';
+import { isMusicalInstrument } from '../../musicalInstruments';
 import { getClassLevel } from '../../multiclass';
 import { isModificationSuperseded } from '../../modifications/modificationEffects';
 import {
@@ -16,6 +17,7 @@ import {
   SpellModifierEntry,
   SpellModifierSourceKind,
 } from './catalog';
+import { sheetHasCasterClass } from './match';
 
 /** "Escolha N magias" já resolvido para a ficha. */
 export interface ResolvedSpellChoice {
@@ -87,8 +89,21 @@ function resolveEntry(
  * regra legada da mochila ("tudo está equipado"), senão toda ficha antiga
  * perderia o efeito de uma vez. Demais itens contam por estar na mochila.
  */
+/**
+ * O item funciona como esotérico para esta ficha: esotérico, ou instrumento
+ * musical de bardo ("Instrumentos musicais podem ser usados como esotéricos
+ * por bardos", JdA).
+ */
+export function actsAsEsoteric(
+  sheet: CharacterSheet,
+  item: Equipment
+): boolean {
+  if (item.group === 'Esotérico') return true;
+  return isMusicalInstrument(item) && sheetHasCasterClass(sheet, 'Bardo');
+}
+
 export function isItemInUse(sheet: CharacterSheet, item: Equipment): boolean {
-  if (item.group !== 'Esotérico') return true;
+  if (!actsAsEsoteric(sheet, item)) return true;
   const hands = [
     sheet.mainHandItemId,
     sheet.offHandItemId,
@@ -167,8 +182,11 @@ function modificationLabel(mod: string, specialMaterial?: string): string {
 type ImprovementContext = 'weapon' | 'defense' | 'esoteric';
 
 /** Em que lista de melhorias o item procura as dele. */
-function improvementContext(item: Equipment): ImprovementContext | undefined {
-  if (item.group === 'Esotérico') return 'esoteric';
+function improvementContext(
+  sheet: CharacterSheet,
+  item: Equipment
+): ImprovementContext | undefined {
+  if (actsAsEsoteric(sheet, item)) return 'esoteric';
   if (item.group === 'Arma') return 'weapon';
   if (item.group === 'Armadura' || item.group === 'Escudo') return 'defense';
   return undefined;
@@ -206,10 +224,16 @@ function itemImprovements(
   sheet: CharacterSheet,
   item: Equipment
 ): ResolvedImprovement[] {
-  const context = improvementContext(item);
+  const context = improvementContext(sheet, item);
   if (!context || !isGearInUse(sheet, item)) return [];
   const appliedMods = item.modifications ?? [];
   const applied = appliedMods.map((m) => m.mod);
+  // Instrumento de bardo: "afetam apenas magias lançadas por bardos".
+  const onlyBard = item.group !== 'Esotérico' && context === 'esoteric';
+  const scoped = (modifier: SpellModifier): SpellModifier =>
+    onlyBard
+      ? { ...modifier, filter: { ...modifier.filter, casterClass: 'Bardo' } }
+      : modifier;
   return appliedMods
     .filter(({ mod }) => !isModificationSuperseded(mod, applied))
     .map(({ mod, specialMaterial, deity }) => {
@@ -219,13 +243,16 @@ function itemImprovements(
           mod: modificationLabel(mod, specialMaterial),
           modifiers:
             context === 'esoteric' && specialMaterial
-              ? dataRegistry.getSpecialMaterialByName(specialMaterial)
-                  ?.esotericSpellModifiers ?? []
+              ? (
+                  dataRegistry.getSpecialMaterialByName(specialMaterial)
+                    ?.esotericSpellModifiers ?? []
+                ).map(scoped)
               : [],
         };
       }
       const data = dataRegistry.getImprovementByName(mod, context);
-      const modifiers = (data?.spellModifiers ?? []).flatMap((modifier) => {
+      const modifiers = (data?.spellModifiers ?? []).flatMap((raw) => {
+        const modifier = scoped(raw);
         if (modifier.filter?.devoteeOf !== 'chosen') return [modifier];
         if (!deity) return [];
         return [
@@ -243,7 +270,7 @@ function itemImprovements(
  * varinhas iguais harmonizadas para magias diferentes.
  */
 const itemLabel = (sheet: CharacterSheet, item: Equipment): string => {
-  const context = improvementContext(item);
+  const context = improvementContext(sheet, item);
   const mods = (item.modifications ?? []).map(
     ({ mod, specialMaterial, deity }) => {
       const label = modificationLabel(mod, specialMaterial);
@@ -307,7 +334,7 @@ export function collectSheetSpellModifiers(
         label: itemLabel(sheet, item),
         entry: item,
         isCustom: !!item.isCustom,
-        esoteric: item.group === 'Esotérico',
+        esoteric: actsAsEsoteric(sheet, item),
         improvements: itemImprovements(sheet, item),
       });
     });

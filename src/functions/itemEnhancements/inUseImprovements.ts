@@ -5,11 +5,11 @@ import { isModificationSuperseded } from '../modifications/modificationEffects';
 
 /**
  * Bônus das melhorias do esotérico que só valem com ele em uso (Vigilante:
- * "+2 na Defesa"). Quem chama decide se o item está em uso (empunhado); aqui
+ * "+2 na Defesa"), de esotérico ou instrumento de bardo. Quem chama decide se
+ * o item conta como esotérico e está em uso (empunhado); aqui
  * só se lê o catálogo pelo nome da melhoria, com a fonte apontando o item.
  */
 export function getInUseImprovementBonuses(item: Equipment): SheetBonus[] {
-  if (item.group !== 'Esotérico') return [];
   const applied = (item.modifications ?? []).map((m) => m.mod);
   return applied
     .filter((mod) => !isModificationSuperseded(mod, applied))

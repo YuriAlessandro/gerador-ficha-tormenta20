@@ -13,6 +13,12 @@ import generateRandomSheet from '../../../general';
 import { recalculateSheet } from '../../../recalculateSheet';
 import { countImprovements } from '../../../itemEnhancements/pricing';
 import { getInUseImprovementBonuses } from '../../../itemEnhancements/inUseImprovements';
+import { isMusicalInstrument } from '../../../musicalInstruments';
+import {
+  isTwoHanded,
+  isWieldable,
+} from '../../../../components/SheetResult/BackpackModal/wielding';
+import { actsAsEsoteric, isItemInUse } from '../collect';
 import { augmentSpellRolls } from '../../../spellRollAugmentation';
 import { rollDamage } from '../../../diceRoller';
 import {
@@ -451,5 +457,65 @@ describe('melhorias de arma e armadura que mexem nas magias', () => {
       resolveSpellCast({ ...sheet, wornArmorId: 'outra' }, charismaSpell)
         .dcBonus
     ).toBe(base);
+  });
+});
+
+describe('instrumento musical como esotérico de bardo', () => {
+  const instrument = (mods: string[] = [], extra = {}): Equipment =>
+    ({
+      id: 'lira',
+      nome: 'Instrumento musical',
+      group: 'Item Geral',
+      modifications: mods.map((mod) => ({ mod })),
+      ...extra,
+    } as Equipment);
+  const withInstrument = (item: Equipment, className: string) => {
+    const sheet = createMockCharacterSheet();
+    sheet.classe = { ...sheet.classe, name: className };
+    sheet.bag.equipments['Item Geral'] = [item];
+    sheet.mainHandItemId = 'lira';
+    sheet.offHandItemId = 'lira';
+    return sheet;
+  };
+
+  it('reconhece o instrumento pelo marcador, pelo nome ou pela descrição', () => {
+    expect(isMusicalInstrument(instrument())).toBe(true);
+    expect(
+      isMusicalInstrument({
+        nome: 'Bandolim de Nimb',
+        group: 'Item Geral',
+        descricao: 'Conta como instrumento musical.',
+      } as Equipment)
+    ).toBe(true);
+    expect(
+      isMusicalInstrument({ nome: 'Gazua', group: 'Item Geral' } as Equipment)
+    ).toBe(false);
+  });
+
+  it('é empunhado com as duas mãos', () => {
+    expect(isWieldable(instrument())).toBe(true);
+    expect(isTwoHanded(instrument())).toBe(true);
+  });
+
+  it('para bardo, as melhorias de esotérico do instrumento valem nas magias', () => {
+    const bard = withInstrument(instrument(['Poderoso']), 'Bardo');
+    const profile = resolveSpellCast(bard, BOLA_DE_FOGO);
+    expect(profile.esotericOptions).toEqual(['Instrumento musical (Poderoso)']);
+    expect(profile.notes).toContain(
+      '+1 na CD (Poderoso (Instrumento musical))'
+    );
+  });
+
+  it('para quem não é bardo, o instrumento não é esotérico', () => {
+    const wizard = withInstrument(instrument(['Poderoso']), 'Arcanista');
+    expect(resolveSpellCast(wizard, BOLA_DE_FOGO).esotericOptions).toEqual([]);
+    expect(actsAsEsoteric(wizard, instrument())).toBe(false);
+  });
+
+  it('Vigilante no instrumento de bardo empunhado', () => {
+    const item = instrument(['Vigilante']);
+    const bard = withInstrument(item, 'Bardo');
+    expect(actsAsEsoteric(bard, item) && isItemInUse(bard, item)).toBe(true);
+    expect(getInUseImprovementBonuses(item)).toHaveLength(1);
   });
 });

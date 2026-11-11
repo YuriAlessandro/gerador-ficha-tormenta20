@@ -377,6 +377,11 @@ export default interface Equipment {
   // category is not normally wieldable (e.g. a custom Esotérico wand).
   canBeWielded?: boolean;
 
+  /**
+   * Instrumento musical (JdA): empunhado com as duas mãos e usado como
+   * esotérico por bardos. Ver `isMusicalInstrument`.
+   */
+  musicalInstrument?: boolean;
   // Weapon requires both hands to be wielded. When true, equipping the item
   // occupies both `mainHandItemId` and `offHandItemId` slots.
   twoHanded?: boolean;

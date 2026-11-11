@@ -26,7 +26,7 @@ const hasDamageRoll = (spell: Spell): boolean =>
   );
 
 /** Classe principal (ou variante dela) ou multiclasse conjuradora. */
-function sheetHasCasterClass(
+export function sheetHasCasterClass(
   sheet: CharacterSheet | undefined,
   className: string
 ): boolean {

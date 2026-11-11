@@ -204,6 +204,7 @@ export const ferramentas: Equipment[] = [
   {
     nome: 'Alaúde élfico',
     group: 'Item Geral',
+    musicalInstrument: true,
     preco: parsePrice('T$ 300'),
     descricao:
       'Inspiração como ação de movimento. Conta como instrumento musical.',
@@ -245,6 +246,7 @@ export const ferramentas: Equipment[] = [
   {
     nome: 'Flauta mística',
     group: 'Item Geral',
+    musicalInstrument: true,
     preco: parsePrice('T$ 150'),
     descricao:
       '+1 na CD de resistência das magias. Conta como instrumento musical.',
@@ -278,6 +280,7 @@ export const ferramentas: Equipment[] = [
   {
     nome: 'Instrumento musical',
     group: 'Item Geral',
+    musicalInstrument: true,
     preco: parsePrice('T$ 35'),
     descricao:
       'Empunhar com as duas mãos para usar Músicas de Bardo. Conta como esotérico para bardos.',
@@ -307,6 +310,7 @@ export const ferramentas: Equipment[] = [
   {
     nome: 'Tambor das profundezas',
     group: 'Item Geral',
+    musicalInstrument: true,
     preco: parsePrice('T$ 80'),
     descricao:
       'Dobra alcance de Inspiração e Músicas de Bardo. Conta como instrumento musical.',
