@@ -113,6 +113,8 @@ export interface ResolvedImprovements {
 export interface ResolvedEnchantments {
   weapons: ItemE[];
   armors: ItemE[];
+  /** Só de suplemento (Heróis de Arton): o livro básico não tem. */
+  esoterics: ItemE[];
 }
 
 /**
@@ -1064,6 +1066,7 @@ class DataRegistry {
     const result: ResolvedEnchantments = {
       weapons: [...weaponsEnchantments],
       armors: [...armorEnchantments],
+      esoterics: [],
     };
 
     const systemData = this.getResolvedSystemData(systemId);
@@ -1084,6 +1087,9 @@ class DataRegistry {
         }
         if (enchantments.armors) {
           result.armors.push(...enchantments.armors.map(stamp));
+        }
+        if (enchantments.esoterics) {
+          result.esoterics.push(...enchantments.esoterics.map(stamp));
         }
       });
     }
@@ -1187,6 +1193,7 @@ class DataRegistry {
       ? Object.values(systemData.supplements).flatMap((supplement) => [
           ...(supplement?.enchantments?.weapons ?? []),
           ...(supplement?.enchantments?.armors ?? []),
+          ...(supplement?.enchantments?.esoterics ?? []),
         ])
       : [];
 

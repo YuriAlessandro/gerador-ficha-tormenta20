@@ -189,9 +189,10 @@ const EquipmentRow: React.FC<{
   const spacesLabel = item.spaces === undefined && !item.isAmmo ? '—' : spaces;
   const countLabel = getCountLabel(item);
   const supplement = getSupplementInitials(item.supplementName);
-  // Melhorias de item superior: para esotérico, é o que mexe nas magias.
-  const modificationsLabel = (item.modifications ?? [])
-    .map((m) => {
+  // Melhorias e encantos: para esotérico, é o que mexe nas magias.
+  const modificationsLabel = [
+    ...(item.modifications ?? []).map((m) => {
+      if (m.deity) return `${m.mod}: ${m.deity}`;
       if (m.mod !== 'Material especial' || !m.specialMaterial) return m.mod;
       const material = dataRegistry.getSpecialMaterialByName(m.specialMaterial);
       return (
@@ -200,8 +201,9 @@ const EquipmentRow: React.FC<{
         material?.armorEffect?.material ??
         m.specialMaterial
       );
-    })
-    .join(', ');
+    }),
+    ...(item.enchantments ?? []).map((e) => e.enchantment),
+  ].join(', ');
 
   const wieldControl =
     wielding && item.id && isWieldable(item) ? (

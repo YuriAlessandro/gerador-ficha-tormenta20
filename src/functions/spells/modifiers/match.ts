@@ -155,6 +155,14 @@ export function spellMatchesFilter(
   ) {
     return false;
   }
+  if (
+    filter.lacksPower &&
+    sheet &&
+    (sheetHasPowerNamed(sheet, filter.lacksPower) ||
+      sheetHasClassAbility(sheet, filter.lacksPower))
+  ) {
+    return false;
+  }
   if (filter.devoteeOf && !isDevoteeOf(sheet, filter.devoteeOf)) return false;
   return true;
 }

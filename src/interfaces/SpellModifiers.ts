@@ -64,6 +64,8 @@ export interface SpellModifierFilter {
    * (Majestoso: "se você tiver a habilidade de classe Magias").
    */
   hasPower?: string;
+  /** Só se a ficha NÃO tem este poder ou habilidade (o "senão" do Majestoso). */
+  lacksPower?: string;
   /**
    * Só se o personagem é devoto desta divindade. `'chosen'` = a divindade
    * escolhida na melhoria do item (Canônico).
@@ -93,7 +95,8 @@ export type SpellModifierEffect =
       flatAttributeMin?: number;
       /**
        * Dados extras iguais ao primeiro dado da rolagem (Cetro elemental: "o
-       * dano aumenta em um dado do mesmo tipo").
+       * dano aumenta em um dado do mesmo tipo"; Clemente: "curam um dado
+       * extra do mesmo tipo").
        */
       extraDice?: number;
       /**

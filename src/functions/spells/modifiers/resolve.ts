@@ -57,6 +57,8 @@ export interface SpellCastProfile {
   /** Custo final pela metade, depois das reduções (Alta Arcana). */
   pmHalve: boolean;
   healing: RollBonusTotal;
+  /** Dados extras de cura, iguais ao primeiro dado da rolagem (Clemente). */
+  healingExtraDice: number;
   damage: RollBonusTotal;
   /** Bônus de dano por tipo e dados extras (Aspecto do Inverno, Cetro). */
   typedDamage: TypedDamageBonus[];
@@ -186,6 +188,7 @@ export function resolveSpellCast(
     pmReductionSources: [],
     pmHalve: false,
     healing: { perDie: 0, flat: 0 },
+    healingExtraDice: 0,
     damage: { perDie: 0, flat: 0 },
     typedDamage: [],
     rerollOnes: [],
@@ -304,6 +307,9 @@ export function resolveSpellCast(
             effect.rolls === 'healing' ? profile.healing : profile.damage;
           total.perDie += effect.perDie ?? 0;
           total.flat += flat;
+          if (effect.rolls === 'healing') {
+            profile.healingExtraDice += effect.extraDice ?? 0;
+          }
         }
         let what = effect.rolls === 'healing' ? 'cura' : 'dano';
         if (damageTypes?.length) what = `dano de ${damageTypes.join('/')}`;
@@ -509,13 +515,17 @@ export function applySpellRollModifiers(
     | 'maximize'
     | 'damageTypeOverride'
     | 'rerollOnes'
+    | 'healingExtraDice'
   >
 ): AugmentedRoll[] {
   return rolls.map((roll) => {
     let result = roll;
     if (isHealingRollLabel(roll.label)) {
+      if (profile.healingExtraDice) {
+        result = addRollDice(result, profile.healingExtraDice);
+      }
       result = applyRollBonus(
-        roll,
+        result,
         profile.healing.perDie,
         profile.healing.flat
       );

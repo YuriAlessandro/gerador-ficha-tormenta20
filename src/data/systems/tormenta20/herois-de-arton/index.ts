@@ -9,6 +9,7 @@ import HEROIS_ARTON_CLASSES from './classes';
 import HEROIS_ARTON_POWERS from './powers';
 import HEROIS_ARTON_EQUIPMENT from './equipment';
 import HEROIS_ARTON_IMPROVEMENTS from './improvements';
+import HEROIS_ARTON_ENCHANTMENTS from './enchantments';
 import HEROIS_ARTON_ORIGINS from './origins';
 import HEROIS_ARTON_CLASS_POWERS from './classPowers';
 import HEROIS_ARTON_GOLPE_PESSOAL_EFFECTS from './golpePessoalEffects';
@@ -30,6 +31,7 @@ export const TORMENTA20_HEROIS_ARTON_SUPPLEMENT: SupplementData = {
   },
   equipment: HEROIS_ARTON_EQUIPMENT,
   improvements: HEROIS_ARTON_IMPROVEMENTS,
+  enchantments: HEROIS_ARTON_ENCHANTMENTS,
   origins: HEROIS_ARTON_ORIGINS,
   classPowers: HEROIS_ARTON_CLASS_POWERS,
   golpePessoalEffects: HEROIS_ARTON_GOLPE_PESSOAL_EFFECTS,

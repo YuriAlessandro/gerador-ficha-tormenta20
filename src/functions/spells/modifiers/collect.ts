@@ -234,7 +234,7 @@ function itemImprovements(
     onlyBard
       ? { ...modifier, filter: { ...modifier.filter, casterClass: 'Bardo' } }
       : modifier;
-  return appliedMods
+  const improvements: ResolvedImprovement[] = appliedMods
     .filter(({ mod }) => !isModificationSuperseded(mod, applied))
     .map(({ mod, specialMaterial, deity }) => {
       // Material especial em esotérico: o efeito é o do material ("Mitral").
@@ -260,8 +260,20 @@ function itemImprovements(
         ];
       });
       return { mod, modifiers, spellChoice: data?.spellChoice };
-    })
-    .filter(({ modifiers }) => modifiers.length > 0);
+    });
+  // Encantos de esotérico (Heróis de Arton): mesma fonte, lidos pelo nome.
+  const enchantments: ResolvedImprovement[] =
+    context === 'esoteric'
+      ? (item.enchantments ?? []).map(({ enchantment }) => ({
+          mod: enchantment,
+          modifiers: (
+            dataRegistry.getEnchantmentByName(enchantment)?.spellModifiers ?? []
+          ).map(scoped),
+        }))
+      : [];
+  return [...improvements, ...enchantments].filter(
+    ({ modifiers }) => modifiers.length > 0
+  );
 }
 
 /**
@@ -284,7 +296,11 @@ const itemLabel = (sheet: CharacterSheet, item: Equipment): string => {
       return chosen.length > 0 ? `${label}: ${chosen.join(', ')}` : label;
     }
   );
-  return mods.length > 0 ? `${item.nome} (${mods.join(', ')})` : item.nome;
+  const parts = [
+    ...mods,
+    ...(item.enchantments ?? []).map(({ enchantment }) => enchantment),
+  ];
+  return parts.length > 0 ? `${item.nome} (${parts.join(', ')})` : item.nome;
 };
 
 /** Todos os modificadores de magia ativos na ficha, deduplicados por fonte. */

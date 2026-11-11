@@ -128,6 +128,12 @@ export interface ItemE {
    * `effect` acima é a PROSA do encanto; este é a mecânica.
    */
   effectStats?: EnhancementEffect;
+  /** Efeito nas magias (encantos de esotérico), como em `ItemMod`. */
+  spellModifiers?: SpellModifier[];
+  /** "Pré-requisito: outro encanto" (Implacável, Majestoso, Pulverizante). */
+  requiresOtherEnchantment?: boolean;
+  /** Encantos que não podem estar no mesmo item ("não pode ser nímbico"). */
+  excludes?: string[];
 }
 
 export interface ItemMod {

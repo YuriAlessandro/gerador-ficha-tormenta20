@@ -19,6 +19,11 @@ import {
   isWieldable,
 } from '../../../../components/SheetResult/BackpackModal/wielding';
 import { actsAsEsoteric, isItemInUse } from '../collect';
+import { ItemE } from '../../../../interfaces/Rewards';
+import {
+  canAddEnchantment,
+  dropUnsupportedEnchantments,
+} from '../../../../utils/magicalItemsValidation';
 import { augmentSpellRolls } from '../../../spellRollAugmentation';
 import { rollDamage } from '../../../diceRoller';
 import {
@@ -517,5 +522,111 @@ describe('instrumento musical como esotérico de bardo', () => {
     const bard = withInstrument(item, 'Bardo');
     expect(actsAsEsoteric(bard, item) && isItemInUse(bard, item)).toBe(true);
     expect(getInUseImprovementBonuses(item)).toHaveLength(1);
+  });
+});
+
+describe('encantos de esotérico (Heróis de Arton)', () => {
+  const enchanted = (enchantments: string[]): CharacterSheet =>
+    withEsoterics(
+      [
+        {
+          id: 'b',
+          nome: 'Bolsa de pó',
+          group: 'Esotérico',
+          enchantments: enchantments.map((enchantment) => ({ enchantment })),
+        } as Equipment,
+      ],
+      'b'
+    );
+  const byName = (name: string) =>
+    dataRegistry.getEnchantmentByName(name) as ItemE;
+
+  it('só existem com Heróis de Arton ativo', () => {
+    expect(
+      dataRegistry.getEnchantmentsBySupplements([SupplementId.TORMENTA20_CORE])
+        .esoterics
+    ).toEqual([]);
+    const heroes = dataRegistry.getEnchantmentsBySupplements([
+      SupplementId.TORMENTA20_CORE,
+      SupplementId.TORMENTA20_HEROIS_ARTON,
+    ]).esoterics;
+    expect(heroes).toHaveLength(26);
+  });
+
+  it('Bélico: +1d10 de essência; Inflamável: um dado extra de fogo', () => {
+    const profile = resolveSpellCast(
+      enchanted(['Bélico', 'Inflamável']),
+      BOLA_DE_FOGO
+    );
+    expect(profile.esotericOptions).toEqual([
+      'Bolsa de pó (Bélico, Inflamável)',
+    ]);
+    expect(profile.extraRolls).toEqual([
+      expect.objectContaining({
+        dice: '1d10',
+        damageType: 'essência',
+        label: 'Dano de essência (Bélico (Bolsa de pó))',
+      }),
+    ]);
+    const rolls = applySpellRollModifiers(
+      augmentSpellRolls(BOLA_DE_FOGO.rolls ?? [], []),
+      profile
+    );
+    expect(rolls[0].dice).toBe('7d6');
+  });
+
+  it('Clemente: magias de cura curam um dado extra', () => {
+    const cure = spellsCircle1.curarFerimentos;
+    const rolls = applySpellRollModifiers(
+      augmentSpellRolls(cure.rolls ?? [], []),
+      resolveSpellCast(enchanted(['Clemente']), cure)
+    );
+    expect(rolls.find((r) => /recuperar/i.test(r.label))?.dice).toBe('3d8+2');
+  });
+
+  it('Majestoso: +1 na CD arcana, +2 com a habilidade Magias', () => {
+    const base = resolveSpellCast(
+      createMockCharacterSheet(),
+      BOLA_DE_FOGO
+    ).dcBonus;
+    const sheet = enchanted(['Bélico', 'Majestoso']);
+    sheet.classe = { ...sheet.classe, abilities: [] };
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).dcBonus).toBe(base + 1);
+    sheet.classe = {
+      ...sheet.classe,
+      abilities: [{ name: 'Magias', text: '', nivel: 1 }],
+    };
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).dcBonus).toBe(base + 2);
+  });
+
+  it('Frugal: opção de –2 na CD e –2 PM', () => {
+    const sheet = enchanted(['Frugal']);
+    const option = resolveSpellCast(sheet, BOLA_DE_FOGO).castOptions[0];
+    expect(option).toMatchObject({ addPm: 0, label: '–2 na CD e –2 PM' });
+    const plain = resolveSpellCast(sheet, BOLA_DE_FOGO);
+    const active = resolveSpellCast(sheet, BOLA_DE_FOGO, {
+      castOptions: [option.key],
+    });
+    expect(active.pmReduction).toBe(plain.pmReduction + 2);
+    expect(active.dcBonus).toBe(plain.dcBonus - 2);
+  });
+
+  it('editor: "outro encanto" e exclusões', () => {
+    expect(canAddEnchantment(byName('Implacável'), [])).toBe(false);
+    expect(canAddEnchantment(byName('Implacável'), [byName('Bélico')])).toBe(
+      true
+    );
+    expect(canAddEnchantment(byName('Majestoso'), [byName('Implacável')])).toBe(
+      false
+    );
+    expect(canAddEnchantment(byName('Nímbico'), [byName('Khalmyrita')])).toBe(
+      false
+    );
+    expect(canAddEnchantment(byName('Contido'), [byName('Pulverizante')])).toBe(
+      false
+    );
+    expect(
+      dropUnsupportedEnchantments([byName('Implacável'), byName('Majestoso')])
+    ).toEqual([]);
   });
 });

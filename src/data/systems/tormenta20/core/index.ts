@@ -56,6 +56,7 @@ export interface SupplementImprovements {
 export interface SupplementEnchantments {
   weapons?: ItemE[];
   armors?: ItemE[];
+  esoterics?: ItemE[];
 }
 
 export interface SupplementData {

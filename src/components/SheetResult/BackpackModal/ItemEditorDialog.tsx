@@ -129,6 +129,8 @@ function enchItemTypeFor(item: Equipment): EnchantmentItemType | null {
   if (item.group === 'Arma') return 'weapon';
   if (item.group === 'Armadura') return 'armor';
   if (item.group === 'Escudo') return 'shield';
+  // Encantos para esotéricos: só de Heróis de Arton.
+  if (item.group === 'Esotérico') return 'esoteric';
   return null;
 }
 
@@ -1417,10 +1419,9 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                 color: 'text.secondary',
               }}
             >
-              Encantamentos mágicos aplicam bônus numéricos automaticamente
-              sobre os valores base do item. Encantamentos descritivos (efeitos
-              condicionais, dano elemental, resistências) ficam registrados no
-              item mas não modificam stats. Custo máximo: 5 pontos.
+              {enchItemType === 'esoteric'
+                ? 'Encantos de esotérico (Heróis de Arton) valem nas suas magias com o item empunhado; os descritivos ficam no texto do item. Ative Heróis de Arton para ver a lista. Custo máximo: 5 pontos.'
+                : 'Encantamentos mágicos aplicam bônus numéricos automaticamente sobre os valores base do item. Encantamentos descritivos (efeitos condicionais, dano elemental, resistências) ficam registrados no item mas não modificam stats. Custo máximo: 5 pontos.'}
             </Typography>
             {enchError && (
               <Typography
