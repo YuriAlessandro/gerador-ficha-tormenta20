@@ -1,5 +1,6 @@
 import { ItemMod } from '@/interfaces/Rewards';
 import { SupplementId } from '@/types/supplement.types';
+import { Atributo } from '../../atributos';
 
 /**
  * Novas Melhorias do suplemento Heróis de Arton (cap. 3 - Arsenal dos Heróis,
@@ -83,6 +84,13 @@ export const armorImprovements: ItemMod[] = [
     prerequisite: ['Banhada a ouro', 'Cravejada de gemas'],
     appliesTo: 'armor',
     supplementId: SupplementId.TORMENTA20_HEROIS_ARTON,
+    // Nas magias: as que usam Carisma como atributo-chave.
+    spellModifiers: [
+      {
+        filter: { keyAttributes: [Atributo.CARISMA] },
+        effect: { type: 'SpellDC', value: 1 },
+      },
+    ],
   },
   {
     min: 0,

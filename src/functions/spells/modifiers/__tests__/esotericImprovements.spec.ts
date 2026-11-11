@@ -1,12 +1,13 @@
 import { vi } from 'vitest';
 import { createMockCharacterSheet } from '../../../../__mocks__/characterSheet';
 import CharacterSheet from '../../../../interfaces/CharacterSheet';
-import Equipment from '../../../../interfaces/Equipment';
+import Equipment, { DefenseEquipment } from '../../../../interfaces/Equipment';
 import {
   spellsCircle1,
   spellsCircle2,
 } from '../../../../data/systems/tormenta20/magias/generalSpells';
 import { dataRegistry } from '../../../../data/registry';
+import { Atributo } from '../../../../data/systems/tormenta20/atributos';
 import { SupplementId } from '../../../../types/supplement.types';
 import generateRandomSheet from '../../../general';
 import { recalculateSheet } from '../../../recalculateSheet';
@@ -364,5 +365,91 @@ describe('rolar de novo os resultados 1', () => {
     expect(rollDamage('1d6', { rerollOnes: true })?.diceRolls).toEqual([6]);
     random.mockReturnValueOnce(0);
     expect(rollDamage('1d6')?.diceRolls).toEqual([1]);
+  });
+});
+
+describe('melhorias de arma e armadura que mexem nas magias', () => {
+  const sword = (deity?: string): Equipment =>
+    ({
+      id: 'espada',
+      nome: 'Espada longa',
+      group: 'Arma',
+      modifications: [{ mod: 'Canônico', ...(deity ? { deity } : {}) }],
+    } as Equipment);
+  const devotee = (sheet: CharacterSheet, deity: string): CharacterSheet => ({
+    ...sheet,
+    devoto: {
+      divindade: { name: deity },
+      poderes: [],
+    } as unknown as CharacterSheet['devoto'],
+  });
+  const withSword = (item: Equipment, wielded = 'espada'): CharacterSheet => {
+    const sheet = createMockCharacterSheet();
+    sheet.bag.equipments.Arma = [
+      item,
+      { id: 'adaga', nome: 'Adaga', group: 'Arma' } as Equipment,
+    ];
+    sheet.mainHandItemId = wielded;
+    return sheet;
+  };
+
+  it('Canônico: +1 na CD para devoto da divindade do item', () => {
+    const base = resolveSpellCast(createMockCharacterSheet(), BOLA_DE_FOGO);
+    const sheet = devotee(withSword(sword('Khalmyr')), 'Khalmyr');
+    const profile = resolveSpellCast(sheet, BOLA_DE_FOGO);
+    expect(profile.dcBonus).toBe(base.dcBonus + 1);
+    expect(profile.notes).toContain('+1 na CD (Canônico (Espada longa))');
+  });
+
+  it('Canônico não vale para outro devoto, sem divindade escolhida ou fora da mão', () => {
+    const base = resolveSpellCast(
+      createMockCharacterSheet(),
+      BOLA_DE_FOGO
+    ).dcBonus;
+    expect(
+      resolveSpellCast(
+        devotee(withSword(sword('Khalmyr')), 'Tanna-Toh'),
+        BOLA_DE_FOGO
+      ).dcBonus
+    ).toBe(base);
+    expect(
+      resolveSpellCast(devotee(withSword(sword()), 'Khalmyr'), BOLA_DE_FOGO)
+        .dcBonus
+    ).toBe(base);
+    expect(
+      resolveSpellCast(
+        devotee(withSword(sword('Khalmyr'), 'adaga'), 'Khalmyr'),
+        BOLA_DE_FOGO
+      ).dcBonus
+    ).toBe(base);
+  });
+
+  it('Deslumbrante: +1 na CD das magias de Carisma, com a armadura vestida', () => {
+    const charismaSpell = { ...BOLA_DE_FOGO, customKeyAttr: Atributo.CARISMA };
+    const intelligenceSpell = {
+      ...BOLA_DE_FOGO,
+      customKeyAttr: Atributo.INTELIGENCIA,
+    };
+    const sheet = createMockCharacterSheet();
+    sheet.bag.equipments.Armadura = [
+      {
+        id: 'couro',
+        nome: 'Couro',
+        group: 'Armadura',
+        defenseBonus: 2,
+        armorPenalty: 0,
+        modifications: [{ mod: 'Banhada a ouro' }, { mod: 'Deslumbrante' }],
+      } as DefenseEquipment,
+    ];
+    const base = resolveSpellCast(
+      createMockCharacterSheet(),
+      charismaSpell
+    ).dcBonus;
+    expect(resolveSpellCast(sheet, charismaSpell).dcBonus).toBe(base + 1);
+    expect(resolveSpellCast(sheet, intelligenceSpell).dcBonus).toBe(base);
+    expect(
+      resolveSpellCast({ ...sheet, wornArmorId: 'outra' }, charismaSpell)
+        .dcBonus
+    ).toBe(base);
   });
 });

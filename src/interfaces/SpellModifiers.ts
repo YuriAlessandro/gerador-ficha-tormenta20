@@ -54,6 +54,21 @@ export interface SpellModifierFilter {
    * conjuradora) — "magias de bardo".
    */
   casterClass?: string;
+  /**
+   * Só magias cujo atributo-chave é um destes (Deslumbrante: "habilidades
+   * baseadas em Carisma").
+   */
+  keyAttributes?: Atributo[];
+  /**
+   * Só se a ficha tem este poder ou habilidade, inclusive de classe
+   * (Majestoso: "se você tiver a habilidade de classe Magias").
+   */
+  hasPower?: string;
+  /**
+   * Só se o personagem é devoto desta divindade. `'chosen'` = a divindade
+   * escolhida na melhoria do item (Canônico).
+   */
+  devoteeOf?: string;
 }
 
 /** Tipos de bônus de efeito ativo que contam como "bônus em X". */

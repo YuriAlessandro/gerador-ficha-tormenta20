@@ -53,6 +53,7 @@ export function rehydrateModification(
   if (applied.effect) mod.effect = applied.effect;
   if (applied.description) mod.description = applied.description;
   if (applied.supplementId) mod.supplementId = applied.supplementId;
+  if (applied.deity) mod.deity = applied.deity;
   return mod;
 }
 

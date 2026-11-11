@@ -49,6 +49,8 @@ export interface EquipmentSelectableBonus {
 export interface AppliedModification {
   mod: string;
   specialMaterial?: string;
+  /** Divindade da melhoria Canônico (Deuses de Arton). */
+  deity?: string;
   /**
    * Snapshot do efeito numérico, tirado no momento em que a melhoria foi
    * aplicada. Presente apenas para conteúdo NÃO-core (suplemento/homebrew),

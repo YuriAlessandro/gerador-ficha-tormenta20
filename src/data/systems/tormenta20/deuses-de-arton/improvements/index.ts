@@ -43,9 +43,19 @@ export const universalImprovements: ItemMod[] = [
     min: 0,
     max: 0,
     mod: 'Canônico',
-    description: '+1 na CD para resistir a habilidades mágicas divinas',
+    description:
+      '+1 na CD das suas habilidades mágicas, se for devoto da divindade do item',
     appliesTo: 'all',
     supplementId: SupplementId.TORMENTA20_DEUSES_ARTON,
+    // "Se você for devoto dessa divindade, a CD de suas habilidades mágicas
+    // aumenta em +1." A divindade é escolhida no item.
+    choosesDeity: true,
+    spellModifiers: [
+      {
+        filter: { devoteeOf: 'chosen' },
+        effect: { type: 'SpellDC', value: 1 },
+      },
+    ],
   },
   {
     min: 0,

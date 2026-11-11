@@ -154,6 +154,10 @@ export interface ItemMod {
    * melhorias conta como UM esotérico.
    */
   spellModifiers?: SpellModifier[];
+  /** A melhoria pede uma divindade (Canônico); ver `deity`. */
+  choosesDeity?: boolean;
+  /** Divindade escolhida no editor (vira `AppliedModification.deity`). */
+  deity?: string;
   /** "Escolha uma magia" da melhoria (Harmonizado), gravada por item. */
   spellChoice?: SpellModifierChoiceSpec;
   /**

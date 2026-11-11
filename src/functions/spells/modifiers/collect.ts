@@ -164,34 +164,75 @@ function modificationLabel(mod: string, specialMaterial?: string): string {
   );
 }
 
+type ImprovementContext = 'weapon' | 'defense' | 'esoteric';
+
+/** Em que lista de melhorias o item procura as dele. */
+function improvementContext(item: Equipment): ImprovementContext | undefined {
+  if (item.group === 'Esotérico') return 'esoteric';
+  if (item.group === 'Arma') return 'weapon';
+  if (item.group === 'Armadura' || item.group === 'Escudo') return 'defense';
+  return undefined;
+}
+
 /**
- * Melhorias do item com efeito em magia (Poderoso, Canalizador, Harmonizado…),
- * lidas do catálogo pelo nome. A superior anula a que ela substitui
- * (Potencializador sobre Canalizador).
+ * A arma, armadura ou escudo está em uso para as melhorias dele valerem
+ * (Canônico, Deslumbrante)? Arma e escudo, empunhados; armadura, vestida. Ficha
+ * que nunca marcou mãos ou armadura segue a regra legada (tudo em uso).
  */
-function itemImprovements(item: Equipment): ResolvedImprovement[] {
-  if (item.group !== 'Esotérico') return [];
+function isGearInUse(sheet: CharacterSheet, item: Equipment): boolean {
+  if (item.group === 'Armadura') {
+    return !sheet.wornArmorId || sheet.wornArmorId === item.id;
+  }
+  if (item.group === 'Arma' || item.group === 'Escudo') {
+    const hands = [
+      sheet.mainHandItemId,
+      sheet.offHandItemId,
+      sheet.extraHand1ItemId,
+      sheet.extraHand2ItemId,
+    ];
+    if (hands.every((id) => id === undefined)) return true;
+    return isItemWielded(item.id, sheet);
+  }
+  return true;
+}
+
+/**
+ * Melhorias do item com efeito em magia (Poderoso, Canalizador, Harmonizado,
+ * Canônico…), lidas do catálogo pelo nome. A superior anula a que ela
+ * substitui (Potencializador sobre Canalizador). "Devoto da divindade
+ * escolhida" vira a divindade gravada na melhoria; sem ela, não vale.
+ */
+function itemImprovements(
+  sheet: CharacterSheet,
+  item: Equipment
+): ResolvedImprovement[] {
+  const context = improvementContext(item);
+  if (!context || !isGearInUse(sheet, item)) return [];
   const appliedMods = item.modifications ?? [];
   const applied = appliedMods.map((m) => m.mod);
   return appliedMods
     .filter(({ mod }) => !isModificationSuperseded(mod, applied))
-    .map(({ mod, specialMaterial }) => {
-      // Material especial: o efeito é o do material ("Mitral").
+    .map(({ mod, specialMaterial, deity }) => {
+      // Material especial em esotérico: o efeito é o do material ("Mitral").
       if (mod === 'Material especial') {
         return {
           mod: modificationLabel(mod, specialMaterial),
-          modifiers: specialMaterial
-            ? dataRegistry.getSpecialMaterialByName(specialMaterial)
-                ?.esotericSpellModifiers ?? []
-            : [],
+          modifiers:
+            context === 'esoteric' && specialMaterial
+              ? dataRegistry.getSpecialMaterialByName(specialMaterial)
+                  ?.esotericSpellModifiers ?? []
+              : [],
         };
       }
-      const data = dataRegistry.getImprovementByName(mod, 'esoteric');
-      return {
-        mod,
-        modifiers: data?.spellModifiers ?? [],
-        spellChoice: data?.spellChoice,
-      };
+      const data = dataRegistry.getImprovementByName(mod, context);
+      const modifiers = (data?.spellModifiers ?? []).flatMap((modifier) => {
+        if (modifier.filter?.devoteeOf !== 'chosen') return [modifier];
+        if (!deity) return [];
+        return [
+          { ...modifier, filter: { ...modifier.filter, devoteeOf: deity } },
+        ];
+      });
+      return { mod, modifiers, spellChoice: data?.spellChoice };
     })
     .filter(({ modifiers }) => modifiers.length > 0);
 }
@@ -202,16 +243,20 @@ function itemImprovements(item: Equipment): ResolvedImprovement[] {
  * varinhas iguais harmonizadas para magias diferentes.
  */
 const itemLabel = (sheet: CharacterSheet, item: Equipment): string => {
-  const mods = (item.modifications ?? []).map(({ mod, specialMaterial }) => {
-    const hasChoice =
-      item.group === 'Esotérico' &&
-      !!dataRegistry.getImprovementByName(mod, 'esoteric')?.spellChoice;
-    const chosen = hasChoice
-      ? sheet.spellModifierChoices?.[`${mod}@${item.id ?? item.nome}`] ?? []
-      : [];
-    const label = modificationLabel(mod, specialMaterial);
-    return chosen.length > 0 ? `${label}: ${chosen.join(', ')}` : label;
-  });
+  const context = improvementContext(item);
+  const mods = (item.modifications ?? []).map(
+    ({ mod, specialMaterial, deity }) => {
+      const label = modificationLabel(mod, specialMaterial);
+      if (deity) return `${label}: ${deity}`;
+      const hasChoice =
+        !!context &&
+        !!dataRegistry.getImprovementByName(mod, context)?.spellChoice;
+      const chosen = hasChoice
+        ? sheet.spellModifierChoices?.[`${mod}@${item.id ?? item.nome}`] ?? []
+        : [];
+      return chosen.length > 0 ? `${label}: ${chosen.join(', ')}` : label;
+    }
+  );
   return mods.length > 0 ? `${item.nome} (${mods.join(', ')})` : item.nome;
 };
 
@@ -263,7 +308,7 @@ export function collectSheetSpellModifiers(
         entry: item,
         isCustom: !!item.isCustom,
         esoteric: item.group === 'Esotérico',
-        improvements: itemImprovements(item),
+        improvements: itemImprovements(sheet, item),
       });
     });
   });

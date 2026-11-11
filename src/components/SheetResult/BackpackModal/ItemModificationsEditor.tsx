@@ -170,6 +170,22 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
   };
 
   const totalCost = calculateModificationCost(selectedModifications);
+
+  // Canônico (Deuses de Arton): a divindade das inscrições do item.
+  const deityOptions = useMemo(
+    () =>
+      dataRegistry
+        .getDeitiesWithSupplementPowers(userSupplements)
+        .map((deity) => deity.name)
+        .sort((a, b) => a.localeCompare(b, 'pt-BR')),
+    [userSupplements]
+  );
+  const setModDeity = (modName: string, deity: string | null) =>
+    onChange(
+      selectedModifications.map((mod) =>
+        mod.mod === modName ? { ...mod, deity: deity ?? undefined } : mod
+      )
+    );
   const hasMaterialEspecial = selectedModifications.some(
     (mod) => mod.mod === 'Material especial'
   );
@@ -301,6 +317,27 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
           disabled={disabled}
         />
       </Grid>
+      {selectedModifications
+        .filter((mod) => mod.choosesDeity)
+        .map((mod) => (
+          <Grid size={12} key={`deity-${mod.mod}`}>
+            <Autocomplete
+              options={deityOptions}
+              value={mod.deity ?? null}
+              onChange={(_event, value) => setModDeity(mod.mod, value)}
+              disabled={disabled}
+              renderInput={(params) => (
+                <TextField
+                  // eslint-disable-next-line react/jsx-props-no-spreading
+                  {...params}
+                  label={`Divindade (${mod.mod})`}
+                  placeholder='Escolha a divindade das inscrições'
+                  helperText='A CD das suas magias sobe +1 se você for devoto dela.'
+                />
+              )}
+            />
+          </Grid>
+        ))}
       {hasMaterialEspecial && (
         <Grid size={12}>
           <Autocomplete

@@ -7,6 +7,9 @@ import type {
 import { getSpellDamageTypes } from '../damageTypes';
 import { getSpellTradition } from '../spellTradition';
 import { isHealingRollLabel } from '../../spellRollAugmentation';
+import { sheetHasPowerNamed } from '../../powers/hasPowerNamed';
+import { sheetHasClassAbility } from '../../learnedClassAbility';
+import { getSpellKeyAttribute } from '../pmLimit';
 
 /** Rolagem de dano: tem tipo de dano ou o rótulo fala em dano. */
 export function isDamageRollLabel(label: string, damageType?: string): boolean {
@@ -73,6 +76,18 @@ export const choiceValueOf = (
   eligible?: SpellModifierFilter
 ): string | undefined => choiceValuesOf(spell, of, eligible)[0];
 
+/** Devoto da divindade (inclusive a segunda, na devoção dupla). */
+function isDevoteeOf(
+  sheet: CharacterSheet | undefined,
+  deity: string
+): boolean {
+  const devoto = sheet?.devoto;
+  if (!devoto) return false;
+  return (
+    devoto.divindade?.name === deity || devoto.divindadeSecundaria === deity
+  );
+}
+
 export function spellMatchesFilter(
   spell: Spell,
   filter: SpellModifierFilter | undefined,
@@ -126,5 +141,20 @@ export function spellMatchesFilter(
   if (filter.damaging && !hasDamageRoll(spell)) return false;
   if (filter.resisted && !spell.resistencia) return false;
   if (filter.area && !spell.area) return false;
+  if (filter.keyAttributes) {
+    const attribute = sheet ? getSpellKeyAttribute(sheet, spell) : undefined;
+    if (!attribute || !filter.keyAttributes.includes(attribute)) return false;
+  }
+  if (
+    filter.hasPower &&
+    !(
+      sheet &&
+      (sheetHasPowerNamed(sheet, filter.hasPower) ||
+        sheetHasClassAbility(sheet, filter.hasPower))
+    )
+  ) {
+    return false;
+  }
+  if (filter.devoteeOf && !isDevoteeOf(sheet, filter.devoteeOf)) return false;
   return true;
 }
