@@ -94,7 +94,7 @@ const combatPowers: Record<string, GeneralPower> = {
     ],
   },
   ATAQUE_PRECISO: {
-    name: 'Ataque preciso',
+    name: 'Ataque Preciso',
     description:
       'Se estiver empunhando uma arma corpo a corpo em uma das mãos e nada na outra, você recebe +2 na margem de ameaça e +1 no multiplicador de crítico.',
     type: GeneralPowerType.COMBATE,

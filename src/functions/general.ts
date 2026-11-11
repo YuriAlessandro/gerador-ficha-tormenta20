@@ -193,6 +193,7 @@ import {
   getClassSetupAbilities,
   getBaseAbilitiesForLevelUp,
   resolveClassSetup,
+  getHighestSpellCircle,
 } from './multiclass';
 import {
   LEARNED_CLASS_ABILITY_LEVEL,
@@ -1647,8 +1648,7 @@ function applyOptionGrantedSpells(
     available = action.availableSpells;
     customAttribute = action.customAttribute;
   } else {
-    const highestCircle =
-      sheet.classe.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) || 1;
+    const highestCircle = getHighestSpellCircle(sheet, action.allowedType) || 1;
     for (let circle = 1; circle <= highestCircle; circle += 1) {
       if (action.allowedType === 'Arcane') {
         available.push(...getArcaneSpellsOfCircle(circle));
@@ -1809,6 +1809,38 @@ export const applyPower = (
     ].filter((p) => p.name === powerOrAbility.name).length;
     const recorded = sheet.optionChoices?.[optionKey]?.length ?? 0;
     return recorded > 0 && instances > recorded;
+  };
+
+  /**
+   * Mesma ideia para o Aumento de Atributo (e afins): cada instância grava uma
+   * entrada `AttributeIncreasedByAumentoDeAtributo` no histórico. Mais
+   * instâncias na ficha do que entradas = instância nova, que precisa ser
+   * aplicada em vez de cair no "já aplicado" — sem isso o 2º Aumento de
+   * Atributo escolhido no editor de poderes não dava o +1.
+   *
+   * Com `pendingRepeatChoice` (recálculo), só aplica quando o jogador escolheu
+   * o atributo: ficha antiga com instância sem entrada não ganha +1 sorteado.
+   */
+  const isNewRepeatAttributeIncrease = (): boolean => {
+    if (!powerOrAbility.canRepeat) return false;
+    if (
+      applyOptions?.pendingRepeatChoice &&
+      !manualSelections?.attributes?.length
+    ) {
+      return false;
+    }
+    const instances = [
+      ...(sheet.classPowers ?? []),
+      ...(sheet.generalPowers ?? []),
+    ].filter((p) => p.name === powerOrAbility.name).length;
+    const recorded = sheet.sheetActionHistory.filter(
+      (entry) =>
+        entry.powerName === powerOrAbility.name &&
+        entry.changes.some(
+          (change) => change.type === 'AttributeIncreasedByAumentoDeAtributo'
+        )
+    ).length;
+    return instances > recorded;
   };
 
   const getSourceName = (source: SheetChangeSource) => {
@@ -2112,6 +2144,10 @@ export const applyPower = (
         !(
           sheetAction.action.type === 'chooseFromOptions' &&
           isNewRepeatChoice(sheetAction.action.optionKey)
+        ) &&
+        !(
+          sheetAction.action.type === 'increaseAttribute' &&
+          isNewRepeatAttributeIncrease()
         ) &&
         isActionAlreadyApplied(sheetAction.action.type, powerOrAbility.name)
       ) {
@@ -2505,8 +2541,7 @@ export const applyPower = (
         });
       } else if (sheetAction.action.type === 'learnAnySpellFromHighestCircle') {
         const highestCircle = Math.min(
-          sheet.classe.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) ||
-            1,
+          getHighestSpellCircle(sheet, sheetAction.action.allowedType) || 1,
           sheetAction.action.maxCircle ?? Infinity
         );
 
@@ -2601,19 +2636,28 @@ export const applyPower = (
           ? sheet.optionChoices?.[optionKey]?.[0]
           : undefined;
 
+        // Escolha manual: com um ponto só, o editor de poderes acumula uma
+        // escolha por instância nova do poder repetido (`mergeSelections`), e
+        // cada instância fica com a primeira que ainda cabe — as já aplicadas
+        // contam como usadas no patamar. Com vários pontos, valem os `picks`
+        // últimos (a aplicação mais recente) e o índice é o ponto. Em ambos os
+        // casos a escolha precisa caber no pool permitido: o jogador não pode
+        // pôr em Carisma um ponto que a regra manda pôr em Força, Destreza ou
+        // Constituição.
+        const manualPicks = (
+          picks === 1
+            ? manualSelections?.attributes
+            : manualSelections?.attributes?.slice(-picks)
+        ) as Atributo[] | undefined;
+        const manualTarget =
+          picks === 1
+            ? manualPicks?.find((attr) => availableAttributes.includes(attr))
+            : manualPicks?.[0];
+
         // Prioridade: escolha manual → escolha persistida (replay) → prioridade
         // de classe → aleatório entre os disponíveis.
-        if (
-          manualSelections?.attributes &&
-          manualSelections.attributes.length > 0 &&
-          // A escolha manual ainda precisa caber no pool permitido: o jogador
-          // não pode pôr em Carisma um ponto que a regra manda pôr em Força,
-          // Destreza ou Constituição.
-          availableAttributes.includes(
-            manualSelections.attributes[0] as Atributo
-          )
-        ) {
-          targetAttribute = manualSelections.attributes[0] as Atributo;
+        if (manualTarget && availableAttributes.includes(manualTarget)) {
+          targetAttribute = manualTarget;
         } else if (persisted) {
           targetAttribute = persisted as Atributo;
         } else if (firstPriorityAttribute) {
@@ -2711,9 +2755,7 @@ export const applyPower = (
             );
             if (remaining.length === 0) break;
 
-            const manual = manualSelections?.attributes?.[pickIndex] as
-              | Atributo
-              | undefined;
+            const manual = manualPicks?.[pickIndex];
             const next =
               manual && remaining.includes(manual)
                 ? manual
@@ -5504,9 +5546,7 @@ const calculateBonusValue = (
     if (bonus.base.kind === 'fixed') v = bonus.base.value;
     else if (bonus.base.kind === 'level') v = sheet.nivel;
     else if (bonus.base.kind === 'spellCircle')
-      v =
-        sheet.classe?.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) ??
-        0;
+      v = getHighestSpellCircle(sheet);
     else if (bonus.base.kind === 'attribute')
       v = sheet.atributos[bonus.base.attribute]?.value ?? 0;
     if (bonus.capByLevel) v = Math.min(v, sheet.nivel);

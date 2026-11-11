@@ -57,12 +57,14 @@ function getPowerCategory(
 }
 
 function buildPower(power: SheetPower, category: PowerCategory): FoundryItem {
+  const rolls = buildFormulaRolls(power.rolls);
   return {
     _id: foundryId(),
     name: getPowerDisplayName(power),
     type: 'poder',
     effects: [],
-    flags: {},
+    // A frente da ficha em abas só lista favoritos: os poderes que rolam algo.
+    flags: rolls.length > 0 ? { tormenta20: { favorito: true } } : {},
     system: {
       description: {
         value: textToHtml(getPowerDisplayText(power)),
@@ -70,7 +72,7 @@ function buildPower(power: SheetPower, category: PowerCategory): FoundryItem {
       },
       tipo: category.tipo,
       subtipo: category.subtipo,
-      rolls: buildFormulaRolls(power.rolls),
+      rolls,
     },
   };
 }

@@ -30,6 +30,21 @@ export function textToHtml(text: string | undefined): string {
     .join('');
 }
 
+/**
+ * Como `textToHtml`, mas num único `<p>` com `<br>` entre as linhas. Para a
+ * descrição de efeito de uso: até a 1.6.5 o diálogo de uso faz
+ * `parseHTML(descrição).prepend(...)`, que quebra com mais de um elemento raiz.
+ */
+export function textToSingleBlockHtml(text: string | undefined): string {
+  if (!text) return '';
+  const lines = text
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map(escapeHtml);
+  return lines.length > 0 ? `<p>${lines.join('<br>')}</p>` : '';
+}
+
 const ID_ALPHABET =
   'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 

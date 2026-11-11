@@ -1,4 +1,4 @@
-import { foundryId, textToHtml } from './normalize';
+import { foundryId, textToSingleBlockHtml } from './normalize';
 import { FoundryEffect, FoundryEffectChange, FoundryValue } from './types';
 
 /**
@@ -42,7 +42,7 @@ export function buildOnUseEffect(input: OnUseEffectInput): FoundryEffect {
     type: 'base',
     disabled: true,
     transfer: false,
-    description: textToHtml(input.text),
+    description: textToSingleBlockHtml(input.text),
     system: {
       changes: input.changes,
       onuse: true,

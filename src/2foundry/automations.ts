@@ -6,6 +6,8 @@ import type {
   ActiveEffectUsageOption,
   ActivePowerDefinition,
 } from '@/premium/interfaces/ActiveEffect';
+import { Atributo } from '../data/systems/tormenta20/atributos';
+import { getAttributeDelta } from '../functions/effectiveAttributes';
 import { calculateBonusValue } from '../functions/recalculateSheet';
 import CharacterSheet, {
   SheetBonus,
@@ -13,7 +15,7 @@ import CharacterSheet, {
   StatModifierTarget,
 } from '../interfaces/CharacterSheet';
 import { buildChange, buildPassiveEffect } from './effects';
-import { ATTRIBUTE_KEYS, toDamageTypeKey } from './enums';
+import { ATTRIBUTE_KEYS, FoundryAttribute, toDamageTypeKey } from './enums';
 import { textToHtml } from './normalize';
 import { FOUNDRY_SKILLS } from './skills';
 import { FoundryEffect, FoundryEffectChange } from './types';
@@ -41,8 +43,6 @@ export interface SheetAutomations {
   groups: BonusGroup[];
   /** Soma dos bônus de Defesa que o Foundry aplica sozinho via efeito. */
   defense: number;
-  /** Bônus de perícia sem fonte exportável, por chave de perícia do Foundry. */
-  skillOthers: Record<string, number>;
 }
 
 /** Poderes e magias da ficha que têm efeito ativável, pelo nome na ficha. */
@@ -374,6 +374,93 @@ export function buildActorToggleEffects(
   );
 }
 
+const ATTRIBUTE_CHANGE = /^system\.atributos\.(\w+)\.bonus$/;
+
+/** Soma, por chave de atributo do Foundry, das mudanças de efeitos ligados. */
+function sumEnabledAttributeChanges(
+  effects: FoundryEffect[]
+): Partial<Record<FoundryAttribute, number>> {
+  const totals: Partial<Record<FoundryAttribute, number>> = {};
+  effects
+    .filter((effect) => !effect.disabled)
+    .flatMap((effect) => effect.system.changes)
+    .forEach((change) => {
+      const key = change.key.match(ATTRIBUTE_CHANGE)?.[1] as FoundryAttribute;
+      if (!key) return;
+      totals[key] = (totals[key] ?? 0) + Number(change.value);
+    });
+  return totals;
+}
+
+function buildAttributeEffect(
+  name: string,
+  text: string,
+  deltas: Partial<Record<Atributo, number>>
+): FoundryEffect[] {
+  const changes = (Object.keys(ATTRIBUTE_KEYS) as Atributo[])
+    .filter((attribute) => deltas[attribute])
+    .map((attribute) =>
+      buildChange(
+        `system.atributos.${ATTRIBUTE_KEYS[attribute]}.bonus`,
+        deltas[attribute] ?? 0,
+        'add'
+      )
+    );
+  if (changes.length === 0) return [];
+  const effect = buildPassiveEffect(name, changes, false);
+  effect.description = textToHtml(text);
+  return [effect];
+}
+
+/**
+ * A camada de atributo efetivo (`atributosTemporarios`) como efeitos LIGADOS no
+ * ator, para os atributos do Foundry baterem com os que a ficha mostra. O
+ * `base` exportado continua sendo o base; o delta vai à parte, e o jogador
+ * desliga o efeito quando o estado acabar.
+ *
+ * O que os ativáveis do catálogo já ligaram (`toggleEffects`) não entra de
+ * novo: sai o ajuste manual (`bonusAtributos`) e o resto — efeitos
+ * customizados, Forma Selvagem, ativável que não virou efeito.
+ */
+export function buildAttributeLayerEffects(
+  sheet: CharacterSheet,
+  toggleEffects: FoundryEffect[]
+): FoundryEffect[] {
+  // Sem a camada (ficha nunca recalculada), a ficha mostra o base e não há o
+  // que exportar — nem o ajuste manual, que ainda não foi aplicado.
+  const layer = sheet.atributosTemporarios;
+  if (!layer) return [];
+
+  const covered = sumEnabledAttributeChanges(toggleEffects);
+  const manual: Partial<Record<Atributo, number>> = {};
+  const rest: Partial<Record<Atributo, number>> = {};
+  (Object.keys(ATTRIBUTE_KEYS) as Atributo[]).forEach((attribute) => {
+    const value = sheet.bonusAtributos?.[attribute];
+    const manualValue =
+      typeof value === 'number' && Number.isFinite(value) ? value : 0;
+    manual[attribute] = manualValue;
+    rest[attribute] =
+      getAttributeDelta(sheet, attribute) -
+      manualValue -
+      (covered[ATTRIBUTE_KEYS[attribute]] ?? 0);
+  });
+
+  return [
+    ...buildAttributeEffect(
+      'Ajuste manual de atributos',
+      'Modificadores temporários de atributo ajustados à mão na ficha.',
+      manual
+    ),
+    ...buildAttributeEffect(
+      'Efeitos ativos da ficha',
+      'Modificadores de atributo dos efeitos que estavam ativos na ficha ao ' +
+        'exportar (efeitos customizados, Forma Selvagem…). Desligue quando o ' +
+        'efeito acabar.',
+      rest
+    ),
+  ];
+}
+
 /** Chaves (`powerKey::optionId`) das opções exportadas como efeito ligado. */
 function getExportedActiveKeys(
   sheet: CharacterSheet,
@@ -400,7 +487,6 @@ export function buildAutomations(
   toggles: SheetToggles
 ): SheetAutomations {
   const groups = new Map<string, BonusGroup>();
-  const skillOthers: Record<string, number> = {};
   const exportedActive = getExportedActiveKeys(sheet, toggles);
   let defense = 0;
 
@@ -421,16 +507,9 @@ export function buildAutomations(
       return;
     }
 
+    // Sem fonte permanente, a Defesa e a perícia fecham pelo `outros`.
     const label = getSourceLabel(source);
-    if (!label) {
-      // A Defesa fecha sozinha pelo `outros` do ator; a perícia precisa levar
-      // o valor no `outros` dela.
-      if (target.type === 'Skill') {
-        const skill = FOUNDRY_SKILLS[target.name];
-        if (skill) skillOthers[skill] = (skillOthers[skill] ?? 0) + value;
-      }
-      return;
-    }
+    if (!label) return;
 
     const groupKey = `${source.type}::${label}`;
     const group = groups.get(groupKey) ?? {
@@ -444,5 +523,5 @@ export function buildAutomations(
     if (target.type === 'Defense') defense += value;
   });
 
-  return { groups: Array.from(groups.values()), defense, skillOthers };
+  return { groups: Array.from(groups.values()), defense };
 }
