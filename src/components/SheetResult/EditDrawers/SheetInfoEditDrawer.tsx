@@ -796,8 +796,13 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     return selectedRace?.attributes.excludeFromAny || [];
   })();
 
-  // Get list of attributes that can be selected (exclude fixed and restricted attributes)
-  const fixedAttributeNames = fixedAttributes.map((attr) => attr.attr);
+  // Atributos que os slots `any` podem receber. Os fixos da raça só saem da
+  // lista quando ela diz "+1 em OUTRO atributo" (`excludeFixedFromAny`, ex.:
+  // Meio-Orc); "+1 em um/dois atributos" permite repetir o atributo fixo.
+  // Mesma regra de `getAnySlotExcludedAttributes`.
+  const fixedAttributeNames = selectedRace?.attributes.excludeFixedFromAny
+    ? fixedAttributes.map((attr) => attr.attr)
+    : [];
   const availableAttributes = Object.values(Atributo).filter(
     (attr) =>
       !fixedAttributeNames.includes(attr) && !excludeFromAny.includes(attr)
@@ -3493,8 +3498,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                         )}
                         Escolha {anyAttributeCount} atributo
                         {anyAttributeCount > 1 ? 's' : ''}
-                        {fixedAttributes.length > 0 ? ' diferente' : ''}
-                        {anyAttributeCount > 1 && fixedAttributes.length > 0
+                        {fixedAttributeNames.length > 0 ? ' diferente' : ''}
+                        {anyAttributeCount > 1 && fixedAttributeNames.length > 0
                           ? 's'
                           : ''}{' '}
                         para receber +

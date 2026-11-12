@@ -6742,6 +6742,10 @@ export function generateEmptySheet(
     },
     maxSpaces: 10,
     raca: race,
+    // A herança vem da customização da raça. Sem ela na ficha, as escolhas do
+    // assistente que dependem da herança são descartadas logo abaixo e o
+    // editor não reconhece a herança da ficha.
+    raceHeritage: race.heritage,
     classe: generatedClass,
     pv: 10,
     pm: 0,
