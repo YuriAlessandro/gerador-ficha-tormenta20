@@ -53,6 +53,7 @@ import {
 } from '@/2foundry';
 import Bag from '@/interfaces/Bag';
 import preparePDF from '@/functions/downloadSheetPdf';
+import { takeImportedSheet } from '@/functions/importedSheetHandoff';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import {
   dataRegistry,
@@ -347,6 +348,9 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const [loadingSaveToCloud, setLoadingSaveToCloud] = React.useState(false);
   const [sheetSavedToCloud, setSheetSavedToCloud] = React.useState(false);
   const [cloudSheetId, setCloudSheetId] = React.useState<string | null>(null);
+  // Ficha que chegou da importação de uma build: a tela rola até ela.
+  const [scrollToSheet, setScrollToSheet] = React.useState(false);
+  const sheetAnchorRef = React.useRef<HTMLDivElement>(null);
   const [showUnsavedDialog, setShowUnsavedDialog] = React.useState(false);
   const [pendingNavigation, setPendingNavigation] = React.useState<
     string | null
@@ -734,6 +738,23 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
     trackSheetGeneration();
   };
+
+  // Ficha criada fora daqui (importação de uma build): segue o caminho do fim
+  // do assistente. Sem entrega, este efeito não faz nada.
+  React.useEffect(() => {
+    const imported = takeImportedSheet();
+    if (!imported) return;
+    finalizeSheet(imported);
+    // Quem acabou de responder o stepper vai direto para a ficha, sem passar
+    // pelo formulário (a ficha gerada aqui pelo formulário fica como sempre).
+    setScrollToSheet(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (!scrollToSheet || !randomSheet) return;
+    sheetAnchorRef.current?.scrollIntoView({ block: 'start' });
+    setScrollToSheet(false);
+  }, [scrollToSheet, randomSheet]);
 
   const handleWizardConfirm = (
     wizardSelections: import('@/interfaces/WizardSelections').WizardSelections
@@ -1744,7 +1765,11 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
           </Card>
 
           {randomSheet && (
-            <Card sx={{ p: 2, mb: 2 }}>
+            // Âncora da ficha importada: a barra de salvar fica à vista.
+            <Card
+              ref={sheetAnchorRef}
+              sx={{ p: 2, mb: 2, scrollMarginTop: 16 }}
+            >
               {targetFolder && !cloudSheetId && (
                 <Chip
                   icon={<FolderIcon />}
