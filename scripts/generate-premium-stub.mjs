@@ -84,6 +84,9 @@ const OVERRIDES = {
   // O público lê `.hasAccess` para decidir se mostra o botão do Portrait. O
   // default `() => ({})` funcionaria por acidente (undefined é falsy), mas
   // deixa o contrato implícito e quebra na hora que alguém ler `.isEnabled`.
+  // A tela da ficha espalha `action` na barra de ícones e monta `dialog`:
+  // sem o premium, nenhum dos dois.
+  useBuildFromSheetAction: { expr: '() => ({ action: null, dialog: null })' },
   usePortraitAccess: {
     expr: '() => ({ isEnabled: false, hasAccess: false, needsSupport: false })',
   },
