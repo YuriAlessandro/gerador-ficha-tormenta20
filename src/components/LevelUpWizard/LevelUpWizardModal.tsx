@@ -64,6 +64,7 @@ import { getEffectiveAttributeModifier } from '@/functions/effectiveAttributes';
 import {
   getClassLevel,
   initializeClassLevels,
+  reconcileClassLevels,
   findClassDescription,
   buildSpellPathFromSetup,
   serializeSpellPath,
@@ -303,6 +304,34 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     ...simulatedSheet,
     nivel: currentLevel,
   };
+
+  // Mesma ficha, com o nível que está sendo ganho já contado em `classLevels`.
+  // O que depende do nível de CLASSE (círculo de magia do Conhecimento Mágico
+  // numa classe secundária) precisa enxergar o nível novo, não o anterior.
+  // Mono-classe segue com `classLevels` indefinido (`getClassLevel` cai em
+  // `nivel`, já projetado acima).
+  const isLevelingSecondaryClass =
+    selectedClassName !== simulatedSheet.classe.name;
+  const sheetWithProjectedClassLevel: CharacterSheet =
+    simulatedSheet.classLevels || isLevelingSecondaryClass
+      ? {
+          ...sheetForCurrentLevel,
+          classLevels: [
+            ...reconcileClassLevels(
+              simulatedSheet.classLevels ??
+                initializeClassLevels(simulatedSheet),
+              currentLevel - 1,
+              simulatedSheet.classe.name,
+              simulatedSheet.classe.subname
+            ),
+            {
+              level: currentLevel,
+              className: selectedClassName,
+              classSubname: selectedClassSubname,
+            },
+          ],
+        }
+      : sheetForCurrentLevel;
 
   // Setup da classe secundária: o do nível corrente ou o gravado na ficha no
   // 1º nível dela (o poder concedido da Linhagem Abençoada sai no 2º).
@@ -1483,7 +1512,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                 powerEffectSelections: selections,
               })
             }
-            actualSheet={sheetForCurrentLevel}
+            actualSheet={sheetWithProjectedClassLevel}
             skipRaceAbilities
             supplements={supplements}
           />
@@ -1531,7 +1560,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                     powerEffectSelections: selections,
                   })
                 }
-                actualSheet={sheetForCurrentLevel}
+                actualSheet={sheetWithProjectedClassLevel}
                 skipRaceAbilities
                 supplements={supplements}
               />
@@ -1596,7 +1625,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                 }
                 setCurrentLevelSelection(next);
               }}
-              actualSheet={sheetForCurrentLevel}
+              actualSheet={sheetWithProjectedClassLevel}
               skipRaceAbilities
               classAbilityLevel={selectedClassLevel}
               supplements={supplements}

@@ -42,6 +42,7 @@ import {
   isItemWielded,
 } from '../components/SheetResult/BackpackModal/wielding';
 import { getItemSpaces } from '../interfaces/Bag';
+import { getLocationLabel } from './bagStorage';
 import { usesCharismaForDefense } from './learnedClassAbility';
 
 const CP1252_REPLACEMENTS: Record<string, string> = {
@@ -552,13 +553,23 @@ export const fillSheetPdf: (
     return ` (${getItemSpaces(equip)} espaços)`;
   };
 
+  // Item fora do personagem (Alforje, veículo, guardado) sai marcado: a carga
+  // do PDF só soma o que está com ele.
+  const allBagItems = getOrderedItemsByGroup(sheet.bag, () => true);
+  const locationSuffix = (equip: Equipment): string => {
+    const label = getLocationLabel(equip, allBagItems);
+    return label ? ` [${label}]` : '';
+  };
+
   // Concanenate all equipments names into one string
   const equipmentsNames = equipsEntriesNoWeapons
     .map(
       (equip) =>
         `${
           equip.quantity && equip.quantity > 1 ? `${equip.quantity}x ` : ''
-        }${getItemDisplayName(equip)}${spacesSuffix(equip)}`
+        }${getItemDisplayName(equip)}${spacesSuffix(equip)}${locationSuffix(
+          equip
+        )}`
     )
     .join('\n');
 

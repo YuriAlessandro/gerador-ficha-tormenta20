@@ -90,11 +90,11 @@ export function resolveAutoSelections(
 /**
  * Junta a escolha nova com o que o poder já tinha registrado.
  *
- * Poder repetível **acumula** perícias, proficiências, poderes, magias e armas
- * — cada repetição concede mais um. `attributes` (com as `intelligenceSkills`
- * que dependem dele) é a exceção deliberada: sobrescreve,
- * porque cada aplicação de um poder de aumento de atributo só deve mexer no
- * atributo recém-escolhido, não em todos os já escolhidos.
+ * Poder repetível **acumula** perícias, proficiências, poderes, magias, armas
+ * e atributos — cada repetição concede mais um. Os atributos acumulados não
+ * são reaplicados: o `applyPower` só aplica a instância nova (a que ainda não
+ * tem entrada no histórico) e dá a ela a primeira escolha que ainda cabe no
+ * patamar.
  *
  * Poder não repetível ignora o histórico e fica com a escolha nova.
  */
@@ -126,9 +126,19 @@ export function mergeSelections(
     combined.weapons = [...(combined.weapons || []), ...incoming.weapons];
   }
   if (incoming.attributes) {
-    combined.attributes = incoming.attributes;
-    // As perícias por Inteligência acompanham o atributo desta aplicação.
-    combined.intelligenceSkills = incoming.intelligenceSkills;
+    // Uma escolha por instância (Aumento de Atributo 2× na mesma edição): o
+    // `applyPower` dá a cada instância nova a primeira que ainda cabe no
+    // patamar.
+    combined.attributes = [
+      ...(combined.attributes || []),
+      ...incoming.attributes,
+    ];
+    if (incoming.intelligenceSkills) {
+      combined.intelligenceSkills = [
+        ...(combined.intelligenceSkills || []),
+        ...incoming.intelligenceSkills,
+      ];
+    }
   }
 
   return combined;

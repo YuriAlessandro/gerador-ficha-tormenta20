@@ -93,6 +93,8 @@ export function migrateLegacyOficioArtesao(sheet: CharacterSheet): void {
 const LEGACY_POWER_NAMES: Record<string, string> = {
   // JdA p. 58 (Clérigo). O nome antigo confundia com o acessório.
   'Símbolo Sagrado Abençoado': 'Símbolo Sagrado Energizado',
+  // JdA p. 124. Estava cadastrado com "p" minúsculo.
+  'Ataque preciso': 'Ataque Preciso',
 };
 
 /** Nome atual do poder (o próprio nome, se não foi renomeado). */

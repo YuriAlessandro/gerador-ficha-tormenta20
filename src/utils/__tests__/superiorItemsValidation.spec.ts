@@ -7,6 +7,7 @@ import {
   validateModificationRequirement,
 } from '../superiorItemsValidation';
 import { ItemMod } from '../../interfaces/Rewards';
+import DEUSES_ARTON_IMPROVEMENTS from '../../data/systems/tormenta20/deuses-de-arton/improvements';
 
 const banhada: ItemMod = {
   min: 0,
@@ -171,5 +172,21 @@ describe('isPrereqMetByNames', () => {
     expect(
       isPrereqMetByNames(['Banhada a ouro', 'Cravejada de gemas'], ['Cruel'])
     ).toBe(false);
+  });
+});
+
+describe('Devotado (Deuses de Arton)', () => {
+  const { armors } = DEUSES_ARTON_IMPROVEMENTS;
+  const devotado = armors.find((m) => m.mod === 'Devotado') as ItemMod;
+  const inscrito = armors.find((m) => m.mod === 'Inscrito') as ItemMod;
+
+  test('requires Inscrito', () => {
+    expect(validateModificationRequirement(devotado, [])).toBe(false);
+    expect(validateModificationRequirement(devotado, [inscrito])).toBe(true);
+  });
+
+  test('auto-adds Inscrito when Devotado is selected', () => {
+    const result = addModificationWithPrerequisites(devotado, [], armors);
+    expect(result.map((m) => m.mod)).toEqual(['Inscrito', 'Devotado']);
   });
 });

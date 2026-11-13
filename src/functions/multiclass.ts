@@ -565,6 +565,76 @@ export function resolveClassSetup(
 }
 
 /**
+ * Maior círculo de magia que o personagem lança (0 se não conjura), olhando a
+ * classe principal E as secundárias, cada uma no SEU nível de classe — nunca
+ * no nível total da ficha.
+ *
+ * `allowedType` restringe às classes daquela tradição ("magias arcanas de
+ * qualquer círculo que possa lançar" segue o círculo arcano). Se nenhuma
+ * classe do personagem é da tradição pedida, vale o maior de todas.
+ */
+export function getHighestSpellCircle(
+  sheet: CharacterSheet,
+  allowedType?: 'Arcane' | 'Divine' | 'Both'
+): number {
+  const circles: { spellType: SpellPath['spellType']; circle: number }[] = [];
+
+  const primaryName = sheet.classe?.name;
+  const primaryPath = sheet.classe?.spellPath;
+  if (
+    primaryPath &&
+    typeof primaryPath.spellCircleAvailableAtLevel === 'function'
+  ) {
+    const level = getClassLevel(sheet, primaryName);
+    if (level > 0) {
+      circles.push({
+        spellType: primaryPath.spellType,
+        circle: primaryPath.spellCircleAvailableAtLevel(level),
+      });
+    }
+  }
+
+  Object.entries(sheet.multiclassSpellPaths ?? {}).forEach(
+    ([className, serialized]) => {
+      if (className === primaryName) return;
+      const level = getClassLevel(sheet, className);
+      if (level <= 0) return;
+      // O subtipo do Arcanista vem do setup gravado: sem ele o registry cai no
+      // setup() aleatório.
+      const spellPath = buildSpellPathFromSetup(
+        serialized.className,
+        serialized.classSubname,
+        {
+          ...resolveClassSetup(sheet, className, undefined),
+          spellSchools: serialized.schools,
+        }
+      );
+      if (
+        !spellPath ||
+        typeof spellPath.spellCircleAvailableAtLevel !== 'function'
+      ) {
+        return;
+      }
+      applySerializedOverrides(spellPath, serialized);
+      circles.push({
+        spellType: spellPath.spellType,
+        circle: spellPath.spellCircleAvailableAtLevel(level),
+      });
+    }
+  );
+
+  const sameTradition =
+    allowedType && allowedType !== 'Both'
+      ? circles.filter(
+          (entry) =>
+            entry.spellType === allowedType || entry.spellType === 'Both'
+        )
+      : [];
+  const pool = sameTradition.length > 0 ? sameTradition : circles;
+  return pool.reduce((max, entry) => Math.max(max, entry.circle), 0);
+}
+
+/**
  * Setup de classe secundária que não dá para reconstruir: ficha antiga cujo
  * deus da Linhagem Abençoada se perdeu. O assistente pede de novo antes do
  * 2º nível, quando o poder concedido depende dele.

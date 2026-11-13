@@ -28,6 +28,15 @@ import {
   getWieldedItemIds,
 } from './wielding';
 import { isStackable } from './stacking';
+import {
+  filterCarried,
+  getContainerIds,
+  getStorageUsage,
+  isContainer,
+  resolveLocation,
+  STASH_LOCATION,
+  StorageLocationUsage,
+} from '../../../functions/bagStorage';
 
 export interface BackpackMoney {
   dinheiro: number;
@@ -109,6 +118,8 @@ export interface BackpackDerivedTotals {
   isOverloaded: boolean;
   overflowItemIds: Set<string>;
   overflowStartIndex: number;
+  /** Recipientes da mochila e o guardado, com ocupação e conteúdo. */
+  storage: StorageLocationUsage[];
 }
 
 export interface BackpackFilters {
@@ -142,6 +153,11 @@ export interface BackpackActions {
   setWornArmor: (itemId: string | null) => void;
   /** Veste (`worn = true`) ou guarda na mochila uma peça de Vestuário. */
   setWornClothing: (itemId: string, worn: boolean) => void;
+  /**
+   * Move o item para um recipiente (id), para o guardado (`STASH_LOCATION`)
+   * ou de volta para você (`undefined`). `units` move só parte da pilha.
+   */
+  moveItem: (id: string, location: string | undefined, units?: number) => void;
   /** Switches the modal grid between flat (false) and category-grouped (true). */
   setGroupByCategory: (value: boolean) => void;
   /** Resets the staged state back to the snapshot taken at modal open. */
@@ -212,6 +228,13 @@ type Action =
   | { type: 'SET_WORN_ARMOR'; itemId: string | null }
   | { type: 'SET_WORN_CLOTHING'; itemId: string; worn: boolean }
   | { type: 'SET_GROUP_BY_CATEGORY'; value: boolean }
+  | {
+      type: 'MOVE_ITEM';
+      id: string;
+      location: string | undefined;
+      units?: number;
+      newId: string;
+    }
   | { type: 'RESET'; snapshot: StagedState };
 
 /** Todos os ids já ocupados na mochila, em todas as categorias. */
@@ -270,16 +293,21 @@ export function addItemToEquipments(
   const nextOrder = [...displayOrder];
 
   const list = (next[item.group] ?? []) as Equipment[];
+  const containerIds = getContainerIds(flattenEquipments(equipments));
   // Stack by name when a non-custom catalog item is added. Itens encantados,
   // modificados, apelidados ou editados à mão nunca empilham — o merge
-  // preserva `existing` e descartaria as diferenças do outro lado.
+  // preserva `existing` e descartaria as diferenças do outro lado. Só empilha
+  // no MESMO local: a poção comprada vai para a pilha que está com você, não
+  // para a do Alforje.
+  const itemLocation = resolveLocation(item, containerIds);
   const existingIdx = list.findIndex(
     (it) =>
       it.nome === item.nome &&
       !it.isCustom &&
       !item.isCustom &&
       isStackable(it) &&
-      isStackable(item)
+      isStackable(item) &&
+      resolveLocation(it, containerIds) === itemLocation
   );
   if (existingIdx >= 0) {
     const existing = list[existingIdx];
@@ -473,6 +501,210 @@ export function splitItemInEquipments(
   return { equipments: out, displayOrder: nextOrder, paidUnits: nextPaid };
 }
 
+/** Quantas unidades a pilha tem — rodadas de munição, itens no resto. */
+function stackUnits(item: Equipment): number {
+  return item.isAmmo ? item.unitsRemaining ?? 0 : item.quantity ?? 1;
+}
+
+function withUnits(item: Equipment, units: number): Equipment {
+  return item.isAmmo
+    ? { ...item, unitsRemaining: units, quantity: 1 }
+    : { ...item, quantity: units };
+}
+
+/**
+ * Move `units` unidades da pilha `id` para `location` (id de recipiente,
+ * `STASH_LOCATION`, ou `undefined` = com você). Sem `units` (ou com a pilha
+ * inteira), o item muda de local mantendo o id; com parte, a pilha é dividida
+ * e a parte movida ganha `newId`.
+ *
+ * Se o destino já tem uma pilha intercambiável do mesmo item (mesma regra do
+ * `addItemToEquipments`), a parte movida soma nela — mover uma poção por vez
+ * para o Alforje não cria N cartões. Quando o id de origem some no merge, o
+ * crédito de compra (`paidUnits`) vai junto para a pilha de destino.
+ *
+ * Recipiente só vai para o guardado ou volta para você (não há recipiente
+ * dentro de recipiente). Exportada para teste.
+ */
+export function moveItemInEquipments(
+  equipments: BagEquipments,
+  displayOrder: string[],
+  paidUnits: Record<string, number>,
+  id: string,
+  location: string | undefined,
+  units: number | undefined,
+  newId: string
+): {
+  equipments: BagEquipments;
+  displayOrder: string[];
+  paidUnits: Record<string, number>;
+  /** Ids que deixaram de existir (absorvidos por um merge). */
+  removedIds: string[];
+  /** Id que ficou no destino. */
+  movedId?: string;
+} {
+  const unchanged = {
+    equipments,
+    displayOrder,
+    paidUnits,
+    removedIds: [] as string[],
+  };
+  const all = flattenEquipments(equipments);
+  const source = all.find((it) => it.id === id);
+  if (!source) return unchanged;
+
+  const containerIds = getContainerIds(all);
+  const target = location || undefined;
+  if (target && target !== STASH_LOCATION) {
+    if (!containerIds.has(target) || target === id || isContainer(source)) {
+      return unchanged;
+    }
+  }
+  if (resolveLocation(source, containerIds) === target) return unchanged;
+
+  const total = stackUnits(source);
+  const moving =
+    units === undefined ? total : Math.max(1, Math.min(total, units));
+  const partial = moving < total;
+
+  // Pilha intercambiável já no destino (nunca a própria origem).
+  const mergeTarget = all.find(
+    (it) =>
+      it.id !== id &&
+      it.group === source.group &&
+      it.nome === source.nome &&
+      !it.isCustom &&
+      !source.isCustom &&
+      isStackable(it) &&
+      isStackable(source) &&
+      !isContainer(it) &&
+      resolveLocation(it, containerIds) === target
+  );
+
+  const replaceIn = (
+    eqs: BagEquipments,
+    itemId: string,
+    next: Equipment | null,
+    insertAfter?: Equipment
+  ): BagEquipments => {
+    const out: BagEquipments = { ...eqs };
+    (Object.keys(out) as equipGroup[]).forEach((cat) => {
+      const list = out[cat];
+      if (!Array.isArray(list)) return;
+      const idx = list.findIndex((it) => it.id === itemId);
+      if (idx < 0) return;
+      const middle: Equipment[] = [];
+      if (next) middle.push(next);
+      if (insertAfter) middle.push(insertAfter);
+      out[cat] = [
+        ...list.slice(0, idx),
+        ...middle,
+        ...list.slice(idx + 1),
+      ] as never;
+    });
+    return out;
+  };
+
+  let nextEquipments = equipments;
+  let nextOrder = displayOrder;
+  let nextPaid = paidUnits;
+  const removedIds: string[] = [];
+  let movedId: string | undefined;
+
+  if (mergeTarget?.id) {
+    const merged = withUnits(mergeTarget, stackUnits(mergeTarget) + moving);
+    nextEquipments = replaceIn(nextEquipments, mergeTarget.id, merged);
+    movedId = mergeTarget.id;
+    if (partial) {
+      nextEquipments = replaceIn(
+        nextEquipments,
+        id,
+        withUnits(source, total - moving)
+      );
+    } else {
+      nextEquipments = replaceIn(nextEquipments, id, null);
+      nextOrder = nextOrder.filter((oid) => oid !== id);
+      removedIds.push(id);
+    }
+    const paid = paidUnits[id] ?? 0;
+    const transfer = partial ? Math.max(0, paid - (total - moving)) : paid;
+    if (transfer > 0) {
+      nextPaid = bumpPaidUnits(nextPaid, id, -transfer);
+      nextPaid = bumpPaidUnits(nextPaid, mergeTarget.id, transfer);
+    }
+  } else if (partial) {
+    const moved: Equipment = {
+      ...withUnits(source, moving),
+      id: newId,
+      storedIn: target,
+    };
+    if (!target) delete moved.storedIn;
+    nextEquipments = replaceIn(
+      nextEquipments,
+      id,
+      withUnits(source, total - moving),
+      moved
+    );
+    const orderIdx = nextOrder.indexOf(id);
+    nextOrder =
+      orderIdx >= 0
+        ? [
+            ...nextOrder.slice(0, orderIdx + 1),
+            newId,
+            ...nextOrder.slice(orderIdx + 1),
+          ]
+        : [...nextOrder, newId];
+    movedId = newId;
+    const paid = paidUnits[id] ?? 0;
+    const transfer = Math.max(0, paid - (total - moving));
+    if (transfer > 0) {
+      nextPaid = bumpPaidUnits(nextPaid, id, -transfer);
+      nextPaid = bumpPaidUnits(nextPaid, newId, transfer);
+    }
+  } else {
+    const moved: Equipment = { ...source, storedIn: target };
+    if (!target) delete moved.storedIn;
+    nextEquipments = replaceIn(nextEquipments, id, moved);
+    movedId = id;
+  }
+
+  return {
+    equipments: nextEquipments,
+    displayOrder: nextOrder,
+    paidUnits: nextPaid,
+    removedIds,
+    movedId,
+  };
+}
+
+/** Devolve ao personagem tudo que estava no recipiente `containerId`. */
+function releaseContainerContents(
+  equipments: BagEquipments,
+  containerId: string
+): BagEquipments {
+  let out = equipments;
+  flattenEquipments(equipments).forEach((it) => {
+    if (it.id && it.storedIn === containerId) {
+      const next: Equipment = { ...it };
+      delete next.storedIn;
+      out = updateItemInEquipments(out, it.id, next);
+    }
+  });
+  return out;
+}
+
+/** Tira o item de um recipiente/guardado (volta para você), se estiver fora. */
+function bringToCharacter(
+  equipments: BagEquipments,
+  id: string
+): BagEquipments {
+  const item = flattenEquipments(equipments).find((it) => it.id === id);
+  if (!item || !item.storedIn) return equipments;
+  const next: Equipment = { ...item };
+  delete next.storedIn;
+  return updateItemInEquipments(equipments, id, next);
+}
+
 /**
  * Exportados para teste — a contabilidade de dinheiro da mochila (débito na
  * compra, reembolso só do que foi pago) não tem como ser exercitada pela UI
@@ -621,9 +853,15 @@ export function reducer(state: StagedState, action: Action): StagedState {
         action.id,
         true
       );
+      // Apagar um recipiente devolve o que estava nele para o personagem — de
+      // forma explícita, para o `storedIn` órfão não sujar o payload.
+      const releasedEquipments = releaseContainerContents(
+        equipments,
+        action.id
+      );
       return {
         ...state,
-        equipments,
+        equipments: releasedEquipments,
         displayOrder,
         money,
         paidUnits,
@@ -721,8 +959,12 @@ export function reducer(state: StagedState, action: Action): StagedState {
       // `commitWielding` também divide a pilha quando o jogador põe a segunda
       // cópia de um item empilhado na outra mão (duas Machadinhas), e refunde
       // quando ele solta uma delas.
+      // Empunhar exige ter o item à mão: sai do Alforje/guardado.
       const next = commitWielding({
-        equipments: state.equipments,
+        equipments:
+          action.slot === null
+            ? state.equipments
+            : bringToCharacter(state.equipments, action.itemId),
         displayOrder: state.displayOrder,
         state: {
           mainHandItemId: state.mainHandItemId,
@@ -748,11 +990,20 @@ export function reducer(state: StagedState, action: Action): StagedState {
       // `null` = the player took off their armor. Store the explicit
       // WORN_ARMOR_NONE sentinel rather than `undefined` so the single-armor
       // legacy fallback doesn't immediately re-apply it (see wielding.ts).
-      return { ...state, wornArmorId: action.itemId ?? WORN_ARMOR_NONE };
+      return {
+        ...state,
+        equipments: action.itemId
+          ? bringToCharacter(state.equipments, action.itemId)
+          : state.equipments,
+        wornArmorId: action.itemId ?? WORN_ARMOR_NONE,
+      };
     }
     case 'SET_WORN_CLOTHING': {
       return {
         ...state,
+        equipments: action.worn
+          ? bringToCharacter(state.equipments, action.itemId)
+          : state.equipments,
         unwornClothingIds: applyClothingWorn(
           state.unwornClothingIds,
           action.itemId,
@@ -762,6 +1013,63 @@ export function reducer(state: StagedState, action: Action): StagedState {
     }
     case 'SET_GROUP_BY_CATEGORY': {
       return { ...state, groupByCategory: action.value };
+    }
+    case 'MOVE_ITEM': {
+      const moved = moveItemInEquipments(
+        state.equipments,
+        state.displayOrder,
+        state.paidUnits,
+        action.id,
+        action.location,
+        action.units,
+        action.newId
+      );
+      if (moved.equipments === state.equipments) return state;
+      const leavesCharacter = action.location !== undefined;
+      // A pilha INTEIRA saiu do personagem (id mantido) ou foi absorvida por
+      // outra: solta das mãos, tira a armadura e guarda a peça de vestuário.
+      // Mover só parte deixa o que ficou com você como estava.
+      const sourceGone =
+        moved.removedIds.includes(action.id) ||
+        (leavesCharacter && moved.movedId === action.id);
+      const clear = (slotId?: string) =>
+        sourceGone && slotId === action.id ? undefined : slotId;
+      // `undefined` com uma armadura só = vestida pelo fallback legado; ao sair
+      // do personagem ela tem que deixar de valer explicitamente.
+      const isArmor = (state.equipments.Armadura ?? []).some(
+        (it) => it.id === action.id
+      );
+      const wornArmorId =
+        sourceGone &&
+        isArmor &&
+        (state.wornArmorId === action.id || state.wornArmorId === undefined)
+          ? WORN_ARMOR_NONE
+          : state.wornArmorId;
+      let { unwornClothingIds } = state;
+      const isClothing = (state.equipments.Vestuário ?? []).some(
+        (it) => it.id === action.id
+      );
+      if (sourceGone && isClothing) {
+        unwornClothingIds = applyClothingWorn(
+          unwornClothingIds,
+          action.id,
+          // Absorvida por outra pilha: só higiene (o id deixou de existir).
+          // Saiu inteira do personagem: deixa de estar vestida.
+          moved.removedIds.includes(action.id)
+        );
+      }
+      return {
+        ...state,
+        equipments: moved.equipments,
+        displayOrder: moved.displayOrder,
+        paidUnits: moved.paidUnits,
+        mainHandItemId: clear(state.mainHandItemId),
+        offHandItemId: clear(state.offHandItemId),
+        extraHand1ItemId: clear(state.extraHand1ItemId),
+        extraHand2ItemId: clear(state.extraHand2ItemId),
+        wornArmorId,
+        unwornClothingIds,
+      };
     }
     case 'RESET':
       return action.snapshot;
@@ -908,8 +1216,10 @@ export function useBackpackState({
   const totals = useMemo<BackpackDerivedTotals>(() => {
     // Mesma conta do total da ficha (`bag.getSpaces()`) — antes esta linha
     // divergia dela na munição, e a modal mostrava um total que a ficha não
-    // reconhecia.
-    const itemSpaces = orderedItems.reduce(
+    // reconhecia. Só o que está COM o personagem conta (Alforje, Carroça e
+    // guardado ficam fora — ver `bagStorage`).
+    const carriedItems = filterCarried(orderedItems);
+    const itemSpaces = carriedItems.reduce(
       (acc, item) => acc + getItemSpaces(item),
       0
     );
@@ -928,7 +1238,7 @@ export function useBackpackState({
       calculateMaxSpaces(attributeValues[staged.maxSpacesAttribute]) +
         equipMaxSpacesBonus;
     const { overflowItemIds, overflowStartIndex } = computeOverflow(
-      orderedItems,
+      carriedItems,
       maxSpaces - currencySpaces
     );
     return {
@@ -939,6 +1249,7 @@ export function useBackpackState({
       isOverloaded: totalSpaces > maxSpaces,
       overflowItemIds,
       overflowStartIndex,
+      storage: getStorageUsage(orderedItems, getItemSpaces),
     };
   }, [
     orderedItems,
@@ -1100,6 +1411,12 @@ export function useBackpackState({
     []
   );
 
+  const moveItem = useCallback(
+    (id: string, location: string | undefined, units?: number) =>
+      dispatch({ type: 'MOVE_ITEM', id, location, units, newId: uuid() }),
+    []
+  );
+
   const setGroupByCategory = useCallback(
     (value: boolean) => dispatch({ type: 'SET_GROUP_BY_CATEGORY', value }),
     []
@@ -1135,6 +1452,7 @@ export function useBackpackState({
     setWielding,
     setWornArmor,
     setWornClothing,
+    moveItem,
     setGroupByCategory,
     revertChanges,
   };
