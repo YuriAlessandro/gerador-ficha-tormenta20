@@ -209,6 +209,16 @@ const Changelog: React.FC = () => {
                   Resistência a Energia, Potência Divina e Armamento da
                   Natureza.
                 </li>
+                <li>
+                  <strong>Correção:</strong> na <strong>ordem de turno</strong>{' '}
+                  da mesa virtual, as condições de cada combatente agora
+                  aparecem escritas, com ícone e nome, em vez de só um ícone de
+                  alerta com contador. No celular dava para ver que alguém tinha
+                  uma condição, mas não qual, porque o nome só aparecia ao
+                  passar o mouse. Condições que vêm de outra (como Desprevenido
+                  e Lento, vindas de Cego) aparecem tracejadas, e tocar em
+                  qualquer uma mostra o efeito completo.
+                </li>
               </ul>
 
               <h3>4.38</h3>
