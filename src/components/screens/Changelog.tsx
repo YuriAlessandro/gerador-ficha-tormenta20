@@ -77,7 +77,8 @@ const Changelog: React.FC = () => {
               <h3>4.39</h3>
 
               <Typography variant='body1' sx={{ mt: 2 }}>
-                O destaque desta versão, as <strong>Distinções</strong>, veio da{' '}
+                Os destaques desta versão, as <strong>Distinções</strong> e o{' '}
+                <strong>Espólio da mesa</strong>, vieram da{' '}
                 <strong>votação dos apoiadores</strong>. Obrigado a quem votou e
                 a quem sustenta o projeto! 💜
               </Typography>
@@ -135,6 +136,58 @@ const Changelog: React.FC = () => {
                   distinções é exclusivo para apoiadores, e quem já tem uma
                   distinção na ficha continua usando e escolhendo os poderes
                   dela.
+                </Typography>
+              </Alert>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  🎁 Espólio da mesa
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  O <strong>rolador de recompensas</strong> chegou à mesa
+                  virtual. Ao <strong>finalizar o combate</strong>, o mestre
+                  rola o tesouro ali mesmo, com o ND e o tipo de tesouro do
+                  encontro já preenchidos. O resultado aparece no aparelho de
+                  cada jogador, que marca os itens que quer pegar e combina com
+                  o grupo como dividir o dinheiro. Quando o mestre confirma, os
+                  itens e as moedas vão <strong>direto para as fichas</strong>.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  Dá para rolar <strong>ao vivo</strong>: a animação de
+                  caça-níquel do rolador roda ao mesmo tempo nos celulares e na{' '}
+                  <strong>Tela do Jogador</strong>, e o mestre escolhe os
+                  resultados &quot;2D&quot; com a mesa acompanhando. Ou rolar só
+                  na tela do mestre, rolar de novo se quiser e depois mostrar
+                  aos jogadores. Se mais de um jogador quiser o mesmo item, o
+                  mestre decide. A divisão do dinheiro começa igual, qualquer um
+                  ajusta e cada jogador clica em <strong>Concordo</strong>.
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  Itens superiores e mágicos chegam com as melhorias e os
+                  encantos aplicados. Riquezas, poções e acessórios entram na
+                  mochila com o valor da tabela. O mestre também pode rolar uma
+                  recompensa avulsa (um baú, uma missão cumprida) pelo menu da
+                  mesa. Rolar a recompensa é exclusivo para mestres apoiadores;
+                  os jogadores participam em qualquer plano.
                 </Typography>
               </Alert>
 
