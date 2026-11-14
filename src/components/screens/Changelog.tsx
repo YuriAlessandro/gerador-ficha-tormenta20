@@ -191,6 +191,26 @@ const Changelog: React.FC = () => {
                 </Typography>
               </Alert>
 
+              <ul>
+                <li>
+                  <strong>Correção:</strong> ao aplicar uma magia como{' '}
+                  <strong>efeito ativo</strong>, os aprimoramentos que aumentam
+                  um bônus agora valem quantas vezes você pagou por eles, e não
+                  só uma. A <strong>Bênção</strong>, por exemplo, travava em +2;
+                  agora um conjurador de 3º círculo chega a +3 e um de 5º, a +5.
+                  O diálogo abre já no valor pago no lançamento e ganhou a opção{' '}
+                  <strong>Customizado</strong> para escolher valores acima. Nas
+                  magias em que o livro limita o bônus pelo círculo máximo
+                  (Bênção, Arma Mágica, Arma de Jade, Oração, Couraça de
+                  Allihanna, Percepção Rubra e Proteção de Tauron), o limite é
+                  respeitado. Também corrigidas: Proteção Divina, Vestimenta da
+                  Fé, Dispersar as Trevas, Anular a Luz, Caminhos da Natureza,
+                  Imagem Espelhada, Transformação de Guerra, Aura Divina,
+                  Resistência a Energia, Potência Divina e Armamento da
+                  Natureza.
+                </li>
+              </ul>
+
               <h3>4.38</h3>
               <ul>
                 <li>
