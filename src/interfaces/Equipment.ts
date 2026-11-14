@@ -1,3 +1,4 @@
+import type { SpellModifier, SpellModifierChoiceSpec } from './SpellModifiers';
 import { SheetBonus } from './CharacterSheet';
 import { DiceRoll } from './DiceRoll';
 import Skill from './Skills';
@@ -48,6 +49,8 @@ export interface EquipmentSelectableBonus {
 export interface AppliedModification {
   mod: string;
   specialMaterial?: string;
+  /** Divindade da melhoria Canônico (Deuses de Arton). */
+  deity?: string;
   /**
    * Snapshot do efeito numérico, tirado no momento em que a melhoria foi
    * aplicada. Presente apenas para conteúdo NÃO-core (suplemento/homebrew),
@@ -345,6 +348,10 @@ export default interface Equipment {
 
   // Equipment bonuses (automatic bonuses to skills, stats, etc.)
   sheetBonuses?: SheetBonus[];
+  /** Efeitos sobre magias (ver `interfaces/SpellModifiers.ts`). */
+  spellModifiers?: SpellModifier[];
+  /** "Escolha N magias" dos `spellModifiers` com `filter.chosen`. */
+  spellChoice?: SpellModifierChoiceSpec;
 
   // Conditional bonuses (only apply if condition is met)
   conditionalBonuses?: {
@@ -370,6 +377,11 @@ export default interface Equipment {
   // category is not normally wieldable (e.g. a custom Esotérico wand).
   canBeWielded?: boolean;
 
+  /**
+   * Instrumento musical (JdA): empunhado com as duas mãos e usado como
+   * esotérico por bardos. Ver `isMusicalInstrument`.
+   */
+  musicalInstrument?: boolean;
   // Weapon requires both hands to be wielded. When true, equipping the item
   // occupies both `mainHandItemId` and `offHandItemId` slots.
   twoHanded?: boolean;

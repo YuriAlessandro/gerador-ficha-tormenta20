@@ -124,6 +124,19 @@ const BARDO: ClassDescription = {
     {
       name: 'Dança das Lâminas',
       text: 'Quando você lança uma magia com execução de uma ação padrão, pode gastar 1 PM para fazer um ataque corpo a corpo como uma ação livre.',
+      spellModifiers: [
+        {
+          filter: {
+            executions: ['Padrão'],
+          },
+          effect: {
+            type: 'CastOption',
+            id: 'danca',
+            label: 'ataque corpo a corpo como ação livre',
+            addPm: 1,
+          },
+        },
+      ],
       requirements: [
         [
           { type: RequirementType.PODER, name: 'Esgrima Mágica' },

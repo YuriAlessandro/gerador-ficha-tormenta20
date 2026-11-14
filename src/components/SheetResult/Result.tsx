@@ -113,7 +113,10 @@ import {
   getActiveEffectLabelStyle,
   ACTIVE_EFFECT_COLOR,
 } from '@/premium/functions/activeEffectHighlights';
-import { getActiveEffectForSpell } from '@/premium/data/activePowers';
+import {
+  getActiveEffectForSpell,
+  getActivePowerByKey,
+} from '@/premium/data/activePowers';
 import {
   collectVirtualCustomEffectDefinitions,
   collectStandaloneCustomEffectDefinitions,
@@ -163,6 +166,13 @@ import {
   PowerUserPatch,
 } from '@/functions/powers/updatePowerAcrossSheet';
 import { usesCharismaForDefense } from '@/functions/learnedClassAbility';
+import {
+  ResolveSpellCastOptions,
+  SpellCastContext,
+  getSheetSpellChoices,
+  toggleSpellModifierChoice,
+} from '@/functions/spells/modifiers';
+import PowerSpellChoiceAction from './PowerSpellChoiceAction';
 import PoderCapturadoEditDrawer from './EditDrawers/PoderCapturadoEditDrawer';
 import PoderCapturadoAction from './PoderCapturadoAction';
 import LevelUpWizardModal from '../LevelUpWizard/LevelUpWizardModal';
@@ -196,7 +206,7 @@ import PowersDisplay from './PowersDisplay';
 import CompanionSheetModal from './CompanionSheetModal';
 import CompanionCreationDialog from './CompanionCreationDialog';
 import CompanionEditDialog from './CompanionEditDialog';
-import EquipmentTable from './EquipmentTable';
+import EquipmentTable, { EquipmentTableWielding } from './EquipmentTable';
 import CarryLoadSummary from './CarryLoadSummary';
 import {
   SheetSectionAction,
@@ -358,6 +368,16 @@ const Result: React.FC<ResultProps> = (props) => {
     useState(false);
   const [spellEffectDef, setSpellEffectDef] =
     useState<ActivePowerDefinition | null>(null);
+  // Efeitos das opções de lançamento (Barreira Mística), oferecidos em fila
+  // depois do efeito da própria magia. O PM deles já saiu no lançamento.
+  const [queuedCastEffects, setQueuedCastEffects] = useState<
+    ActivePowerDefinition[]
+  >([]);
+  // Esotéricos e opções escolhidos no lançamento: o efeito ativo da magia
+  // resolve os modificadores com a MESMA escolha (Medalhão Afiado etc.).
+  const [pendingSpellCast, setPendingSpellCast] = useState<
+    ResolveSpellCastOptions | undefined
+  >(undefined);
   // Metadados da magia recém-lançada, guardados enquanto o diálogo de efeito
   // ativo está aberto — o card do histórico só é publicado ao confirmar (ou
   // ao fechar sem confirmar), já com a opção de uso escolhida.
@@ -1045,6 +1065,22 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, onSheetUpdate, ownsSpell]
   );
 
+  // "Escolha N magias" (Foco em Magia, Estola…): marca na ficha, o motor de
+  // modificadores lê de `spellModifierChoices`.
+  const handleSpellChoiceToggle = useCallback(
+    (key: string, spell: Spell) => {
+      if (!ownsSpell(spell)) return;
+      const choices = toggleSpellModifierChoice(currentSheet, key, spell);
+      if (!choices) return;
+      const updatedSheet = { ...currentSheet, spellModifierChoices: choices };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate, ownsSpell]
+  );
+
   const handleToggleAlwaysPrepared = useCallback(
     (spell: Spell) => {
       if (!ownsSpell(spell)) return;
@@ -1342,7 +1378,8 @@ const Result: React.FC<ResultProps> = (props) => {
       pmSpent: number,
       spell: Spell,
       castLogged?: boolean,
-      castAugments?: CastAugment[]
+      castAugments?: CastAugment[],
+      castContext?: SpellCastContext
     ) => {
       const currentTemp = currentSheet.tempPM ?? 0;
       const currentPMValue = currentSheet.currentPM ?? currentSheet.pm;
@@ -1388,14 +1425,24 @@ const Result: React.FC<ResultProps> = (props) => {
                 true
               )
             : undefined);
+        const optionEffects = (castContext?.effectKeys ?? [])
+          .map((key) => getActivePowerByKey(key))
+          .filter((d): d is ActivePowerDefinition => !!d);
         if (def) {
           setSpellEffectDef(def);
+          setQueuedCastEffects(optionEffects);
           // Guardado para enriquecer o card da ativação (círculo, escola, PM).
           // `castLogged` diz se o diálogo de lançamento já publicou um card —
           // se publicou, descartar o efeito não deve publicar outro igual.
           setPendingSpellAbility(buildSpellAbilityMeta(spell, pmSpent));
           setPendingSpellCastLogged(Boolean(castLogged));
           setPendingSpellCastAugments(castAugments);
+          setPendingSpellCast(castContext?.resolveOptions);
+        } else if (optionEffects.length > 0) {
+          // Sem efeito próprio, a magia já publicou o card no lançamento.
+          const [first, ...rest] = optionEffects;
+          setSpellEffectDef(first);
+          setQueuedCastEffects(rest);
         }
       }
     },
@@ -1405,6 +1452,18 @@ const Result: React.FC<ResultProps> = (props) => {
   // Fechar o diálogo de efeito sem confirmar não pode engolir o lançamento:
   // publica o card da magia sem a oferta de efeito — a menos que o diálogo de
   // lançamento já tenha publicado um (magia com dano).
+  // Fecha o efeito atual e abre o próximo da fila (efeitos das opções de
+  // lançamento). Os seguintes não são o efeito da magia: sem card pendente
+  // nem aprimoramentos a pré-selecionar.
+  const advanceSpellEffectQueue = useCallback(() => {
+    const [next, ...rest] = queuedCastEffects;
+    setSpellEffectDef(next ?? null);
+    setQueuedCastEffects(rest);
+    setPendingSpellAbility(null);
+    setPendingSpellCastAugments(undefined);
+    setPendingSpellCast(undefined);
+  }, [queuedCastEffects]);
+
   const handleSpellEffectDismiss = useCallback(() => {
     if (pendingSpellAbility && !pendingSpellCastLogged) {
       logExternalRoll(
@@ -1414,14 +1473,13 @@ const Result: React.FC<ResultProps> = (props) => {
         pendingSpellAbility
       );
     }
-    setSpellEffectDef(null);
-    setPendingSpellAbility(null);
-    setPendingSpellCastAugments(undefined);
+    advanceSpellEffectQueue();
   }, [
     pendingSpellAbility,
     pendingSpellCastLogged,
     currentSheet.nome,
     logExternalRoll,
+    advanceSpellEffectQueue,
   ]);
 
   const handleKeyAttributeChange = useCallback(
@@ -1945,6 +2003,60 @@ const Result: React.FC<ResultProps> = (props) => {
       );
     },
     [currentSheet.enabledManeuvers, saveEnabledManeuvers]
+  );
+
+  // Escolha de magia de melhoria de esotérico (Harmonizado), pela linha do
+  // item. Só aparece com o item empunhado: fora da mão ele não vale.
+  const itemSpellChoiceKeys = useMemo(
+    () => getSheetSpellChoices(currentSheet).map((choice) => choice.key),
+    [currentSheet]
+  );
+  const getEquipmentItemActions = useCallback(
+    (item: Equipment): React.ReactNode => {
+      if (!onSheetUpdate || !item.id) return null;
+      const keys = itemSpellChoiceKeys.filter((key) =>
+        key.endsWith(`@${item.id}`)
+      );
+      if (keys.length === 0) return null;
+      return keys.map((key) => (
+        <PowerSpellChoiceAction
+          key={key}
+          choiceKey={key}
+          instances={1}
+          sheet={currentSheet}
+          onSheetUpdate={(updated) => {
+            setCurrentSheet(updated);
+            onSheetUpdate(updated);
+          }}
+        />
+      ));
+    },
+    [onSheetUpdate, itemSpellChoiceKeys, currentSheet]
+  );
+
+  // Empunhar pela tabela de equipamentos: varinhas e esotéricos não têm
+  // linha de ataque, e "para usar um esotérico, você precisa empunhá-lo".
+  const equipmentWielding = useMemo<EquipmentTableWielding | undefined>(
+    () =>
+      onSheetUpdate
+        ? {
+            state: {
+              mainHandItemId: currentSheet.mainHandItemId,
+              offHandItemId: currentSheet.offHandItemId,
+              extraHand1ItemId: currentSheet.extraHand1ItemId,
+              extraHand2ItemId: currentSheet.extraHand2ItemId,
+            },
+            extraHands: sheetHasFourArms(currentSheet),
+            onChange: handleQuickWieldChange,
+            getDisabledSlots: computeWieldingDisabled,
+          }
+        : undefined,
+    [
+      onSheetUpdate,
+      currentSheet,
+      handleQuickWieldChange,
+      computeWieldingDisabled,
+    ]
   );
 
   const weaponsDiv = useMemo(() => {
@@ -3090,6 +3202,9 @@ const Result: React.FC<ResultProps> = (props) => {
               onToggleAlwaysPrepared={
                 onSheetUpdate ? handleToggleAlwaysPrepared : undefined
               }
+              onSpellChoiceToggle={
+                onSheetUpdate ? handleSpellChoiceToggle : undefined
+              }
               bonusSpellDC={spellDCBonus}
               onKeyAttributeChange={
                 onSheetUpdate ? handleKeyAttributeChange : undefined
@@ -3145,6 +3260,8 @@ const Result: React.FC<ResultProps> = (props) => {
               items={equipamentosOrdered}
               characterName={nome}
               getItemWarning={getFundamentalistWeaponWarning}
+              wielding={equipmentWielding}
+              getItemActions={getEquipmentItemActions}
             />
             <Box
               sx={{
@@ -3576,16 +3693,18 @@ const Result: React.FC<ResultProps> = (props) => {
             definition={spellEffectDef}
             sheet={currentSheet}
             castAugments={pendingSpellCastAugments}
+            spellCast={pendingSpellCast}
             onClose={handleSpellEffectDismiss}
             onConfirm={(option) => {
               if (spellEffectDef) {
-                handleActiveEffectActivate(spellEffectDef, option, {
-                  abilityBase: pendingSpellAbility ?? undefined,
-                });
+                // O PM já foi pago no lançamento (magia e opções).
+                handleActiveEffectActivate(
+                  spellEffectDef,
+                  { ...option, pmCost: 0 },
+                  { abilityBase: pendingSpellAbility ?? undefined }
+                );
               }
-              setSpellEffectDef(null);
-              setPendingSpellAbility(null);
-              setPendingSpellCastAugments(undefined);
+              advanceSpellEffectQueue();
             }}
           />
 

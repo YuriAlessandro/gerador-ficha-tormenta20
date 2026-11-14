@@ -4,6 +4,7 @@ import Equipment, {
 } from '../../../interfaces/Equipment';
 import CharacterSheet from '../../../interfaces/CharacterSheet';
 import { sheetHasPowerNamed } from '../../../functions/powers/hasPowerNamed';
+import { isMusicalInstrument } from '../../../functions/musicalInstruments';
 
 /** Uma mão específica. `extra1`/`extra2` só existem com Quatro Braços. */
 export type SingleHandSlot = 'main' | 'off' | 'extra1' | 'extra2';
@@ -75,6 +76,8 @@ export function countOccupiedHands(state: WieldingState): number {
  */
 export function isTwoHanded(item: Equipment): boolean {
   if (item.twoHanded === true) return true;
+  // "Você precisa empunhar um instrumento musical com as duas mãos" (JdA).
+  if (isMusicalInstrument(item)) return true;
   return item.weaponTags?.includes('twoHanded') === true;
 }
 
@@ -83,6 +86,7 @@ export function isTwoHanded(item: Equipment): boolean {
  *  - Arma (weapons)
  *  - Escudo (shields)
  *  - Alquimía (alchemical items — most are thrown/applied with a hand)
+ *  - Esotérico ("para usar um esotérico, você precisa empunhá-lo", JdA)
  * Plus any item explicitly flagged via `canBeUsedAsWeapon` (e.g. Tocha).
  *
  * `canBeWielded` é um override de três estados: `true` força empunhável
@@ -95,10 +99,12 @@ export function isWieldable(item: Equipment): boolean {
   if (item.canBeWielded === false) return false;
   if (item.canBeWielded === true) return true;
   if (item.canBeUsedAsWeapon === true) return true;
+  if (isMusicalInstrument(item)) return true;
   return (
     item.group === 'Arma' ||
     item.group === 'Escudo' ||
-    item.group === 'Alquimía'
+    item.group === 'Alquimía' ||
+    item.group === 'Esotérico'
   );
 }
 
@@ -362,6 +368,7 @@ export interface MigratableBagView {
   Armadura?: { id?: string }[];
   Escudo?: { id?: string }[];
   Arma?: Equipment[];
+  Esotérico?: { id?: string }[];
 }
 
 export function migrateLegacyEquipState<
@@ -402,6 +409,15 @@ export function migrateLegacyEquipState<
   } else if (twoHandedWeapon?.id) {
     mainHandItemId = twoHandedWeapon.id;
     offHandItemId = twoHandedWeapon.id;
+  }
+
+  // Mão que sobrou vai para o primeiro esotérico: "para usar um esotérico,
+  // você precisa empunhá-lo" (JdA), e sem isso o conjurador com uma arma de
+  // uma mão perderia o efeito do esotérico que carrega.
+  const esoteric = (equipments.Esotérico ?? []).find((item) => !!item.id);
+  if (esoteric?.id) {
+    if (mainHandItemId === undefined) mainHandItemId = esoteric.id;
+    else if (offHandItemId === undefined) offHandItemId = esoteric.id;
   }
 
   return {

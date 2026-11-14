@@ -448,13 +448,29 @@ export const religiousEsoteric: Equipment[] = [
     nome: 'Contas de oração',
     group: 'Esotérico',
     preco: parsePrice('T$ 500'),
+    descricao:
+      'Várias pequenas esferas, miçangas ou conchas presas por um cordão, que ajudam o devoto a contar suas orações. Aumenta seu limite de PM para magias divinas em +1.',
     spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { tradition: 'divine' },
+        effect: { type: 'PmLimit', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Estola',
     group: 'Esotérico',
     preco: parsePrice('T$ 150'),
     spaces: parseSpaces(1),
+    // "A CD para resistir à magia divina representada na estola aumenta em +2."
+    spellChoice: {
+      count: { type: 'fixed', value: 1 },
+      eligible: { tradition: 'divine' },
+    },
+    spellModifiers: [
+      { filter: { chosen: true }, effect: { type: 'SpellDC', value: 2 } },
+    ],
   },
   {
     nome: 'Frasco purificador',
@@ -467,6 +483,11 @@ export const religiousEsoteric: Equipment[] = [
     group: 'Esotérico',
     preco: parsePrice('T$ 900'),
     spaces: parseSpaces(1),
+    // "Quando você lança uma magia que fornece um bônus em testes de ataque,
+    // ela também fornece +1 na margem de ameaça desses ataques."
+    spellModifiers: [
+      { effect: { type: 'EffectThreatMargin', kind: 'attack', value: 1 } },
+    ],
   },
   {
     nome: 'Ostensório santificado',

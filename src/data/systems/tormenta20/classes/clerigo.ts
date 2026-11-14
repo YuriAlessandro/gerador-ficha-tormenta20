@@ -129,6 +129,19 @@ const CLERIGO: ClassDescription = {
     {
       name: 'Comunhão Vital',
       text: 'Quando lança uma magia que cure uma criatura, você pode pagar +2 PM para que outra criatura em alcance curto (incluindo você mesmo) recupere uma quantidade de pontos de vida igual à metade dos PV da cura original.',
+      spellModifiers: [
+        {
+          filter: {
+            healing: true,
+          },
+          effect: {
+            type: 'CastOption',
+            id: 'comunhao',
+            label: 'outra criatura em alcance curto recupera metade da cura',
+            addPm: 2,
+          },
+        },
+      ],
       requirements: [],
     },
     {
@@ -170,6 +183,46 @@ const CLERIGO: ClassDescription = {
     {
       name: 'Magia Sagrada/Profana',
       text: 'Quando lança uma magia divina que causa dano, você pode gastar +1 PM. Se fizer isso, muda o tipo de dano da magia para luz (se sua divindade canaliza energia positiva) ou trevas (se canaliza energia negativa).',
+      spellModifiers: [
+        {
+          filter: {
+            tradition: 'divine',
+            damaging: true,
+            channelEnergy: 'positiva',
+          },
+          effect: {
+            type: 'CastOption',
+            id: 'sagrada',
+            label: 'dano vira luz',
+            addPm: 1,
+            effects: [
+              {
+                type: 'DamageTypeOverride',
+                damageType: 'luz',
+              },
+            ],
+          },
+        },
+        {
+          filter: {
+            tradition: 'divine',
+            damaging: true,
+            channelEnergy: 'negativa',
+          },
+          effect: {
+            type: 'CastOption',
+            id: 'profana',
+            label: 'dano vira trevas',
+            addPm: 1,
+            effects: [
+              {
+                type: 'DamageTypeOverride',
+                damageType: 'trevas',
+              },
+            ],
+          },
+        },
+      ],
       requirements: [],
     },
     {
@@ -249,6 +302,20 @@ const CLERIGO: ClassDescription = {
     {
       name: 'Prece de Combate',
       text: 'Quando lança uma magia divina com tempo de conjuração de uma ação padrão em si mesmo, você pode gastar +2 PM para lançá-la como uma ação de movimento.',
+      spellModifiers: [
+        {
+          filter: {
+            tradition: 'divine',
+            executions: ['Padrão'],
+          },
+          effect: {
+            type: 'CastOption',
+            id: 'prece',
+            label: 'em si mesmo: execução vira movimento',
+            addPm: 2,
+          },
+        },
+      ],
       requirements: [],
     },
     {

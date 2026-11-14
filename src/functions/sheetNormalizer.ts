@@ -48,6 +48,7 @@ import { sanitizeCustomPowerBonuses } from './powers/customPowerBonuses';
 import {
   ARQUEIRO_SHEET_BONUSES,
   ESGRIMISTA_SHEET_BONUSES,
+  MAGO_VERMELHO_SHEET_BONUSES,
   ESTILO_DE_DISPARO_SHEET_BONUSES,
   INEXPUGNAVEL_SHEET_BONUSES,
   PELE_DE_ACO_SHEET_BONUSES,
@@ -119,7 +120,7 @@ function getGrantedPowersByName(): Map<string, GeneralPower> {
 // Arremesso) eram texto puro ou só parcialmente automatizados — sem o refresh,
 // a ficha de quem já tinha o poder continuaria sem o bônus. Idem Pele de Aço e
 // Defesa Armada, que eram texto puro. Idem Citadino (poder racial de Heróis de
-// Arton).
+// Arton) e Mago Vermelho (Bardo, Heróis de Arton).
 const REFRESHED_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
   ['Arqueiro', ARQUEIRO_SHEET_BONUSES],
   ['Esgrimista', ESGRIMISTA_SHEET_BONUSES],
@@ -134,6 +135,7 @@ const REFRESHED_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
   ['Estilo de Arremesso', ESTILO_DE_ARREMESSO_SHEET_BONUSES],
   ['Pele de Aço', PELE_DE_ACO_SHEET_BONUSES],
   ['Defesa Armada', DEFESA_ARMADA_SHEET_BONUSES],
+  ['Mago Vermelho', MAGO_VERMELHO_SHEET_BONUSES],
   ['Citadino', CITADINO_SHEET_BONUSES],
 ]);
 

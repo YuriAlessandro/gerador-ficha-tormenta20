@@ -2,6 +2,7 @@ import type {
   EnhancementEffect,
   ScaledEnhancementEffect,
 } from '../functions/itemEnhancements/core';
+import type { SpellModifier } from './SpellModifiers';
 
 export interface SpecialMaterialEffect {
   material: string;
@@ -18,6 +19,13 @@ export interface SpecialMaterial {
   name: string;
   weaponEffect?: SpecialMaterialEffect;
   armorEffect?: SpecialMaterialEffect;
+  /** Efeito do material num esotérico (texto). */
+  esotericEffect?: SpecialMaterialEffect;
+  /**
+   * Efeito do material de esotérico nas magias, pelo motor de modificadores.
+   * Vale com o item empunhado, como as demais melhorias do esotérico.
+   */
+  esotericSpellModifiers?: SpellModifier[];
   /** Suplemento de origem (ausente = livro básico) */
   supplementId?: string;
   /** Nome de exibição do suplemento de origem (carimbado pelo registry) */

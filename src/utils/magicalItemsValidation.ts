@@ -46,7 +46,7 @@ export const addEnchantmentIfValid = (
 
 export const validateEnchantmentForItemType = (
   enchantment: ItemE,
-  itemType: 'weapon' | 'armor' | 'shield'
+  itemType: 'weapon' | 'armor' | 'shield' | 'esoteric'
 ): boolean => {
   // If it's a shield-only enchantment, only allow for shields
   if (enchantment.onlyShield && itemType !== 'shield') {
@@ -55,3 +55,37 @@ export const validateEnchantmentForItemType = (
 
   return true;
 };
+
+/**
+ * O encanto pode entrar junto com os já escolhidos? "Pré-requisito: outro
+ * encanto" exige um encanto que não tenha essa mesma exigência; exclusões
+ * ("um esotérico khalmyrita não pode ser nímbico") valem nos dois sentidos.
+ */
+export const canAddEnchantment = (
+  enchantment: ItemE,
+  selected: ItemE[]
+): boolean => {
+  const others = selected.filter(
+    (e) => e.enchantment !== enchantment.enchantment
+  );
+  if (
+    enchantment.requiresOtherEnchantment &&
+    !others.some((e) => !e.requiresOtherEnchantment)
+  ) {
+    return false;
+  }
+  return !others.some(
+    (e) =>
+      e.excludes?.includes(enchantment.enchantment) ||
+      enchantment.excludes?.includes(e.enchantment)
+  );
+};
+
+/**
+ * Remove os encantos que perderam o pré-requisito ("outro encanto") depois de
+ * uma remoção.
+ */
+export const dropUnsupportedEnchantments = (selected: ItemE[]): ItemE[] =>
+  selected.some((e) => !e.requiresOtherEnchantment)
+    ? selected
+    : selected.filter((e) => !e.requiresOtherEnchantment);

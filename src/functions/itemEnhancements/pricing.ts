@@ -3,9 +3,12 @@ import { ItemE, ItemMod } from '../../interfaces/Rewards';
 import {
   armorEnchantments,
   armorsModifications,
+  esotericModifications,
   weaponsEnchantments,
   weaponsModifications,
 } from '../../data/rewards/items';
+import { dataRegistry } from '../../data/registry';
+import { SupplementId } from '../../types/supplement.types';
 
 /**
  * Preço de item superior/mágico pelas regras do livro.
@@ -128,9 +131,21 @@ export const normalizeName = (name: string): string =>
 
 const findMod = (name: string): ItemMod | undefined => {
   const key = normalizeName(name);
-  return [...weaponsModifications, ...armorsModifications].find(
-    (m) => normalizeName(m.mod) === key
+  const core = [
+    ...weaponsModifications,
+    ...armorsModifications,
+    ...esotericModifications,
+  ].find((m) => normalizeName(m.mod) === key);
+  if (core) return core;
+  // Suplementos (Potencializador é duplo e precisa contar como duas).
+  const supplements = dataRegistry.getImprovementsBySupplements(
+    Object.values(SupplementId)
   );
+  return [
+    ...supplements.weapons,
+    ...supplements.armors,
+    ...supplements.esoterics,
+  ].find((m) => normalizeName(m.mod) === key);
 };
 
 const findEnchantment = (name: string): ItemE | undefined => {

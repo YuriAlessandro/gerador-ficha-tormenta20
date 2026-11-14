@@ -119,6 +119,9 @@ import CompanionCreationStep from '../CharacterCreationWizard/steps/CompanionCre
 import RaceLevelUpPickStep, {
   RaceLevelUpPick,
 } from './steps/RaceLevelUpPickStep';
+import PowerSpellChoiceStep, {
+  getPowerSpellChoiceInfo,
+} from './steps/PowerSpellChoiceStep';
 
 /**
  * A concessão de poder da classe neste nível.
@@ -944,6 +947,15 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     };
   };
 
+  const getSpellChoiceStepInfo = () =>
+    getPowerSpellChoiceInfo(
+      sheetForCurrentLevel,
+      currentLevelSelection.powerChoice,
+      getSelectedPower(currentLevelSelection),
+      currentLevelSelection.spellsLearned,
+      currentLevelSelection.spellModifierChoices
+    );
+
   // Build steps for current level
   const getSteps = (): string[] => {
     const steps: string[] = [];
@@ -1011,6 +1023,12 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     const spellInfo = getSpellInfo();
     if (spellInfo && spellInfo.shouldLearnSpells) {
       steps.push('Seleção de Magias');
+    }
+
+    // "Escolha uma magia" do poder deste nível (Foco em Magia): depois das
+    // magias aprendidas, que também podem ser escolhidas.
+    if (steps.includes('Escolha de Poder') && getSpellChoiceStepInfo()) {
+      steps.push('Magia do Poder');
     }
 
     if (getEngenhocaInfo()) {
@@ -1245,6 +1263,15 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         return (
           learned.length === spellInfo.spellCount &&
           crossCount >= spellInfo.minCrossTraditionSpells
+        );
+      }
+
+      case 'Magia do Poder': {
+        const info = getSpellChoiceStepInfo();
+        if (!info) return true;
+        return (
+          info.choice.chosen.length >=
+          Math.min(info.choice.max, info.options.length)
         );
       }
 
@@ -1682,6 +1709,23 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                 });
               }
             }}
+          />
+        );
+      }
+
+      case 'Magia do Poder': {
+        const info = getSpellChoiceStepInfo();
+        if (!info) return null;
+        return (
+          <PowerSpellChoiceStep
+            choice={info.choice}
+            options={info.options}
+            onChange={(values) =>
+              setCurrentLevelSelection({
+                ...currentLevelSelection,
+                spellModifierChoices: { [info.choice.key]: values },
+              })
+            }
           />
         );
       }

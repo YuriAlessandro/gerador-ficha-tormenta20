@@ -13,6 +13,18 @@ const magicPowers: Record<string, GeneralPower> = {
     name: 'Barreira Mística',
     description:
       'Você usa a energia residual da conjuração de feitiços para materializar escudos capazes de protegê-lo de ataques físicos. Quando lança uma magia, você pode gastar 1 PM. Se fizer isso, você recebe +4 na Defesa até o início do seu próximo turno.',
+    spellModifiers: [
+      {
+        effect: {
+          type: 'CastOption',
+          id: 'barreira',
+          label: '+4 na Defesa até o início do seu próximo turno',
+          addPm: 1,
+          // O PM já sai no lançamento; o efeito ativo aplica o +4 na Defesa.
+          activeEffectKey: 'magic:barreira-mistica',
+        },
+      },
+    ],
     type: GeneralPowerType.MAGIA,
     requirements: [],
   },
@@ -21,9 +33,19 @@ const magicPowers: Record<string, GeneralPower> = {
     description:
       'Quando lança uma magia, você pode pagar 2 PM para canalizá-la através de dois itens esotéricos diferentes simultaneamente, recebendo os benefícios de ambos.',
     type: GeneralPowerType.MAGIA,
-    requirements: [
-      [{ type: RequirementType.TEXT, text: 'Lançar magias de 2º círculo' }],
+    // Só aparece no lançamento quando há dois esotéricos que afetam a magia.
+    spellModifiers: [
+      {
+        effect: {
+          type: 'CastOption',
+          id: 'esoterismo',
+          label: 'canaliza dois esotéricos ao mesmo tempo',
+          addPm: 2,
+          effects: [{ type: 'EsotericLimit', value: 2 }],
+        },
+      },
     ],
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS, value: 2 }]],
   },
   ESTILO_ESOTERICO: {
     name: 'Estilo Esotérico',
@@ -45,11 +67,11 @@ const magicPowers: Record<string, GeneralPower> = {
     type: GeneralPowerType.MAGIA,
     requirements: [
       [
-        { type: RequirementType.TEXT, text: 'Lançar magias de 3º círculo' },
+        { type: RequirementType.LANCAR_MAGIAS, value: 3 },
         { type: RequirementType.PERICIA, name: Skill.MISTICISMO },
       ],
       [
-        { type: RequirementType.TEXT, text: 'Lançar magias de 3º círculo' },
+        { type: RequirementType.LANCAR_MAGIAS, value: 3 },
         { type: RequirementType.PERICIA, name: Skill.RELIGIAO },
       ],
     ],
@@ -61,7 +83,7 @@ const magicPowers: Record<string, GeneralPower> = {
     type: GeneralPowerType.MAGIA,
     requirements: [
       [
-        { type: RequirementType.TEXT, text: 'Lançar magias de 4º círculo' },
+        { type: RequirementType.LANCAR_MAGIAS, value: 4 },
         { type: RequirementType.PODER, name: 'Encantar Itens Menores' },
       ],
     ],
@@ -73,7 +95,7 @@ const magicPowers: Record<string, GeneralPower> = {
     type: GeneralPowerType.MAGIA,
     requirements: [
       [
-        { type: RequirementType.TEXT, text: 'Lançar magias de 5º círculo' },
+        { type: RequirementType.LANCAR_MAGIAS, value: 5 },
         { type: RequirementType.PODER, name: 'Encantar Itens Médios' },
       ],
     ],
@@ -90,6 +112,16 @@ const magicPowers: Record<string, GeneralPower> = {
     name: 'Explosão Fulgente',
     description:
       'Aprimoramento. Suas chamas mágicas emitem um brilho intenso. Um alvo que falhe no teste de resistência fica cego por 1 rodada (ou ofuscado, se já ficou cego por este aprimoramento nessa cena). Este aprimoramento só pode ser aplicado em magias que causam dano de fogo e permitem testes de resistência. Custo: +1 PM.',
+    spellModifiers: [
+      {
+        filter: { damageTypes: ['fogo'], resisted: true },
+        effect: {
+          type: 'ExtraAprimoramento',
+          addPm: 1,
+          text: 'Explosão Fulgente: um alvo que falhe no teste de resistência fica cego por 1 rodada (ou ofuscado, se já ficou cego por este aprimoramento nessa cena).',
+        },
+      },
+    ],
     type: GeneralPowerType.MAGIA,
     requirements: [],
   },
@@ -97,19 +129,35 @@ const magicPowers: Record<string, GeneralPower> = {
     name: 'Gênese Elemental',
     description:
       'Aprimoramento. Além do normal, a magia cria 1d4 (+1 por círculo) capangas elementais Pequenos em espaços desocupados adjacentes ao alvo ou dentro da área de efeito da magia (deslocamento 9m, Defesa 15, dano 1d6+1 do tipo da magia, imunidade a atordoamento, cansaço, dano do seu elemento, dano não letal, efeitos de metabolismo e paralisia). Eles desaparecem quando são reduzidos a 0 PV ou no fim da cena. Custo: +3 PM.',
-    type: GeneralPowerType.MAGIA,
-    requirements: [
-      [{ type: RequirementType.TEXT, text: 'Lançar magias de 2º círculo' }],
+    spellModifiers: [
+      {
+        filter: { damaging: true },
+        effect: {
+          type: 'ExtraAprimoramento',
+          addPm: 3,
+          text: 'Gênese Elemental: cria 1d4 (+1 por círculo) capangas elementais Pequenos adjacentes ao alvo ou na área (deslocamento 9m, Defesa 15, dano 1d6+1 do tipo da magia); somem a 0 PV ou no fim da cena.',
+        },
+      },
     ],
+    type: GeneralPowerType.MAGIA,
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS, value: 2 }]],
   },
   MAGIA_DIVIDIDA: {
     name: 'Magia Dividida',
     description:
       'Aprimoramento. A área da magia é dividida em duas, cada uma com metade do tamanho da original, que não podem se sobrepor. Por exemplo, uma Bola de Fogo (raio de 6m) pode ser dividida em duas áreas com 3m de raio. Custo: +2 PM.',
-    type: GeneralPowerType.MAGIA,
-    requirements: [
-      [{ type: RequirementType.TEXT, text: 'Lançar magias de 2º círculo' }],
+    spellModifiers: [
+      {
+        filter: { area: true },
+        effect: {
+          type: 'ExtraAprimoramento',
+          addPm: 2,
+          text: 'Magia Dividida: a área da magia é dividida em duas, cada uma com metade do tamanho da original, que não podem se sobrepor.',
+        },
+      },
     ],
+    type: GeneralPowerType.MAGIA,
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS, value: 2 }]],
   },
   MAGIA_SUSPENSA: {
     name: 'Magia Suspensa',
@@ -122,6 +170,16 @@ const magicPowers: Record<string, GeneralPower> = {
     name: 'Miasma Tóxico',
     description:
       'Aprimoramento. A magia exala vapores nocivos. Um alvo que falhe no teste de resistência fica enjoado por 1 rodada. Este aprimoramento só pode ser aplicado em magias que causam dano de ácido e permitem testes de resistência. Custo: +1 PM.',
+    spellModifiers: [
+      {
+        filter: { damageTypes: ['ácido'], resisted: true },
+        effect: {
+          type: 'ExtraAprimoramento',
+          addPm: 1,
+          text: 'Miasma Tóxico: um alvo que falhe no teste de resistência fica enjoado por 1 rodada.',
+        },
+      },
+    ],
     type: GeneralPowerType.MAGIA,
     requirements: [],
   },
@@ -129,6 +187,16 @@ const magicPowers: Record<string, GeneralPower> = {
     name: 'Prisão Gélida',
     description:
       'Aprimoramento. A magia cobre os alvos com cristais de gelo. Um alvo que falhe no teste de resistência fica enredado por 1 rodada. Este aprimoramento só pode ser aplicado em magias que causam dano de frio e permitem testes de resistência. Custo: +1 PM.',
+    spellModifiers: [
+      {
+        filter: { damageTypes: ['frio'], resisted: true },
+        effect: {
+          type: 'ExtraAprimoramento',
+          addPm: 1,
+          text: 'Prisão Gélida: um alvo que falhe no teste de resistência fica enredado por 1 rodada.',
+        },
+      },
+    ],
     type: GeneralPowerType.MAGIA,
     requirements: [],
   },
@@ -136,6 +204,16 @@ const magicPowers: Record<string, GeneralPower> = {
     name: 'Trovão Retumbante',
     description:
       'Aprimoramento. A magia emite um estrondo poderoso. Um alvo que falhe no teste de resistência fica caído (apenas uma vez por cena) e surdo. Este aprimoramento só pode ser aplicado em magias que causam dano de eletricidade e permitem testes de resistência. Custo: +1 PM.',
+    spellModifiers: [
+      {
+        filter: { damageTypes: ['eletricidade'], resisted: true },
+        effect: {
+          type: 'ExtraAprimoramento',
+          addPm: 1,
+          text: 'Trovão Retumbante: um alvo que falhe no teste de resistência fica caído (apenas uma vez por cena) e surdo.',
+        },
+      },
+    ],
     type: GeneralPowerType.MAGIA,
     requirements: [],
   },

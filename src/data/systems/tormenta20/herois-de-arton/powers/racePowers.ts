@@ -430,31 +430,31 @@ const racePowers: Record<string, GeneralPower> = {
       [
         { type: RequirementType.RACA, name: 'Gnoll' },
         { type: RequirementType.ATRIBUTO, name: 'Destreza', value: 2 },
-        { type: RequirementType.TEXT, text: 'Lançar magias' },
+        { type: RequirementType.LANCAR_MAGIAS },
         { type: RequirementType.PODER, name: 'Dupla Inteligência' },
       ],
       [
         { type: RequirementType.RACA, name: 'Kaijin' },
         { type: RequirementType.ATRIBUTO, name: 'Destreza', value: 2 },
-        { type: RequirementType.TEXT, text: 'Lançar magias' },
+        { type: RequirementType.LANCAR_MAGIAS },
         { type: RequirementType.PODER, name: 'Dupla Inteligência' },
       ],
       [
         { type: RequirementType.RACA, name: 'Lefou' },
         { type: RequirementType.ATRIBUTO, name: 'Destreza', value: 2 },
-        { type: RequirementType.TEXT, text: 'Lançar magias' },
+        { type: RequirementType.LANCAR_MAGIAS },
         { type: RequirementType.PODER, name: 'Dupla Inteligência' },
       ],
       [
         { type: RequirementType.RACA, name: 'Orc' },
         { type: RequirementType.ATRIBUTO, name: 'Destreza', value: 2 },
-        { type: RequirementType.TEXT, text: 'Lançar magias' },
+        { type: RequirementType.LANCAR_MAGIAS },
         { type: RequirementType.PODER, name: 'Dupla Inteligência' },
       ],
       [
         { type: RequirementType.RACA, name: 'Trog' },
         { type: RequirementType.ATRIBUTO, name: 'Destreza', value: 2 },
-        { type: RequirementType.TEXT, text: 'Lançar magias' },
+        { type: RequirementType.LANCAR_MAGIAS },
         { type: RequirementType.PODER, name: 'Dupla Inteligência' },
       ],
     ],
@@ -615,11 +615,11 @@ const racePowers: Record<string, GeneralPower> = {
     requirements: [
       [
         { type: RequirementType.RACA, name: 'Kaijin' },
-        { type: RequirementType.TEXT, text: 'Lançar magias divinas' },
+        { type: RequirementType.LANCAR_MAGIAS, name: 'divine' },
       ],
       [
         { type: RequirementType.RACA, name: 'Lefou' },
-        { type: RequirementType.TEXT, text: 'Lançar magias divinas' },
+        { type: RequirementType.LANCAR_MAGIAS, name: 'divine' },
       ],
     ],
   },
@@ -900,16 +900,16 @@ const racePowers: Record<string, GeneralPower> = {
     requirements: [
       [
         { type: RequirementType.RACA, name: 'Medusa' },
-        { type: RequirementType.TEXT, text: 'Lançar magias' },
+        { type: RequirementType.LANCAR_MAGIAS },
       ],
       [
         { type: RequirementType.RACA, name: 'Moreau' },
         { type: RequirementType.HERANCA, name: 'Serpente' },
-        { type: RequirementType.TEXT, text: 'Lançar magias' },
+        { type: RequirementType.LANCAR_MAGIAS },
       ],
       [
         { type: RequirementType.RACA, name: 'Nagah' },
-        { type: RequirementType.TEXT, text: 'Lançar magias' },
+        { type: RequirementType.LANCAR_MAGIAS },
       ],
     ],
   },

@@ -204,6 +204,7 @@ export const ferramentas: Equipment[] = [
   {
     nome: 'Alaúde élfico',
     group: 'Item Geral',
+    musicalInstrument: true,
     preco: parsePrice('T$ 300'),
     descricao:
       'Inspiração como ação de movimento. Conta como instrumento musical.',
@@ -245,6 +246,7 @@ export const ferramentas: Equipment[] = [
   {
     nome: 'Flauta mística',
     group: 'Item Geral',
+    musicalInstrument: true,
     preco: parsePrice('T$ 150'),
     descricao:
       '+1 na CD de resistência das magias. Conta como instrumento musical.',
@@ -278,6 +280,7 @@ export const ferramentas: Equipment[] = [
   {
     nome: 'Instrumento musical',
     group: 'Item Geral',
+    musicalInstrument: true,
     preco: parsePrice('T$ 35'),
     descricao:
       'Empunhar com as duas mãos para usar Músicas de Bardo. Conta como esotérico para bardos.',
@@ -307,6 +310,7 @@ export const ferramentas: Equipment[] = [
   {
     nome: 'Tambor das profundezas',
     group: 'Item Geral',
+    musicalInstrument: true,
     preco: parsePrice('T$ 80'),
     descricao:
       'Dobra alcance de Inspiração e Músicas de Bardo. Conta como instrumento musical.',
@@ -585,24 +589,152 @@ export const esotericos: Equipment[] = [
     descricao:
       'Ao lançar magia de encantamento ou ilusão: +2 PM para gastar em aprimoramentos.',
     spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { schools: ['Encan', 'Ilusão'] },
+        effect: { type: 'AprimoramentoPm', value: 2 },
+      },
+    ],
   },
   {
     nome: 'Cajado arcano',
     group: 'Esotérico',
     preco: parsePrice('T$ 1000'),
+    descricao:
+      'O limite de PM que você pode gastar em magias arcanas e a CD para resistir a elas aumentam em +1.',
     spaces: parseSpaces(2),
+    spellModifiers: [
+      {
+        filter: { tradition: 'arcane' },
+        effect: { type: 'SpellDC', value: 1 },
+      },
+      {
+        filter: { tradition: 'arcane' },
+        effect: { type: 'PmLimit', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Cetro elemental',
     group: 'Esotérico',
     preco: parsePrice('T$ 750'),
+    descricao:
+      'Este cetro possui uma pedra preciosa em sua ponta: esmeralda (ácido), topázio (eletricidade), rubi (fogo) ou safira (frio). Quando lança uma magia que causa dano do tipo da pedra, o dano aumenta em um dado do mesmo tipo.',
     spaces: parseSpaces(1),
+    // Item genérico (tabelas de tesouro, fichas antigas): a pedra é escolhida
+    // marcando uma magia que causa dano do tipo dela. Na loja, as variantes
+    // "Cetro elemental de <tipo>" já vêm com a pedra.
+    spellChoice: {
+      of: 'damageType',
+      count: { type: 'fixed', value: 1 },
+      eligible: { damageTypes: ['ácido', 'eletricidade', 'fogo', 'frio'] },
+    },
+    spellModifiers: [
+      {
+        filter: { chosen: true },
+        effect: {
+          type: 'RollBonus',
+          rolls: 'damage',
+          extraDice: 1,
+          damageTypes: 'chosen',
+        },
+      },
+    ],
+  },
+  {
+    nome: 'Cetro elemental de ácido',
+    group: 'Esotérico',
+    preco: parsePrice('T$ 750'),
+    descricao:
+      'Este cetro possui uma esmeralda em sua ponta. Quando lança uma magia que causa dano de ácido, o dano aumenta em um dado do mesmo tipo.',
+    spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { damageTypes: ['ácido'] },
+        effect: {
+          type: 'RollBonus',
+          rolls: 'damage',
+          extraDice: 1,
+          damageTypes: ['ácido'],
+        },
+      },
+    ],
+  },
+  {
+    nome: 'Cetro elemental de eletricidade',
+    group: 'Esotérico',
+    preco: parsePrice('T$ 750'),
+    descricao:
+      'Este cetro possui um topázio em sua ponta. Quando lança uma magia que causa dano de eletricidade, o dano aumenta em um dado do mesmo tipo.',
+    spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { damageTypes: ['eletricidade'] },
+        effect: {
+          type: 'RollBonus',
+          rolls: 'damage',
+          extraDice: 1,
+          damageTypes: ['eletricidade'],
+        },
+      },
+    ],
+  },
+  {
+    nome: 'Cetro elemental de fogo',
+    group: 'Esotérico',
+    preco: parsePrice('T$ 750'),
+    descricao:
+      'Este cetro possui um rubi em sua ponta. Quando lança uma magia que causa dano de fogo, o dano aumenta em um dado do mesmo tipo.',
+    spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { damageTypes: ['fogo'] },
+        effect: {
+          type: 'RollBonus',
+          rolls: 'damage',
+          extraDice: 1,
+          damageTypes: ['fogo'],
+        },
+      },
+    ],
+  },
+  {
+    nome: 'Cetro elemental de frio',
+    group: 'Esotérico',
+    preco: parsePrice('T$ 750'),
+    descricao:
+      'Este cetro possui uma safira em sua ponta. Quando lança uma magia que causa dano de frio, o dano aumenta em um dado do mesmo tipo.',
+    spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { damageTypes: ['frio'] },
+        effect: {
+          type: 'RollBonus',
+          rolls: 'damage',
+          extraDice: 1,
+          damageTypes: ['frio'],
+        },
+      },
+    ],
   },
   {
     nome: 'Costela de lich',
     group: 'Esotérico',
     preco: parsePrice('T$ 300'),
+    descricao:
+      'Suas magias causam +1d6 pontos de dano de trevas. Se estiver empunhando esta varinha você não recupera PV por efeitos mágicos de cura.',
     spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { damaging: true },
+        effect: {
+          type: 'ExtraRoll',
+          label: 'Dano de trevas',
+          dice: '1d6',
+          damageType: 'trevas',
+        },
+      },
+    ],
   },
   {
     nome: 'Dedo de ente',
@@ -614,23 +746,64 @@ export const esotericos: Equipment[] = [
     nome: 'Luva de ferro',
     group: 'Esotérico',
     preco: parsePrice('T$ 150'),
+    descricao:
+      'Suas magias arcanas pessoais que concedem bônus na Defesa ou em testes de resistências têm esse bônus aumentado em +1.',
     spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { tradition: 'arcane', ranges: ['Pessoal'] },
+        effect: { type: 'EffectBonusIncrease', kind: 'defense', value: 1 },
+      },
+      {
+        filter: { tradition: 'arcane', ranges: ['Pessoal'] },
+        effect: { type: 'EffectBonusIncrease', kind: 'resistance', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Medalhão de prata',
     group: 'Esotérico',
     preco: parsePrice('T$ 750'),
+    descricao:
+      'Gravado com uma runa pessoal do conjurador, este medalhão de prata diminui em –1 PM o custo de magias de alcance pessoal.',
     spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { ranges: ['Pessoal'] },
+        effect: { type: 'PmReduction', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Orbe cristalina',
     group: 'Esotérico',
     preco: parsePrice('T$ 750'),
+    descricao:
+      'Esta esfera perfeita concentra seu poder mágico. O limite de PM que você pode gastar em magias arcanas aumenta em +1.',
     spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { tradition: 'arcane' },
+        effect: { type: 'PmLimit', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Tomo hermético',
     group: 'Esotérico',
+    descricao:
+      'Um livro de tratados que aumentam a sua compreensão sobre uma escola de magia específica. A CD para resistir a suas magias arcanas dessa escola aumenta em +2.',
+    spellChoice: {
+      of: 'school',
+      count: { type: 'fixed', value: 1 },
+      eligible: { tradition: 'arcane' },
+    },
+    spellModifiers: [
+      {
+        filter: { chosen: true, tradition: 'arcane' },
+        effect: { type: 'SpellDC', value: 2 },
+      },
+    ],
     preco: parsePrice('T$ 1500'),
     spaces: parseSpaces(1),
   },
@@ -638,7 +811,14 @@ export const esotericos: Equipment[] = [
     nome: 'Varinha arcana',
     group: 'Esotérico',
     preco: parsePrice('T$ 100'),
+    descricao: 'A CD para resistir a suas magias arcanas aumenta em +1.',
     spaces: parseSpaces(1),
+    spellModifiers: [
+      {
+        filter: { tradition: 'arcane' },
+        effect: { type: 'SpellDC', value: 1 },
+      },
+    ],
   },
 ];
 

@@ -6,6 +6,7 @@
  * Moreau, Golem Desperto) ficam como estão.
  */
 import { describe, it, expect } from 'vitest';
+import { itWithPremium } from '../../__tests__/premiumGate';
 import { dataRegistry } from '../../data/registry';
 import { SupplementId } from '../../types/supplement.types';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
@@ -111,9 +112,12 @@ describe('slot livre de raça com "outro atributo"', () => {
     }
   );
 
-  it('Raças Abertas (Heróis p. 281) continua sem trava no Meio-Orc', () => {
-    const meioOrc = race('Meio-Orc');
-    const open = applyOpenRace(meioOrc, getEffectiveRaceAttrs(meioOrc));
-    expect(exclusions(open)).toEqual([]);
-  });
+  itWithPremium(
+    'Raças Abertas (Heróis p. 281) continua sem trava no Meio-Orc',
+    () => {
+      const meioOrc = race('Meio-Orc');
+      const open = applyOpenRace(meioOrc, getEffectiveRaceAttrs(meioOrc));
+      expect(exclusions(open)).toEqual([]);
+    }
+  );
 });
