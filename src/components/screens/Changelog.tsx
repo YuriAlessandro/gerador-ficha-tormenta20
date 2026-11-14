@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            10/11/2026 (v4.38).
+            14/11/2026 (v4.39).
           </p>
 
           <p>
@@ -74,6 +74,70 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.39</h3>
+
+              <Typography variant='body1' sx={{ mt: 2 }}>
+                O destaque desta versão, as <strong>Distinções</strong>, veio da{' '}
+                <strong>votação dos apoiadores</strong>. Obrigado a quem votou e
+                a quem sustenta o projeto! 💜
+              </Typography>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  🏅 Distinções
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Chegaram as <strong>59 distinções</strong> de{' '}
+                  <em>Heróis de Arton</em> (36) e <em>Deuses de Arton</em> (23),
+                  do Chapéu-Preto ao Sumo-Sacerdote. A partir do{' '}
+                  <strong>5º nível</strong>, o novo botão{' '}
+                  <strong>Distinções</strong> da ficha mostra cada uma com os
+                  critérios de admissão, a Marca e a lista de poderes. Conquiste
+                  a distinção que seu personagem alcançou na história e ele
+                  recebe a <strong>Marca da Distinção</strong> na hora.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  Os <strong>poderes da distinção</strong> passam a aparecer no
+                  editor de poderes e na subida de nível, num grupo próprio, com
+                  os pré-requisitos do livro, inclusive os que pedem outros
+                  poderes da mesma distinção. Bônus passivos entram na ficha
+                  sozinhos e crescem com a quantidade de poderes, como os +2 em
+                  Iniciativa e +3m de deslocamento do Rápido ou Morto, que sobem
+                  a cada dois outros poderes de Chapéu-Preto. Na ficha, a Marca
+                  e os poderes aparecem agrupados pela distinção, e também saem
+                  no PDF.
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  A admissão acontece no jogo e o mestre tem a palavra final: o
+                  app nunca dá distinção sozinho, nem na ficha aleatória.
+                  Remover uma distinção tira também a Marca e os poderes dela.
+                  As distinções também ganharam uma página na{' '}
+                  <strong>enciclopédia</strong> e entram na busca. Conquistar
+                  distinções é exclusivo para apoiadores, e quem já tem uma
+                  distinção na ficha continua usando e escolhendo os poderes
+                  dela.
+                </Typography>
+              </Alert>
+
               <h3>4.38</h3>
               <ul>
                 <li>
