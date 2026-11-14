@@ -35,6 +35,10 @@ import {
   isRequirementWaived,
 } from './powers/prerequisiteWaivers';
 import { dataRegistry } from '../data/registry';
+import {
+  countDistinctionPowers,
+  sheetHasDistinction,
+} from '../premium/functions/distinctions';
 import { SupplementId } from '../types/supplement.types';
 
 export type LevelTier = 'Iniciante' | 'Veterano' | 'Campeão' | 'Herói';
@@ -295,6 +299,21 @@ function evaluateRule(
       const category = rule.name as string; // "Bênção Dracônica"
       const count = getTierLimitPowerCount(sheet, category);
       return count < getTierLimitAllowance(sheet, rule);
+    }
+    case RequirementType.DISTINCAO:
+      return sheetHasDistinction(sheet, rule.name as string);
+    case RequirementType.PODERES_DISTINCAO: {
+      // "dois outros poderes da distinção": como em PODER_TORMENTA, o próprio
+      // poder não conta para si quando a ficha já o tem (reavaliação).
+      const distinctionId = rule.name as string;
+      const countsItself = (sheet.generalPowers ?? []).some(
+        (owned) =>
+          owned.name === power.name && owned.distinctionId === distinctionId
+      );
+      return (
+        countDistinctionPowers(sheet, distinctionId) - (countsItself ? 1 : 0) >=
+        (rule.value ?? 0)
+      );
     }
     case RequirementType.TEXT:
       // TEXT requirements are always considered met - the user reads

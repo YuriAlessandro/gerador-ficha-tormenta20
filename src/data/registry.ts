@@ -20,6 +20,7 @@ import {
   RequirementType,
 } from '../interfaces/Poderes';
 import Origin from '../interfaces/Origin';
+import { getDistinctionPowersBySupplements } from '../premium/data/distinctions';
 import {
   GOLPE_PESSOAL_EFFECTS,
   GolpePessoalEffect,
@@ -94,6 +95,7 @@ export interface GeneralPowersWithSupplement {
   MAGIA: GeneralPowerWithSupplement[];
   TORMENTA: GeneralPowerWithSupplement[];
   RACA: GeneralPowerWithSupplement[];
+  DISTINCAO: GeneralPowerWithSupplement[];
 }
 
 export interface GolpePessoalEffectWithSupplement extends GolpePessoalEffect {
@@ -609,6 +611,7 @@ class DataRegistry {
         MAGIA: [],
         TORMENTA: [],
         RACA: [],
+        DISTINCAO: [],
       };
     }
 
@@ -620,6 +623,7 @@ class DataRegistry {
       MAGIA: [],
       TORMENTA: [],
       RACA: [],
+      DISTINCAO: [],
     };
 
     supplements.forEach((id) => {
@@ -633,6 +637,10 @@ class DataRegistry {
         combinedPowers.RACA.push(...supplementPowers.RACA);
       }
     });
+    // Distinções moram no premium (stub sem o submódulo: nenhuma).
+    combinedPowers.DISTINCAO.push(
+      ...getDistinctionPowersBySupplements(supplements)
+    );
 
     this.powersCache = { system: systemId, supplements, data: combinedPowers };
     return combinedPowers;
@@ -666,6 +674,7 @@ class DataRegistry {
       MAGIA: [],
       TORMENTA: [],
       RACA: [],
+      DISTINCAO: [],
     };
 
     if (!systemData) return result;
@@ -718,6 +727,13 @@ class DataRegistry {
           }))
         );
       }
+      result.DISTINCAO.push(
+        ...getDistinctionPowersBySupplements([supplementId]).map((p) => ({
+          ...p,
+          supplementId,
+          supplementName,
+        }))
+      );
     });
 
     return result;

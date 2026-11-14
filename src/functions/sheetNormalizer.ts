@@ -887,6 +887,15 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   if (!Array.isArray(sheet.sheetBonuses)) sheet.sheetBonuses = [];
   if (!Array.isArray(sheet.sheetActionHistory)) sheet.sheetActionHistory = [];
   if (!Array.isArray(sheet.steps)) sheet.steps = [];
+  // Distinções: campo opcional; só descarta entradas sem id (a marca é
+  // resolvida pelo id no registry).
+  if (sheet.distinctions !== undefined) {
+    sheet.distinctions = Array.isArray(sheet.distinctions)
+      ? sheet.distinctions.filter(
+          (d) => !!d && typeof d === 'object' && typeof d.id === 'string'
+        )
+      : [];
+  }
 
   // Todo o pipeline (setup do Arcanista, recalculateSheet, UI) assume esses
   // arrays dentro de classe/raça. O Result acessa proficiencias/powers

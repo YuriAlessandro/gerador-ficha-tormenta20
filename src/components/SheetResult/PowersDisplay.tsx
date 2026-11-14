@@ -64,6 +64,10 @@ import PowerWeaponSelectionAction from './PowerWeaponSelectionAction';
 import PowerActiveEffectAction from './PowerActiveEffectAction';
 import PowerCustomEffectsAction from './PowerCustomEffectsAction';
 import PowerRow from './PowersTab/PowerRow';
+import {
+  getSheetDistinctionMarks,
+  getSheetDistinctionNames,
+} from '../../premium/functions/distinctions';
 import PowerDetailSheet from './PowersTab/PowerDetailSheet';
 import PowersToolbar, { OriginFilterOption } from './PowersTab/PowersToolbar';
 import {
@@ -161,6 +165,16 @@ const PowersDisplay: React.FC<{
     () => (sheet?.classe ? getChosenSpellSchoolsByClass(sheet) : undefined),
     [sheet]
   );
+  // Marcas das distinções conquistadas (resolvidas pelo registry a partir de
+  // `sheet.distinctions`).
+  const distinctionMarks = useMemo(
+    () => (sheet ? getSheetDistinctionMarks(sheet) : []),
+    [sheet]
+  );
+  const distinctionNames = useMemo(
+    () => (sheet ? getSheetDistinctionNames(sheet) : {}),
+    [sheet]
+  );
   const collected = useMemo(
     () =>
       collectPowers(
@@ -173,6 +187,8 @@ const PowersDisplay: React.FC<{
           generalPowers,
           customPowers,
           customGrantedPowers,
+          distinctionMarks,
+          distinctionNames,
           className,
           raceName,
         },
@@ -189,6 +205,8 @@ const PowersDisplay: React.FC<{
       generalPowers,
       customPowers,
       customGrantedPowers,
+      distinctionMarks,
+      distinctionNames,
       className,
       raceName,
       sheet?.powersOrder,

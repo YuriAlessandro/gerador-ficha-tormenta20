@@ -15,6 +15,7 @@ import type { ActiveEffect } from '../premium/interfaces/ActiveEffect';
 import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import type { SheetComplication } from '../premium/interfaces/Complication';
 import type { SheetAge } from './Age';
+import type { SheetDistinction } from '../premium/interfaces/Distinction';
 import type { SheetAnimalCompanion } from '../premium/interfaces/AnimalCompanion';
 import type { SheetPartner } from '../premium/interfaces/Partner';
 import type { DiceRoll } from './DiceRoll';
@@ -697,6 +698,15 @@ export type StatModifier =
       formula: string;
     }
   | {
+      // Escala com o total de poderes da distinção `distinctionId` na ficha
+      // ("+1 para cada dois outros poderes da distinção"). `{distPowQtd}` é
+      // substituído por `countDistinctionPowers` — o próprio poder incluso,
+      // então "outros" é `({distPowQtd} - 1)` na fórmula.
+      type: 'DistinctionPowersCalc';
+      distinctionId: string;
+      formula: string;
+    }
+  | {
       type: 'SpecialAttribute';
       attribute: 'spellKeyAttr';
     }
@@ -1171,6 +1181,8 @@ export default interface CharacterSheet {
    */
   layoutId?: string;
   propositoCriacaoPower?: string; // Poder geral escolhido como Propósito de Criação (raças Golem)
+  /** Distinções conquistadas (Heróis/Deuses de Arton) — só referências. */
+  distinctions?: SheetDistinction[];
   complication?: SheetComplication; // Complicação (Heróis de Arton) — cópia embutida + nome do poder concedido
   optionalRules?: SheetOptionalRules; // Demais regras opcionais de Heróis de Arton em uso nesta ficha
   age?: SheetAge; // Idades Variadas (Heróis de Arton) — faixa etária + complicações de idade

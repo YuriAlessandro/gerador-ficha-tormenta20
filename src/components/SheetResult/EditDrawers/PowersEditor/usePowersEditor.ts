@@ -47,6 +47,7 @@ import {
 } from '@/components/PowerCatalog/usePowerCatalog';
 import { applyMaxPointsGainToCurrent } from '@/functions/general';
 import { recalculateSheet } from '@/functions/recalculateSheet';
+import { getSheetDistinctions } from '@/premium/functions/distinctions';
 import {
   findClassDescription,
   getClassLevelsMap,
@@ -471,8 +472,19 @@ export function usePowersEditor({
         'Poderes de Raça',
         raca.filter((p) => !isDraconic(p) && !isKobold(p))
       ),
+      // Uma categoria por distinção conquistada: os poderes de distinção só
+      // existem para quem foi admitido nela.
+      ...getSheetDistinctions(sheet).map((distinction) =>
+        general(
+          GeneralPowerType.DISTINCAO,
+          `Poderes de Distinção — ${distinction.name}`,
+          (allPowersByCategory.DISTINCAO ?? []).filter(
+            (p) => p.distinctionId === distinction.id
+          )
+        )
+      ),
     ];
-  }, [allPowersByCategory, sheet.raca.name]);
+  }, [allPowersByCategory, sheet.raca.name, sheet.distinctions]);
 
   // ── Disponibilidade ─────────────────────────────────────────────────────
   // Cache por nome: a lista tem centenas de itens e a UI consulta o veredito

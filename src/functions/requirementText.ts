@@ -52,6 +52,12 @@ function baseText(req: Requirement, options: FormatRequirementOptions): string {
       return `Pelo menos ${req.value} ${
         (req.value || 0) > 1 ? 'poderes' : 'poder'
       } da Tormenta`;
+    case RequirementType.DISTINCAO:
+      return req.text || `Distinção: ${req.name}`;
+    case RequirementType.PODERES_DISTINCAO: {
+      const n = req.value || 0;
+      return `${n} ${n > 1 ? 'outros poderes' : 'outro poder'} da distinção`;
+    }
     case RequirementType.TEXT:
       return req.text || '';
     case RequirementType.TIER_LIMIT:

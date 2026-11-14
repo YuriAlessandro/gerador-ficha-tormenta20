@@ -7,6 +7,10 @@ import {
 import { applyPowersOrder } from './applyPowersOrder';
 import { getAutoridadeEclesiasticaDynamicText } from './frade-special';
 import { PowerSourceArrays, SheetPower } from './powerOrigins';
+import {
+  getSheetDistinctionMarks,
+  getSheetDistinctionNames,
+} from '../../premium/functions/distinctions';
 
 /**
  * Montagem canônica da lista de poderes de uma ficha — o ponto ÚNICO onde as
@@ -56,6 +60,8 @@ export function buildPowerSources(sheet: CharacterSheet): PowerSourceArrays {
     generalPowers: sheet.generalPowers || [],
     customPowers: sheet.customPowers || [],
     customGrantedPowers: sheet.customGrantedPowers || [],
+    distinctionMarks: getSheetDistinctionMarks(sheet),
+    distinctionNames: getSheetDistinctionNames(sheet),
     className: sheet.classe.name,
     raceName: sheet.raca.name,
   };
@@ -121,6 +127,7 @@ export function collectPowers(
     ...sources.generalPowers,
     ...(sources.customPowers || []),
     ...(sources.customGrantedPowers || []),
+    ...(sources.distinctionMarks || []),
   ];
 
   const counts: Record<string, number> = {};

@@ -27,6 +27,8 @@ export const TORMENTA20_HEROIS_ARTON_SUPPLEMENT: SupplementData = {
       HEROIS_ARTON_POWERS[GeneralPowerType.CONCEDIDOS],
     [GeneralPowerType.TORMENTA]: HEROIS_ARTON_POWERS[GeneralPowerType.TORMENTA],
     [GeneralPowerType.RACA]: HEROIS_ARTON_POWERS[GeneralPowerType.RACA],
+    // Poderes de distinção moram no premium e entram pelo registry.
+    [GeneralPowerType.DISTINCAO]: [],
   },
   equipment: HEROIS_ARTON_EQUIPMENT,
   improvements: HEROIS_ARTON_IMPROVEMENTS,

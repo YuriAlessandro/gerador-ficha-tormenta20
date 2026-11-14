@@ -25,6 +25,7 @@ export const TORMENTA20_DEUSES_MENORES_SUPPLEMENT: SupplementData = {
     [GeneralPowerType.TORMENTA]:
       DEUSES_MENORES_POWERS[GeneralPowerType.TORMENTA],
     [GeneralPowerType.RACA]: DEUSES_MENORES_POWERS[GeneralPowerType.RACA],
+    [GeneralPowerType.DISTINCAO]: [],
   },
   divindades: DEUSES_MENORES_DIVINDADES,
 };

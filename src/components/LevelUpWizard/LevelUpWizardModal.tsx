@@ -100,6 +100,7 @@ import {
   getOficioEngenhoqueiroBonus,
   hasEngenhoqueiro,
 } from '@/functions/spells/engenhoca';
+import { sheetHasDistinction } from '../../premium/functions/distinctions';
 import OriginPowerSwapStep from './steps/OriginPowerSwapStep';
 import PowerSelectionStep from './steps/PowerSelectionStep';
 import LevelSpellSelectionStep from './steps/LevelSpellSelectionStep';
@@ -578,6 +579,11 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       ...allPowers.TORMENTA,
       ...allPowers.RACA.filter((power) =>
         isPowerAvailable(sheetForFiltering, power)
+      ),
+      // Poderes de distinção: só das distinções que a ficha já conquistou
+      // (a admissão é feita pela ficha, nunca pelo assistente).
+      ...(allPowers.DISTINCAO ?? []).filter((power) =>
+        sheetHasDistinction(sheetForFiltering, power.distinctionId)
       ),
     ];
 

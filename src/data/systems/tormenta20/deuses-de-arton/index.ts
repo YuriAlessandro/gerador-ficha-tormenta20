@@ -23,6 +23,8 @@ export const TORMENTA20_DEUSES_ARTON_SUPPLEMENT: SupplementData = {
       DEUSES_ARTON_POWERS[GeneralPowerType.CONCEDIDOS],
     [GeneralPowerType.TORMENTA]: DEUSES_ARTON_POWERS[GeneralPowerType.TORMENTA],
     [GeneralPowerType.RACA]: DEUSES_ARTON_POWERS[GeneralPowerType.RACA],
+    // Poderes de distinção moram no premium e entram pelo registry.
+    [GeneralPowerType.DISTINCAO]: [],
   },
   equipment: DEUSES_ARTON_EQUIPMENT,
   improvements: DEUSES_ARTON_IMPROVEMENTS,

@@ -17,6 +17,10 @@
  * a qual classe/tipo o item pertence.
  */
 import { dataRegistry } from '../data/registry';
+import {
+  getDistinctionById,
+  getDistinctionsBySupplements,
+} from '../premium/data/distinctions';
 import { SupplementId } from '../types/supplement.types';
 import { GeneralPowerType } from '../interfaces/Poderes';
 import { normalizeSearch } from './stringUtils';
@@ -27,6 +31,7 @@ export type EncyclopediaCategory =
   | 'origin'
   | 'deity'
   | 'power'
+  | 'distinction'
   | 'spell';
 
 /** Rota da aba da enciclopédia que renderiza o item. */
@@ -36,6 +41,7 @@ export type EncyclopediaRoute =
   | 'origens'
   | 'divindades'
   | 'poderes'
+  | 'distinções'
   | 'magias';
 
 export interface EncyclopediaEntry {
@@ -81,6 +87,7 @@ const POWER_TYPE_LABEL: Record<GeneralPowerType, string> = {
   [GeneralPowerType.CONCEDIDOS]: 'Concedido',
   [GeneralPowerType.TORMENTA]: 'Tormenta',
   [GeneralPowerType.RACA]: 'Racial',
+  [GeneralPowerType.DISTINCAO]: 'Distinção',
 };
 
 /**
@@ -115,6 +122,7 @@ export const encyclopediaIds = {
   deityPower: (deityName: string, name: string) =>
     `deity-power:${deityName}:${name}`,
   power: (type: string, name: string) => `power:${type}:${name}`,
+  distinction: (id: string) => `distinction:${id}`,
   spell: (name: string) => `spell:${name}`,
 };
 
@@ -315,6 +323,24 @@ export function buildEncyclopediaIndex(
   const powers = dataRegistry.getPowersWithSupplementInfo(supplementIds);
   (Object.keys(powers) as GeneralPowerType[]).forEach((type) => {
     powers[type].forEach((power) => {
+      // Poder de distinção mora na página da distinção, não na de Poderes.
+      if (type === GeneralPowerType.DISTINCAO) {
+        const distinction = getDistinctionById(power.distinctionId ?? '');
+        if (!distinction) return;
+        add(
+          makeEntry({
+            id: encyclopediaIds.power(type, power.name),
+            category: 'distinction',
+            categoryLabel: 'Poder de distinção',
+            title: power.name,
+            subtitle: `Poder de distinção — ${distinction.name}`,
+            description: power.description || '',
+            route: 'distinções',
+            param: distinction.name,
+          })
+        );
+        return;
+      }
       add(
         makeEntry({
           id: encyclopediaIds.power(type, power.name),
@@ -328,6 +354,22 @@ export function buildEncyclopediaIndex(
         })
       );
     });
+  });
+
+  // --- Distinções --------------------------------------------------------
+  getDistinctionsBySupplements(supplementIds).forEach((d) => {
+    add(
+      makeEntry({
+        id: encyclopediaIds.distinction(d.id),
+        category: 'distinction',
+        categoryLabel: 'Distinção',
+        title: d.name,
+        subtitle: `Marca: ${d.mark.name}`,
+        description: d.description,
+        route: 'distinções',
+        param: d.name,
+      })
+    );
   });
 
   // --- Magias ------------------------------------------------------------

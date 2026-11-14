@@ -88,6 +88,7 @@ import {
   ConditionMarker,
   useConditionHighlights,
 } from '@/premium/components/Conditions';
+import { DistinctionEditDrawer } from '@/premium/components/Distinctions';
 import { PartnerSheetPanel } from '@/premium/components/Partners';
 import { ParodySpellPickerDialog } from '@/premium/components/ParodySpellPicker';
 import { getConditionLabelStyle } from '@/premium/functions/conditionHighlights';
@@ -104,6 +105,7 @@ import { ComplicationEditDrawer } from '@/premium/components/Complications';
 import { AttributeModifiersDrawer } from '@/premium/components/Attributes';
 import { SupplementId } from '@/types/supplement.types';
 import TheaterComedyIcon from '@mui/icons-material/TheaterComedy';
+import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import socketService, {
   type PowerEffectBonusPayload,
   type RollAbilityMeta,
@@ -334,6 +336,7 @@ const Result: React.FC<ResultProps> = (props) => {
   >(undefined);
   const [powersDrawerOpen, setPowersDrawerOpen] = useState(false);
   const [complicationDrawerOpen, setComplicationDrawerOpen] = useState(false);
+  const [distinctionDrawerOpen, setDistinctionDrawerOpen] = useState(false);
   const [spellsDrawerOpen, setSpellsDrawerOpen] = useState(false);
   const [defenseDrawerOpen, setDefenseDrawerOpen] = useState(false);
   const [maneuversDrawerOpen, setManeuversDrawerOpen] = useState(false);
@@ -381,6 +384,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const conditionsFeature = useFeatureAccess('conditions');
   const activeEffectsFeature = useFeatureAccess('activeEffects');
   const complicationsFeature = useFeatureAccess('complications');
+  const distinctionsFeature = useFeatureAccess('distinctions');
   const partnersFeature = useFeatureAccess('partners');
   const canUseActiveEffects = activeEffectsFeature.hasAccess;
   // Em forma selvagem o fundo é pintado pelo WildShapeSkin (que sabe a cor da
@@ -2297,6 +2301,24 @@ const Result: React.FC<ResultProps> = (props) => {
       onClick: () => setComplicationDrawerOpen(true),
     });
   }
+  // Distinções (Heróis/Deuses de Arton): visível para quem já tem uma (para
+  // ver/remover mesmo sem acesso ou sem o suplemento) ou, com a flag ligada,
+  // tem um dos dois livros habilitado. Quem não é apoiador abre o painel e vê o
+  // convite: conquistar é que passa pelo `hasAccess` (no próprio painel).
+  if (
+    onSheetUpdate &&
+    (!!currentSheet.distinctions?.length ||
+      (distinctionsFeature.isEnabled &&
+        (userSupplements.includes(SupplementId.TORMENTA20_HEROIS_ARTON) ||
+          userSupplements.includes(SupplementId.TORMENTA20_DEUSES_ARTON))))
+  ) {
+    heroisArtonExtras.push({
+      key: 'distinctions',
+      icon: <WorkspacePremiumIcon />,
+      tooltip: 'Distinções',
+      onClick: () => setDistinctionDrawerOpen(true),
+    });
+  }
 
   const activeEffectsAction = (): SheetSectionAction[] => {
     if (!canUseActiveEffects) return [];
@@ -3672,6 +3694,16 @@ const Result: React.FC<ResultProps> = (props) => {
             sheet={currentSheet}
             onSave={handlePowersUpdate}
           />
+
+          {onSheetUpdate && (
+            <DistinctionEditDrawer
+              open={distinctionDrawerOpen}
+              onClose={() => setDistinctionDrawerOpen(false)}
+              sheet={currentSheet}
+              supplements={userSupplements}
+              onSave={handlePowersUpdate}
+            />
+          )}
 
           {onSheetUpdate && (
             <ComplicationEditDrawer

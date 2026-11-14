@@ -139,6 +139,10 @@ import {
   getVirtudePaladinescaPMBonus,
 } from './randomUtils';
 import {
+  countDistinctionPowers,
+  getSheetDistinctionMarks,
+} from '../premium/functions/distinctions';
+import {
   getRemovedPowers,
   reverseSheetActionChange,
 } from './reverseSheetActions';
@@ -305,6 +309,8 @@ export const calculateBonusValue = (
     value?: number;
     attribute?: string;
     formula?: string;
+    /** `DistinctionPowersCalc`: distinção cujos poderes são contados. */
+    distinctionId?: string;
     capBy?: 'level' | 'classLevel';
     breakpoints?: { fromLevel: number; value: number }[];
     by?: 'level' | 'classLevel';
@@ -362,6 +368,18 @@ export const calculateBonusValue = (
         resolveClassLevel(sheet, source).toString()
       );
     }
+    try {
+      // eslint-disable-next-line no-eval
+      return eval(formula);
+    } catch {
+      return 0;
+    }
+  }
+  if (bonus.type === 'DistinctionPowersCalc' && bonus.formula) {
+    const formula = bonus.formula.replace(
+      /\{distPowQtd\}/g,
+      countDistinctionPowers(sheet, bonus.distinctionId ?? '').toString()
+    );
     try {
       // eslint-disable-next-line no-eval
       return eval(formula);
@@ -1419,6 +1437,22 @@ function applyComplication(
 }
 
 /**
+ * Aplica as marcas das distinções conquistadas (Heróis/Deuses de Arton). A marca
+ * vem do registry (a ficha só guarda a referência), e os `sheetBonuses` dela
+ * precisam voltar a cada recálculo porque o Step 1 zera a lista; sheetActions
+ * são idempotentes via sheetActionHistory.
+ */
+function applyDistinctionMarks(
+  sheet: CharacterSheet,
+  manualSelections?: ManualPowerSelections
+): CharacterSheet {
+  return getSheetDistinctionMarks(sheet).reduce((acc, mark) => {
+    const [newSheet] = applyPower(acc, mark, manualSelections?.[mark.name]);
+    return newSheet;
+  }, sheet);
+}
+
+/**
  * Reaplica os `sheetBonuses` da idade (Idades Variadas, Heróis de Arton): os da
  * faixa etária mais os das complicações de idade escolhidas. Precisam voltar a
  * cada recálculo porque o Step 1 zera a lista.
@@ -2086,6 +2120,17 @@ export function recalculateSheet(
       removedPowerNames.push(originalSheet.complication.name);
     }
 
+    // Distinção removida: a marca dela é revertida como um poder removido. Os
+    // poderes da distinção já saem por `generalPowers` (acima).
+    const keptDistinctionIds = new Set(
+      (updatedSheet.distinctions ?? []).map((d) => d.id)
+    );
+    getSheetDistinctionMarks(originalSheet).forEach((mark) => {
+      if (!keptDistinctionIds.has(mark.distinctionId ?? '')) {
+        removedPowerNames.push(mark.name);
+      }
+    });
+
     // A faixa etária NÃO entra aqui: os modificadores de atributo dela são
     // permanentes (como os raciais) e vivem em `atributos`, não em
     // `sheetActionHistory`. Quem troca a faixa aplica o delta na hora — ver
@@ -2212,6 +2257,9 @@ export function recalculateSheet(
 
   // Step 7.2: Apply complication (Heróis de Arton)
   updatedSheet = applyComplication(updatedSheet, manualSelections);
+
+  // Step 7.22: Marcas das distinções (Heróis/Deuses de Arton)
+  updatedSheet = applyDistinctionMarks(updatedSheet, manualSelections);
 
   // Step 7.25: Apply age bracket + age complications (Heróis de Arton)
   updatedSheet = applyAge(updatedSheet);

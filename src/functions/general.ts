@@ -18,6 +18,7 @@ import { Atributo } from '../data/systems/tormenta20/atributos';
 import { buildFamiliarSheetBonuses } from './powers/familiarBonuses';
 import { getEffectiveAttributeModifier } from './effectiveAttributes';
 import { dataRegistry } from '../data/registry';
+import { countDistinctionPowers } from '../premium/functions/distinctions';
 import { SupplementId } from '../types/supplement.types';
 import {
   recalculateSheet,
@@ -5497,6 +5498,14 @@ const calculateBonusValue = (
         resolveClassLevel().toString()
       );
     }
+    // eslint-disable-next-line no-eval
+    return eval(filledFormula);
+  }
+  if (bonus.type === 'DistinctionPowersCalc') {
+    const filledFormula = bonus.formula.replace(
+      /\{distPowQtd\}/g,
+      countDistinctionPowers(sheet, bonus.distinctionId).toString()
+    );
     // eslint-disable-next-line no-eval
     return eval(filledFormula);
   }

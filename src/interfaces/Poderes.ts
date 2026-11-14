@@ -15,6 +15,13 @@ export enum GeneralPowerType {
   CONCEDIDOS = 'CONCEDIDOS',
   TORMENTA = 'TORMENTA',
   RACA = 'RACA',
+  /**
+   * Poder de distinção (Heróis de Arton / Deuses de Arton). Escolhido numa vaga
+   * de poder geral, mas só por quem conquistou a distinção (`distinctionId`).
+   * Fica FORA do sorteio (`PICKABLE_GENERAL_POWER_TYPES`): a admissão é
+   * narrativa e nunca automática.
+   */
+  DISTINCAO = 'DISTINCAO',
 }
 
 export enum RequirementType {
@@ -41,6 +48,14 @@ export enum RequirementType {
   CHASSIS = 'CHASSIS',
   HERANCA = 'HERANCA',
   TIER_LIMIT = 'TIER_LIMIT',
+  /** A ficha conquistou a distinção de id `name` (`sheet.distinctions`). */
+  DISTINCAO = 'DISTINCAO',
+  /**
+   * A ficha tem ao menos `value` poderes da distinção de id `name` ("dois
+   * outros poderes da distinção"). Como em PODER_TORMENTA, o próprio poder não
+   * conta para si.
+   */
+  PODERES_DISTINCAO = 'PODERES_DISTINCAO',
 }
 
 export interface Requirement {
@@ -130,6 +145,8 @@ export interface GeneralPower extends CountsAsTormentaPower, PowerTaggable {
   waivesPrerequisites?: PrerequisiteWaiver[];
   allowSeveralPicks?: boolean;
   canRepeat?: boolean;
+  /** Id da distinção dona do poder (só em `type: DISTINCAO`). */
+  distinctionId?: string;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
