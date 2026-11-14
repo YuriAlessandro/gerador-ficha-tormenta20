@@ -400,7 +400,8 @@ interface ItemProps {
   outcome: ItemOutcome;
   index: number;
   showBooks: boolean;
-  onChoose: (kind: ItemKind) => void;
+  /** Ausente: só leitura (ex.: jogador vendo o mestre escolher na mesa). */
+  onChoose?: (kind: ItemKind) => void;
 }
 
 const stopClick = (e: React.MouseEvent) => e.stopPropagation();
@@ -420,9 +421,13 @@ const Item: React.FC<ItemProps> = ({ outcome, index, showBooks, onChoose }) => {
               <Typography variant='caption' sx={{ color: 'text.secondary' }}>
                 2D: {choice.dice[0]} → {KIND_LABELS[choice.options[0]]};{' '}
                 {choice.dice[1]} → {KIND_LABELS[choice.options[1]]}
-                {detail ? ' (mesmo tipo)' : ' — escolha um:'}
+                {detail && ' (mesmo tipo)'}
+                {!detail &&
+                  (onChoose
+                    ? ' — escolha um:'
+                    : ' — aguardando a escolha do mestre')}
               </Typography>
-              {!detail && (
+              {!detail && onChoose && (
                 <Stack direction='row' spacing={1} sx={{ mt: 0.5 }}>
                   {choice.options.map((k) => (
                     <Button
@@ -578,7 +583,8 @@ const Item: React.FC<ItemProps> = ({ outcome, index, showBooks, onChoose }) => {
 interface TreasureResultCardProps {
   result: TreasureRollResult;
   dataset: TreasureDataset;
-  onChoose: (itemIndex: number, kind: ItemKind) => void;
+  /** Ausente: as escolhas "2D" ficam só leitura. */
+  onChoose?: (itemIndex: number, kind: ItemKind) => void;
   /** Encena as rolagens como caça-níquel. */
   animate: boolean;
   /** Atraso antes do primeiro rolo (defasagem entre cards). */
@@ -671,7 +677,9 @@ const TreasureResultCard: React.FC<TreasureResultCardProps> = ({
                   outcome={it}
                   index={idx}
                   showBooks={showBooks}
-                  onChoose={(kind) => onChoose(idx, kind)}
+                  onChoose={
+                    onChoose ? (kind) => onChoose(idx, kind) : undefined
+                  }
                 />
               ))}
             </Box>

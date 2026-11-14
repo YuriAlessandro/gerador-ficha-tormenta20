@@ -27,6 +27,7 @@ export interface FeatureFlags {
   guidedTours: FeatureFlag;
   gmCompendium: FeatureFlag;
   itemShops: FeatureFlag;
+  tableLoot: FeatureFlag;
 }
 
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
@@ -92,4 +93,9 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   // (`maxShopsPerTable`); `supporterOnly` trava a criação para apoiadores.
   // Comprar é sempre livre. Default desligado até o rollout.
   itemShops: { enabled: false, supporterOnly: false },
+  // Espólio da mesa (mesa virtual): o mestre rola a recompensa no fim do
+  // combate, os jogadores escolhem itens e combinam a divisão, e o servidor
+  // entrega nas fichas. `supporterOnly` trava quem LANÇA (o mestre); o lado
+  // do jogador olha só `isEnabled`. Default desligado até o rollout.
+  tableLoot: { enabled: false, supporterOnly: true },
 };
