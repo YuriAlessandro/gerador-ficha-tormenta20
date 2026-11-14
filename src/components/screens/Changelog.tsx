@@ -193,6 +193,15 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>Melhoria:</strong> na <strong>Tela do Jogador</strong>
+                  , o combate com muitos combatentes ficou mais fácil de
+                  acompanhar em telas pequenas. Quando a lista não cabe inteira,
+                  aparece uma faixa com os avatares de toda a ordem de
+                  iniciativa, com o combatente da vez destacado e os que estão à
+                  vista enquadrados. As bordas da lista ganham um degradê com um
+                  aviso de quantos combatentes estão escondidos acima e abaixo.
+                </li>
+                <li>
                   <strong>Correção:</strong> ao aplicar uma magia como{' '}
                   <strong>efeito ativo</strong>, os aprimoramentos que aumentam
                   um bônus agora valem quantas vezes você pagou por eles, e não
