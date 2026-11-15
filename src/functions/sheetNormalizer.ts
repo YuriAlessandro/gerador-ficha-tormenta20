@@ -36,6 +36,9 @@ import {
   CENTAURO_REFRESHED_PREREQ_HOOKS,
 } from '../data/systems/tormenta20/ameacas-de-arton/races/centauro';
 import { HOBGOBLIN_REFRESHED_DESCRIPTIONS } from '../data/systems/tormenta20/ameacas-de-arton/races/hobgoblin';
+import SATIRO, {
+  SATIRO_REFRESHED_ABILITIES,
+} from '../data/systems/tormenta20/herois-de-arton/races/satiro';
 import { getComplicationByName } from '../premium/data/complications';
 import { getAgeBracket } from '../premium/data/ageBrackets';
 import { getAgeComplicationByName } from '../premium/data/ageComplications';
@@ -181,6 +184,29 @@ function refreshDuendePresente<
   return {
     ...entry,
     description: current.description,
+    sheetActions: _.cloneDeep(current.sheetActions),
+    sheetBonuses: _.cloneDeep(current.sheetBonuses),
+  };
+}
+
+/**
+ * Sátiro: Pernas Caprinas (Destreza no Atletismo) e Marrada (arma natural) eram
+ * só texto. A ficha embute a cópia da habilidade da criação; com a mecânica
+ * nova na cópia, o próximo recálculo aplica. Allowlist + gate na raça, como o
+ * Duende: os nomes são da raça e não há variação por instância a preservar.
+ */
+function refreshSatiroAbility<
+  T extends {
+    name: string;
+    sheetActions?: SheetAction[];
+    sheetBonuses?: SheetBonus[];
+  }
+>(entry: T): T {
+  if (!SATIRO_REFRESHED_ABILITIES.includes(entry.name)) return entry;
+  const current = SATIRO.abilities.find((a) => a.name === entry.name);
+  if (!current) return entry;
+  return {
+    ...entry,
     sheetActions: _.cloneDeep(current.sheetActions),
     sheetBonuses: _.cloneDeep(current.sheetBonuses),
   };
@@ -649,6 +675,10 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
           ? refreshDuendePresente(power)
           : power
       );
+    }
+
+    if (sheet.raca.name === 'Sátiro') {
+      sheet.raca.abilities = sheet.raca.abilities.map(refreshSatiroAbility);
     }
 
     if (sheet.raca.name === 'Centauro') {

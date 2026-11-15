@@ -1,7 +1,60 @@
 import Race from '../../../../../interfaces/Race';
 import Skill from '../../../../../interfaces/Skills';
+import {
+  BonusCondition,
+  SheetBonus,
+} from '../../../../../interfaces/CharacterSheet';
 import { Atributo } from '../../atributos';
 import { spellsCircle1 } from '../../magias/generalSpells';
+
+// Heróis de Arton p. 15: "você pode usar Destreza como atributo-chave de
+// Atletismo (em vez de Força)". "Pode" = fica com o maior. Os dois sentidos são
+// emitidos porque `modAttr` é persistido em `completeSkills`: sem o retorno para
+// Força, uma ficha cuja Força passasse a Destreza ficaria presa em Destreza.
+const DESTREZA_GTE_FORCA: BonusCondition = {
+  combinator: 'AND',
+  clauses: [
+    {
+      kind: 'attributeCompare',
+      attribute: Atributo.DESTREZA,
+      op: 'gte',
+      otherAttribute: Atributo.FORCA,
+    },
+  ],
+};
+
+const FORCA_GT_DESTREZA: BonusCondition = {
+  combinator: 'AND',
+  clauses: [{ ...DESTREZA_GTE_FORCA.clauses[0], negate: true }],
+};
+
+const PERNAS_CAPRINAS_SHEET_BONUSES: SheetBonus[] = [
+  {
+    source: { type: 'power', name: 'Pernas Caprinas' },
+    target: { type: 'Displacement' },
+    modifier: { type: 'Fixed', value: 3 },
+  },
+  {
+    source: { type: 'power', name: 'Pernas Caprinas' },
+    target: {
+      type: 'ModifySkillAttribute',
+      skill: Skill.ATLETISMO,
+      attribute: Atributo.DESTREZA,
+    },
+    modifier: { type: 'Fixed', value: 0 },
+    condition: DESTREZA_GTE_FORCA,
+  },
+  {
+    source: { type: 'power', name: 'Pernas Caprinas' },
+    target: {
+      type: 'ModifySkillAttribute',
+      skill: Skill.ATLETISMO,
+      attribute: Atributo.FORCA,
+    },
+    modifier: { type: 'Fixed', value: 0 },
+    condition: FORCA_GT_DESTREZA,
+  },
+];
 
 const SATIRO: Race = {
   name: 'Sátiro',
@@ -82,15 +135,16 @@ const SATIRO: Race = {
       name: 'Pernas Caprinas',
       description:
         'Seu deslocamento é 12m e você pode usar Destreza como atributo-chave de Atletismo (em vez de Força).',
-      sheetBonuses: [
-        {
-          source: { type: 'power', name: 'Pernas Caprinas' },
-          target: { type: 'Displacement' },
-          modifier: { type: 'Fixed', value: 3 },
-        },
-      ],
+      sheetBonuses: PERNAS_CAPRINAS_SHEET_BONUSES,
     },
   ],
 };
+
+/**
+ * Habilidades cujo efeito mecânico foi cadastrado depois: fichas salvas embutem a
+ * cópia antiga e abrir a ficha não recalcula, então `normalizeSheet` refresca
+ * `sheetBonuses`/`sheetActions` destas (só em ficha de Sátiro).
+ */
+export const SATIRO_REFRESHED_ABILITIES = ['Pernas Caprinas'];
 
 export default SATIRO;
