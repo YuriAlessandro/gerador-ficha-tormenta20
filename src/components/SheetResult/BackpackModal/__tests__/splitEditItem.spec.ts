@@ -111,10 +111,13 @@ describe('editar uma unidade de uma pilha', () => {
     });
 
     expect(next.paidUnits).toEqual({ couraca: 1, 'couraca-2': 1 });
+    // A unidade editada ganhou 2 melhorias: T$ 3.000 (JdA p. 164) saem do
+    // dinheiro com o desconto automático ligado.
+    expect(next.money.dinheiro).toBe(1000 - 3000);
 
-    // Remover a pilha devolve só a unidade paga que sobrou nela.
+    // Remover a pilha devolve só a unidade paga que sobrou nela (T$ 500).
     const removed = reducer(next, { type: 'REMOVE_ITEM', id: 'couraca' });
-    expect(removed.money.dinheiro).toBe(1500);
+    expect(removed.money.dinheiro).toBe(1000 - 3000 + 500);
   });
 
   test('crédito que cabe na pilha fica nela', () => {

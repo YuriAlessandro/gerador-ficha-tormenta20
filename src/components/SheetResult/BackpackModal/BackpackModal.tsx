@@ -1327,6 +1327,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         item={editingItem}
         onSave={handleEditorSave}
         ammoTypeOptions={ammoTypeOptions}
+        chargesUpgradeOnSave={staged.autoDeductMoney}
       />
     </Dialog>
   );

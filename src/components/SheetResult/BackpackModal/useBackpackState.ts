@@ -29,6 +29,7 @@ import {
   getWieldedItemIds,
 } from './wielding';
 import { isStackable } from './stacking';
+import { getEnhancedItemPrice } from '../../../functions/itemEnhancements/pricing';
 import {
   filterCarried,
   getContainerIds,
@@ -416,6 +417,37 @@ function purchaseUnits(item: Equipment): number {
     return Math.floor((item.unitsRemaining ?? 0) / packSize);
   }
   return item.quantity ?? 1;
+}
+
+/**
+ * Quanto as melhorias, o material especial e os encantos somam ao preço de UMA
+ * unidade (Jogo do Ano p. 164, Tabela 3-7). `preco` do item é sempre o do item
+ * comum — o acréscimo vem daqui.
+ */
+function upgradePrice(item: Equipment): number {
+  return getEnhancedItemPrice(item).total - (item.preco ?? 0);
+}
+
+/**
+ * Débito de transformar `prev` em `next` (item superior), para `units` unidades.
+ * Só cobra o ACRÉSCIMO e só com o desconto automático ligado. Tirar melhoria não
+ * reembolsa: o crédito ficaria pendurado no id e sobreviveria a divisões de
+ * pilha (empunhar, mover, editar uma unidade), devolvendo mais do que saiu. O
+ * modal é staged — para desfazer, cancela-se.
+ */
+function chargeUpgrade(
+  state: StagedState,
+  prev: Equipment | undefined,
+  next: Equipment,
+  units: number
+): BackpackMoney {
+  if (!state.autoDeductMoney || !prev) return state.money;
+  const delta = upgradePrice(next) - upgradePrice(prev);
+  if (delta <= 0) return state.money;
+  return {
+    ...state.money,
+    dinheiro: state.money.dinheiro - delta * units,
+  };
 }
 
 /** Soma `delta` ao crédito pago de `id`, descartando a chave ao chegar em zero. */
@@ -917,7 +949,10 @@ export function reducer(state: StagedState, action: Action): StagedState {
       }
       return { ...state, equipments, money, paidUnits };
     }
-    case 'UPDATE_ITEM':
+    case 'UPDATE_ITEM': {
+      const prev = flattenEquipments(state.equipments).find(
+        (it) => it.id === action.id
+      );
       return {
         ...state,
         equipments: updateItemInEquipments(
@@ -925,8 +960,21 @@ export function reducer(state: StagedState, action: Action): StagedState {
           action.id,
           action.next
         ),
+        money: chargeUpgrade(
+          state,
+          prev,
+          action.next,
+          prev ? Math.max(1, purchaseUnits(prev)) : 1
+        ),
       };
+    }
     case 'SPLIT_EDIT_ITEM': {
+      // Só a unidade separada recebe a edição quando a pilha tem 2+; pilha de
+      // uma unidade é editada no lugar (ver `splitItemInEquipments`).
+      const prev = flattenEquipments(state.equipments).find(
+        (it) => it.id === action.id
+      );
+      const money = chargeUpgrade(state, prev, action.next, 1);
       const next = splitItemInEquipments(
         state.equipments,
         state.displayOrder,
@@ -940,6 +988,7 @@ export function reducer(state: StagedState, action: Action): StagedState {
         equipments: next.equipments,
         displayOrder: next.displayOrder,
         paidUnits: next.paidUnits,
+        money,
       };
     }
     case 'SET_MONEY':

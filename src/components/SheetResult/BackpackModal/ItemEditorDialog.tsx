@@ -82,6 +82,7 @@ import ItemEnchantmentsEditor, {
 } from './ItemEnchantmentsEditor';
 import { isDefenseGroup } from './equipmentCatalog';
 import CustomItemBonusesSection from './CustomItemBonusesSection';
+import { getEnhancedItemPrice } from '../../../functions/itemEnhancements/pricing';
 import { MAX_CUSTOM_POWER_BONUSES } from '../../../functions/powers/customPowerBonuses';
 import {
   buildSavedItem,
@@ -109,6 +110,12 @@ export interface ItemEditorDialogProps {
   onSave: (next: Equipment, options?: { splitFromStack?: boolean }) => void;
   /** Tipos de munição + pacotes que os resolvem. Ver `getAmmoTypeOptions`. */
   ammoTypeOptions?: AmmoTypeOption[];
+  /**
+   * Salvar com melhoria/encanto novo debita o acréscimo de preço (mochila com
+   * desconto automático ligado — ver `chargeUpgrade` em useBackpackState).
+   * Só muda o aviso exibido; quem cobra é o reducer.
+   */
+  chargesUpgradeOnSave?: boolean;
 }
 
 type TabKey = 'geral' | 'stats' | 'modificacoes' | 'encantamentos' | 'efeitos';
@@ -229,6 +236,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
   item,
   onSave,
   ammoTypeOptions = [],
+  chargesUpgradeOnSave = false,
 }) => {
   const [tab, setTab] = useState<TabKey>('geral');
   const [form, setForm] = useState(buildInitial(item));
@@ -531,6 +539,41 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
       para voltar ao cálculo automático.
     </Alert>
   ) : null;
+
+  // Preço do item superior (Jogo do Ano p. 164): o comum + melhorias, material
+  // e encantos selecionados. O acréscimo sobre o item atual é o que a mochila
+  // debita ao salvar, quando o desconto automático está ligado.
+  const pricePreview: Equipment = {
+    ...item,
+    modifications: form.selectedModifications.map((m) => ({
+      mod: m.mod,
+      specialMaterial:
+        m.mod === 'Material especial' ? form.selectedMaterial : undefined,
+    })),
+    enchantments: form.selectedEnchantments.map((e) => ({
+      enchantment: e.enchantment,
+    })),
+  };
+  const superiorTotal = getEnhancedItemPrice(pricePreview).total;
+  const superiorPrice = {
+    total: superiorTotal,
+    base: item.preco ?? 0,
+    increase: superiorTotal - getEnhancedItemPrice(item).total,
+  };
+  const superiorPriceInfo =
+    superiorPrice.total > superiorPrice.base ? (
+      <Typography variant='body2'>
+        Preço do item superior: T$ {superiorPrice.total} (T${' '}
+        {superiorPrice.base} + T$ {superiorPrice.total - superiorPrice.base}).
+        {chargesUpgradeOnSave && superiorPrice.increase > 0 && (
+          <>
+            {' '}
+            Ao salvar, T$ {superiorPrice.increase} saem do dinheiro (desconto
+            automático ligado).
+          </>
+        )}
+      </Typography>
+    ) : null;
 
   const spacesAreManual = manualEditedFields.has('spaces');
   let spacesHelperText: React.ReactNode;
@@ -1384,6 +1427,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                 ? 'Melhorias de esotérico valem nas suas magias (e o Vigilante, na Defesa) enquanto o item estiver empunhado. Escolha a magia do Harmonizado no detalhe da magia ou pelo ícone do item em Equipamentos. Custo máximo: 5 pontos.'
                 : 'Modificações de item superior aplicam bônus numéricos automaticamente sobre os valores base do item. Custo máximo: 5 pontos.'}
             </Typography>
+            {superiorPriceInfo}
             {modError && (
               <Typography
                 variant='caption'
@@ -1423,6 +1467,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                 ? 'Encantos de esotérico (Heróis de Arton) valem nas suas magias com o item empunhado; os descritivos ficam no texto do item. Ative Heróis de Arton para ver a lista. Custo máximo: 5 pontos.'
                 : 'Encantamentos mágicos aplicam bônus numéricos automaticamente sobre os valores base do item. Encantamentos descritivos (efeitos condicionais, dano elemental, resistências) ficam registrados no item mas não modificam stats. Custo máximo: 5 pontos.'}
             </Typography>
+            {superiorPriceInfo}
             {enchError && (
               <Typography
                 variant='caption'
