@@ -1,3 +1,4 @@
+import Equipment from '../../../../../interfaces/Equipment';
 import Race from '../../../../../interfaces/Race';
 import Skill from '../../../../../interfaces/Skills';
 import {
@@ -55,6 +56,19 @@ const PERNAS_CAPRINAS_SHEET_BONUSES: SheetBonus[] = [
     condition: FORCA_GT_DESTREZA,
   },
 ];
+
+// Heróis de Arton p. 15. Arma natural = arma leve corpo a corpo (Jogo do Ano
+// p. 143), por isso a tag `natural` — é ela que a Acuidade com Arma reconhece.
+const marrada: Equipment = {
+  group: 'Arma',
+  nome: 'Marrada',
+  dano: '1d6',
+  critico: 'x2',
+  tipo: 'Impac.',
+  preco: 0,
+  weaponTags: ['natural'],
+  descricao: 'Ataque extra: 1 PM, 1x/rodada, ao usar agredir com outra arma.',
+};
 
 const SATIRO: Race = {
   name: 'Sátiro',
@@ -130,6 +144,16 @@ const SATIRO: Race = {
       name: 'Marrada',
       description:
         'Você possui uma arma natural de marrada (dano 1d6, crítico x2, impacto). Uma vez por rodada, quando usa a ação agredir para atacar com outra arma, pode gastar 1 PM para fazer um ataque corpo a corpo extra com a marrada.',
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Marrada' },
+          action: {
+            type: 'addEquipment',
+            equipment: { Arma: [marrada] },
+            description: 'Marrada pode ser usada como arma.',
+          },
+        },
+      ],
     },
     {
       name: 'Pernas Caprinas',
@@ -145,6 +169,6 @@ const SATIRO: Race = {
  * cópia antiga e abrir a ficha não recalcula, então `normalizeSheet` refresca
  * `sheetBonuses`/`sheetActions` destas (só em ficha de Sátiro).
  */
-export const SATIRO_REFRESHED_ABILITIES = ['Pernas Caprinas'];
+export const SATIRO_REFRESHED_ABILITIES = ['Pernas Caprinas', 'Marrada'];
 
 export default SATIRO;
