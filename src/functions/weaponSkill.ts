@@ -63,6 +63,33 @@ export function resolveAttackSkill(
 }
 
 /**
+ * O ataque é um ARREMESSO? Arma de arremesso no modo que rola Pontaria — mesmo
+ * critério de `Weapon.tsx` para os bônus `thrownOnly`.
+ */
+export function isThrownAttack(
+  weapon: Equipment,
+  action?: WeaponAction
+): boolean {
+  return !!weapon.arremesso && action?.skill === 'Pontaria';
+}
+
+/**
+ * Atributo que substitui a Força nesta arma neste modo (Acuidade com Arma — ver
+ * `Equipment.strengthReplacement`), ou `undefined`.
+ */
+export function resolveStrengthReplacement(
+  weapon: Equipment,
+  action?: WeaponAction
+): WeaponAttribute | undefined {
+  const replacement = weapon.strengthReplacement;
+  if (!replacement) return undefined;
+  if (replacement.thrownOnly && !isThrownAttack(weapon, action)) {
+    return undefined;
+  }
+  return replacement.attribute;
+}
+
+/**
  * Bônus total da perícia num teste de ataque.
  *
  * `attackAttributeOverride` troca APENAS a parcela de atributo — metade do
@@ -99,12 +126,18 @@ export function getWeaponAttackSkillBonus(
   atributos: CharacterAttributes,
   action?: WeaponAction
 ): number {
-  return getSkillAttackBonus(
-    resolveAttackSkill(weapon, action),
-    completeSkills,
-    atributos,
-    resolveAttackAttribute(weapon, action)
-  );
+  const skillName = resolveAttackSkill(weapon, action);
+  let attribute = resolveAttackAttribute(weapon, action);
+  // Acuidade com Arma: troca a Força — venha ela de override ou do atributo da
+  // própria perícia (Luta). Feito só aqui, e não em `getSkillAttackBonus`, para
+  // a troca não ser aplicada duas vezes.
+  const replacement = resolveStrengthReplacement(weapon, action);
+  if (replacement) {
+    const current =
+      attribute ?? completeSkills?.find((s) => s.name === skillName)?.modAttr;
+    if (current === Atributo.FORCA) attribute = replacement;
+  }
+  return getSkillAttackBonus(skillName, completeSkills, atributos, attribute);
 }
 
 export function isWeaponMelee(weapon: Equipment): boolean {
@@ -124,6 +157,21 @@ export function resolveDamageAttribute(
   if (action?.damageAttribute) return action.damageAttribute;
   if (weapon.damageAttribute) return weapon.damageAttribute;
   return isWeaponMelee(weapon) ? 'Força' : 'Nenhum';
+}
+
+/**
+ * Atributo que de fato soma no dano: o de `resolveDamageAttribute` com a troca
+ * de Força da Acuidade com Arma aplicada. É o que a exibição e a rolagem usam.
+ * `resolveDamageAttribute` continua CRU porque é o que os diálogos de edição
+ * mostram e gravam — gravar o derivado congelaria a troca na arma.
+ */
+export function resolveEffectiveDamageAttribute(
+  weapon: Equipment,
+  action?: WeaponAction
+): DamageAttribute {
+  const attribute = resolveDamageAttribute(weapon, action);
+  const replacement = resolveStrengthReplacement(weapon, action);
+  return replacement && attribute === 'Força' ? replacement : attribute;
 }
 
 /**
@@ -158,7 +206,7 @@ export function getWeaponDisplayDamage(
     extraDamageSteps !== 0 ? stepUpDamage(rawDano, extraDamageSteps) : rawDano;
 
   const attrMod = weaponAttributeModifier(
-    resolveDamageAttribute(weapon),
+    resolveEffectiveDamageAttribute(weapon),
     atributos
   );
   return addFlatDamageBonus(baseDano, extraFlatBonus + attrMod);

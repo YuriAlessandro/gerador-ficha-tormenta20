@@ -212,6 +212,21 @@ export type AttackAttribute = WeaponAttribute;
  * não estão na mochila, como as da Forma Selvagem) não têm onde gravar a
  * escolha e precisam de um mapa à parte na ficha. Ver `functions/weaponOverrides.ts`.
  */
+/**
+ * Atributo que SUBSTITUI a Força no ataque e no dano desta arma por efeito de
+ * poder (Acuidade com Arma). Campo DERIVADO: não é escolha do jogador, é
+ * recalculado a cada recálculo e na carga (`functions/powers/acuidadeComArma.ts`)
+ * e ausente quando não se aplica. Escolha manual (`attackAttribute`/
+ * `damageAttribute` diferente de Força) continua vencendo.
+ *
+ * `thrownOnly`: vale só no modo arremesso (arma de arremesso que não é leve nem
+ * ágil, como a Lança — corpo a corpo ela segue com Força).
+ */
+export interface WeaponStrengthReplacement {
+  attribute: WeaponAttribute;
+  thrownOnly?: boolean;
+}
+
 export interface WeaponOverride {
   customSkill?: Skill;
   attackAttribute?: AttackAttribute;
@@ -342,6 +357,9 @@ export default interface Equipment {
   // Override which skill is rolled for this weapon's attack test.
   // When undefined, falls back to the default rule (alcance/arremesso → Luta or Pontaria).
   customSkill?: Skill;
+
+  /** Derivado — ver `WeaponStrengthReplacement` (Acuidade com Arma). */
+  strengthReplacement?: WeaponStrengthReplacement;
 
   // Equipment bonuses (automatic bonuses to skills, stats, etc.)
   sheetBonuses?: SheetBonus[];

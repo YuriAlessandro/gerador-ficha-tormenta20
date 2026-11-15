@@ -164,8 +164,9 @@ export function splitWeaponDamage(dano: string | undefined): {
 /**
  * Atributo do teste de ataque, sempre explícito: o override da arma ou o da
  * perícia na ficha. Em branco, o sistema decide sozinho — e a 1.6.6 troca para
- * Destreza em arma leve ou ágil quando a mesa liga a Acuidade automática, o que
- * a ficha não faz.
+ * Destreza em arma leve ou ágil quando a mesa liga a Acuidade automática. A
+ * troca automática da ficha (`strengthReplacement`, Acuidade com Arma) NÃO é
+ * exportada como override de propósito: fica com a regra do próprio sistema.
  */
 function getAttackAttributeKey(
   sheet: CharacterSheet,
