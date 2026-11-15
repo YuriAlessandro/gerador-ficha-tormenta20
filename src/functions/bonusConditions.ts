@@ -105,6 +105,12 @@ function evaluateClause(
         clause.op,
         clause.value
       );
+    case 'attributeCompare':
+      return compare(
+        sheet.atributos[clause.attribute]?.value ?? 0,
+        clause.op,
+        sheet.atributos[clause.otherAttribute]?.value ?? 0
+      );
     case 'isClass':
       return (
         sheet.classe.name === clause.value ||
