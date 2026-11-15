@@ -142,6 +142,24 @@ export const equipamentoAventureiro: Equipment[] = [
     spaces: parseSpaces(1),
   },
   {
+    // Jogo do Ano p. 341, Tabela 8-12 (T$ 30); poção ocupa meio espaço (p. 141).
+    // As de Curar Ferimentos maiores são item mágico médio/maior e seguem só nas
+    // tabelas de recompensa.
+    nome: 'Poção de Curar Ferimentos (2d8+2 PV)',
+    group: 'Item Geral',
+    preco: parsePrice('T$ 30'),
+    descricao:
+      'Beber é uma ação padrão (dar a uma criatura inconsciente: ação completa). Recupera 2d8+2 PV.',
+    spaces: parseSpaces(0.5),
+    rolls: [
+      {
+        label: 'Cura',
+        dice: '2d8+2',
+        description: 'Recupera 2d8+2 pontos de vida.',
+      },
+    ],
+  },
+  {
     nome: 'Saco de dormir',
     group: 'Item Geral',
     preco: parsePrice('T$ 1'),
