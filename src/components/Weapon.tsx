@@ -34,7 +34,7 @@ import { parseCritical, parseDualModeDamage } from '../functions/diceRoller';
 import { AttackExtraSpec } from '../functions/attackRoll';
 import {
   getWeaponAttackSkillBonus,
-  resolveDamageAttribute,
+  resolveEffectiveDamageAttribute,
   getWeaponDisplayDamage,
   weaponAttributeModifier,
 } from '../functions/weaponSkill';
@@ -345,7 +345,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         liveAttackBonus(action) +
         (thrown ? strengthThrowDelta : 0);
 
-      const resolvedAttr = resolveDamageAttribute(equipment, action);
+      const resolvedAttr = resolveEffectiveDamageAttribute(equipment, action);
       const previewDamageMod =
         damageModForAttribute(resolvedAttr) + liveDamageBonus(action);
 
@@ -572,7 +572,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         liveAttackBonus(action) +
         (thrown ? strengthThrowDelta : 0);
 
-      const resolvedAttr = resolveDamageAttribute(equipment, action);
+      const resolvedAttr = resolveEffectiveDamageAttribute(equipment, action);
       const localDamageMod =
         damageModForAttribute(resolvedAttr) + liveDamageBonus(action);
 

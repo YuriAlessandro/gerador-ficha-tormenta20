@@ -36,6 +36,7 @@ import {
   CENTAURO_REFRESHED_PREREQ_HOOKS,
 } from '../data/systems/tormenta20/ameacas-de-arton/races/centauro';
 import { HOBGOBLIN_REFRESHED_DESCRIPTIONS } from '../data/systems/tormenta20/ameacas-de-arton/races/hobgoblin';
+import { applyAcuidadeComArma } from './powers/acuidadeComArma';
 import SATIRO, {
   SATIRO_REFRESHED_ABILITIES,
 } from '../data/systems/tormenta20/herois-de-arton/races/satiro';
@@ -1146,6 +1147,11 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   // É idempotente (derivação absoluta), então rodar aqui e de novo no próximo
   // recálculo dá o mesmo resultado.
   updateUnarmedRolls(sheet);
+
+  // Acuidade com Arma: campo derivado nas armas. Mesmo motivo do dano desarmado
+  // — abrir a ficha não recalcula, e a ficha salva tem que abrir com o ataque
+  // certo. Idempotente.
+  applyAcuidadeComArma(sheet);
 }
 
 export default normalizeSheet;
