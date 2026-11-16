@@ -219,6 +219,35 @@ const Changelog: React.FC = () => {
                   troque o atributo nos atributos da arma.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> na{' '}
+                  <strong>Rolagem de Iniciativa</strong> da mesa virtual, cada
+                  linha mostra o bônus de quem ainda não rolou e a conta (d20 +
+                  bônus) de quem já rolou, e o mestre pode corrigir qualquer
+                  valor já lançado, inclusive o de jogadores. A rolagem das
+                  ameaças ganhou a opção da <strong>regra do livro</strong>: um
+                  único teste para todos os inimigos, usando o menor bônus entre
+                  eles. Empates agora são decididos pelo maior bônus de
+                  Iniciativa, como no livro, e não mais pela Destreza.
+                </li>
+                <li>
+                  <strong>Correção:</strong> na{' '}
+                  <strong>Rolagem de Iniciativa</strong> da mesa virtual, o
+                  número digitado pelo mestre era tratado como o resultado do
+                  d20 e recebia o bônus por cima: se o jogador dizia que tirou
+                  18, a ficha ficava com 18 + bônus. Por isso os jogadores
+                  pareciam sempre tirar mais que as ameaças. Agora o campo
+                  recebe o <strong>total</strong> por padrão, com a opção{' '}
+                  <strong>Só o d20</strong> para quando o mestre rola o dado
+                  físico, e mostra a conta enquanto você digita. Quem joga pelo{' '}
+                  <strong>celular</strong> voltou a receber o pedido de
+                  iniciativa e pode rolar pelo app ou digitar o número do dado
+                  físico, com o bônus somado uma única vez. Também corrigido: um
+                  clique atrasado do jogador não sobrescreve mais o valor
+                  lançado pelo mestre, rolagens não somem mais depois de
+                  enviadas, e adicionar um combatente no meio do combate não
+                  passa mais a vez para outra pessoa.
+                </li>
+                <li>
                   <strong>Correção:</strong> ao aplicar uma magia como{' '}
                   <strong>efeito ativo</strong>, os aprimoramentos que aumentam
                   um bônus agora valem quantas vezes você pagou por eles, e não
