@@ -1,6 +1,6 @@
 import { createMockCharacterSheet } from '../../../../__mocks__/characterSheet';
 import CharacterSheet from '../../../../interfaces/CharacterSheet';
-import Equipment from '../../../../interfaces/Equipment';
+import Equipment, { DefenseEquipment } from '../../../../interfaces/Equipment';
 import { Spell } from '../../../../interfaces/Spells';
 import type { SpellModifier } from '../../../../interfaces/SpellModifiers';
 import {
@@ -15,6 +15,15 @@ import { getRollDamageType } from '../../damageTypes';
 import { GeneralPowerType } from '../../../../interfaces/Poderes';
 import { Atributo } from '../../../../data/systems/tormenta20/atributos';
 import { applyPower } from '../../../general';
+import {
+  getFilteredAvailableOptions,
+  getPowerSelectionRequirements,
+} from '../../../powers/manualPowerSelection';
+import { dataRegistry } from '../../../../data/registry';
+import { refreshBagItemsFromCatalog } from '../../../bagCatalogRefresh';
+import { isItemInUse } from '../collect';
+import type { SupplementData } from '../../../../data/systems/tormenta20/core';
+import { SupplementId } from '../../../../types/supplement.types';
 import {
   applySpellEffectModifiers,
   applySpellRollModifiers,
@@ -41,6 +50,69 @@ const customPower = (name: string, spellModifiers: SpellModifier[]) => ({
   name,
   description: '',
   spellModifiers,
+});
+
+describe('catálogo: homebrews registrados em runtime', () => {
+  const HOMEBREW_ID = 'homebrew:catalogo-spec';
+
+  const homebrewWithPower = (
+    name: string,
+    spellModifiers?: SpellModifier[]
+  ): SupplementData =>
+    ({
+      id: HOMEBREW_ID as SupplementId,
+      races: [],
+      classes: [],
+      powers: {
+        ...Object.fromEntries(
+          Object.values(GeneralPowerType).map((type) => [type, []])
+        ),
+        [GeneralPowerType.MAGIA]: [
+          {
+            name,
+            description: '',
+            type: GeneralPowerType.MAGIA,
+            requirements: [],
+            ...(spellModifiers ? { spellModifiers } : {}),
+          },
+        ],
+      },
+    } as unknown as SupplementData);
+
+  afterEach(() => {
+    dataRegistry.unregisterRuntimeSupplement(HOMEBREW_ID);
+  });
+
+  it('editar um homebrew já registrado (mesmo id) vale sem recarregar', () => {
+    const sheet = withClassPowers(['Poder Homebrew']);
+    dataRegistry.registerRuntimeSupplement(
+      HOMEBREW_ID,
+      homebrewWithPower('Poder Homebrew')
+    );
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).pmReduction).toBe(0);
+
+    dataRegistry.clearRuntimeSupplements();
+    dataRegistry.registerRuntimeSupplement(
+      HOMEBREW_ID,
+      homebrewWithPower('Poder Homebrew', [
+        { effect: { type: 'PmReduction', value: 3 } },
+      ])
+    );
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).pmReduction).toBe(3);
+  });
+
+  it('homebrew com o nome de um poder do livro não desliga o do livro', () => {
+    dataRegistry.registerRuntimeSupplement(
+      HOMEBREW_ID,
+      homebrewWithPower('Mago Branco')
+    );
+    const profile = resolveSpellCast(
+      withClassPowers(['Mago Branco']),
+      CURAR_FERIMENTOS
+    );
+    expect(profile.pmReduction).toBe(1);
+    expect(profile.healing).toEqual({ perDie: 1, flat: 0 });
+  });
 });
 
 describe('catálogo: modificadores declarados nos dados', () => {
@@ -255,6 +327,65 @@ describe('esotérico precisa estar empunhado (JdA)', () => {
   });
 });
 
+describe('cajado de duas mãos e estola vestida', () => {
+  /** Cópia de ficha antiga: só nome e grupo, sem `twoHanded`/`canBeWorn`. */
+  const legacy = (id: string, nome: string): Equipment =>
+    ({ id, nome, group: 'Esotérico' } as Equipment);
+
+  const sheetWith = (items: Equipment[]): CharacterSheet => {
+    const sheet = createMockCharacterSheet();
+    sheet.bag.equipments.Esotérico = items;
+    sheet.bag.equipments.Escudo = [
+      {
+        id: 'escudo',
+        nome: 'Escudo leve',
+        group: 'Escudo',
+        defenseBonus: 1,
+        armorPenalty: 1,
+      } as DefenseEquipment,
+    ];
+    refreshBagItemsFromCatalog(sheet);
+    return sheet;
+  };
+
+  it('cajado arcano: com escudo na outra mão não vale; com as duas, vale', () => {
+    const sheet = sheetWith([legacy('cajado', 'Cajado arcano')]);
+    const [cajado] = sheet.bag.equipments.Esotérico;
+    expect(cajado.twoHanded).toBe(true);
+
+    sheet.mainHandItemId = 'cajado';
+    sheet.offHandItemId = 'escudo';
+    expect(isItemInUse(sheet, cajado)).toBe(false);
+    const blocked = resolveSpellCast(sheet, BOLA_DE_FOGO).dcBonus;
+
+    sheet.offHandItemId = 'cajado';
+    expect(isItemInUse(sheet, cajado)).toBe(true);
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).dcBonus).toBe(blocked + 1);
+  });
+
+  it('cajado antigo numa mão, com a outra livre, passa a ocupar as duas', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.bag.equipments.Esotérico = [legacy('cajado', 'Cajado arcano')];
+    sheet.mainHandItemId = 'cajado';
+    refreshBagItemsFromCatalog(sheet);
+    expect(sheet.offHandItemId).toBe('cajado');
+    expect(isItemInUse(sheet, sheet.bag.equipments.Esotérico[0])).toBe(true);
+  });
+
+  it('estola vestida vale com arma e escudo nas mãos; guardada, não', () => {
+    const sheet = sheetWith([legacy('estola', 'Estola')]);
+    const [estola] = sheet.bag.equipments.Esotérico;
+    expect(estola.canBeWorn).toBe(true);
+
+    sheet.mainHandItemId = 'espada';
+    sheet.offHandItemId = 'escudo';
+    expect(isItemInUse(sheet, estola)).toBe(true);
+
+    sheet.unwornClothingIds = ['estola'];
+    expect(isItemInUse(sheet, estola)).toBe(false);
+  });
+});
+
 describe('fase B: passivos de itens e poderes', () => {
   const ARMADURA_ARCANA = spellsCircle1.armaduraArcana;
   const esoterico = (nome: string): Equipment =>
@@ -382,6 +513,29 @@ describe('fase C: escolhas de escola (chooseFromOptions)', () => {
     expect(resolveSpellCast(sheet, spellsCircle1.sono).pmReduction).toBe(0);
   });
 
+  it('Mestre em Escola só oferece a escola do Especialista em Escola', () => {
+    const MESTRE = power('Mestre em Escola');
+    const sheet = createMockCharacterSheet();
+    sheet.optionChoices = { especialistaEmEscola: ['Evocação'] };
+    const requirement = getPowerSelectionRequirements(
+      MESTRE
+    )?.requirements.find((r) => r.type === 'chooseFromOptions');
+    if (!requirement) throw new Error('sem escolha');
+    const names = (sheet_: CharacterSheet) =>
+      (
+        getFilteredAvailableOptions(requirement, sheet_) as { name: string }[]
+      ).map((option) => option.name);
+    expect(names(sheet)).toEqual(['Evocação']);
+
+    // Sorteio (sem escolha manual) também respeita.
+    const base = { ...sheet, classPowers: [MESTRE] };
+    const [applied] = applyPower(base, MESTRE);
+    expect(applied.optionChoices?.mestreEmEscola).toEqual(['Evocação']);
+
+    // Ficha antiga sem a escolha do Especialista: lista completa.
+    expect(names(createMockCharacterSheet()).length).toBeGreaterThan(1);
+  });
+
   it('Especialista em Escola: +2 na CD só da escola escolhida', () => {
     const sheet = withClassPowers(['Especialista em Escola']);
     sheet.optionChoices = { especialistaEmEscola: ['Encantamento'] };
@@ -427,6 +581,29 @@ describe('um esotérico por magia (JdA)', () => {
     });
     expect(profile.pmReduction).toBe(1);
     expect(profile.dcBonus).toBe(0);
+  });
+
+  it('sem escolha, vale o que dá CD, não o primeiro da mochila', () => {
+    // Orbe cristalina (+1 no limite, toda magia arcana) antes da Varinha.
+    const s = createMockCharacterSheet();
+    s.bag.equipments.Esotérico = [
+      item('orbe', 'Orbe cristalina'),
+      item('varinha', 'Varinha arcana'),
+    ];
+    s.mainHandItemId = 'orbe';
+    s.offHandItemId = 'varinha';
+    const profile = resolveSpellCast(s, BOLA_DE_FOGO);
+    expect(profile.esotericOptions).toEqual([
+      'Orbe cristalina',
+      'Varinha arcana',
+    ]);
+    expect(profile.esoterics).toEqual(['Varinha arcana']);
+    expect(profile.dcBonus).toBe(1);
+    // O jogador ainda pode trocar no lançamento.
+    expect(
+      resolveSpellCast(s, BOLA_DE_FOGO, { esoterics: ['Orbe cristalina'] })
+        .esoterics
+    ).toEqual(['Orbe cristalina']);
   });
 
   it('esotérico que não afeta a magia nem entra como opção', () => {

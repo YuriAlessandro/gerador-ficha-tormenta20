@@ -2,7 +2,7 @@ import type CharacterSheet from '../../interfaces/CharacterSheet';
 import type { SpellPath } from '../../interfaces/Class';
 import type { Spell } from '../../interfaces/Spells';
 import type { Atributo } from '../../data/systems/tormenta20/atributos';
-import { findClassDescription, getClassLevelsMap } from '../multiclass';
+import { getClassLevelsMap, getClassSpellPath } from '../multiclass';
 import { getSpellTradition } from './spellTradition';
 
 interface CasterClass {
@@ -22,16 +22,15 @@ function getCasterClasses(sheet: CharacterSheet): CasterClass[] {
   // Ficha parcial (testes, efeitos ativos fora da ficha) não tem classe.
   if (!sheet.classe) return result;
   getClassLevelsMap(sheet).forEach((level, className) => {
-    const spellPath =
-      className === sheet.classe?.name
-        ? sheet.classe.spellPath
-        : sheet.multiclassSpellPaths?.[className] ??
-          findClassDescription(className)?.spellPath;
-    if (spellPath?.spellType) {
+    const resolved = getClassSpellPath(sheet, className);
+    if (resolved?.spellPath.spellType) {
       result.push({
         level,
-        spellType: spellPath.spellType,
-        keyAttribute: spellPath.keyAttribute,
+        spellType: resolved.spellPath.spellType,
+        // Subtipo chutado não diz se é Inteligência ou Carisma.
+        keyAttribute: resolved.subtypeGuessed
+          ? undefined
+          : resolved.spellPath.keyAttribute,
       });
     }
   });

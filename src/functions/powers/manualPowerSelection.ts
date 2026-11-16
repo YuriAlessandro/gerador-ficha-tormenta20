@@ -31,6 +31,7 @@ import {
 } from '@/data/systems/tormenta20/magias/divine';
 import { SupplementId } from '@/types/supplement.types';
 import { isPhysicalIncreaseBlockedByAge } from '@/premium/functions/ages';
+import { filterOptionsChosenIn } from './optionChoices';
 import { getPickSkillBonusTarget } from './pickSkillBonus';
 import {
   getAttributeIncreasesInSamePlateau,
@@ -355,6 +356,7 @@ export function getPowerSelectionRequirements(
           metadata: {
             optionKey: action.optionKey,
             spellSchoolFor: action.appendChosenSpellSchoolTo,
+            onlyOptionsChosenIn: action.onlyOptionsChosenIn,
           },
         });
       }
@@ -1083,6 +1085,14 @@ export function getFilteredAvailableOptions(
     }
 
     case 'chooseFromOptions': {
+      const restrictTo = requirement.metadata?.onlyOptionsChosenIn;
+      if (restrictTo) {
+        return filterOptionsChosenIn(
+          sheet,
+          restrictTo,
+          availableOptions as { name: string }[]
+        );
+      }
       // Escola adicional (Xamã Místico): esconde as escolas que a classe já tem.
       const family = requirement.metadata?.spellSchoolFor;
       if (family) {

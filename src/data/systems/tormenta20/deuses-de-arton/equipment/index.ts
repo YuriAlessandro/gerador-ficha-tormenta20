@@ -461,6 +461,9 @@ export const religiousEsoteric: Equipment[] = [
   {
     nome: 'Estola',
     group: 'Esotérico',
+    // "Ao contrário de outros itens esotéricos, uma estola pode ser vestida em
+    // vez de empunhada" (Deuses de Arton).
+    canBeWorn: true,
     preco: parsePrice('T$ 150'),
     spaces: parseSpaces(1),
     // "A CD para resistir à magia divina representada na estola aumenta em +2."

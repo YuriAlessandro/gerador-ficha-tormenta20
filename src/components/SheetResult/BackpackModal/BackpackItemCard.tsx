@@ -27,6 +27,7 @@ import {
   canWieldOneHanded,
   hasMechanicalBonus,
   isTwoHanded,
+  isWornLikeClothing,
   WieldingSlot,
   WieldingDisabledSlots,
 } from './wielding';
@@ -278,7 +279,7 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
                   sx={{ height: 20, fontSize: '0.65rem' }}
                 />
               )}
-              {isWorn && item.group === 'Vestuário' && (
+              {isWorn && isWornLikeClothing(item) && (
                 <Chip
                   size='small'
                   label='Vestindo'
@@ -289,8 +290,8 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
               {/* "Guardado" só quando guardar de fato muda algum número —
                   sinalizar em toda roupa sem efeito só poluiria os cards. */}
               {!isWorn &&
-                item.group === 'Vestuário' &&
-                hasMechanicalBonus(item) && (
+                isWornLikeClothing(item) &&
+                (hasMechanicalBonus(item) || item.canBeWorn) && (
                   <Chip
                     size='small'
                     label='Guardado'
@@ -409,7 +410,7 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
             }}
           >
             {!isStored &&
-              (item.group === 'Armadura' || item.group === 'Vestuário') &&
+              (item.group === 'Armadura' || isWornLikeClothing(item)) &&
               onWornChange && (
                 <WornItemControl
                   item={item}
@@ -419,7 +420,7 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
               )}
             {!isStored &&
               item.group !== 'Armadura' &&
-              item.group !== 'Vestuário' &&
+              !isWornLikeClothing(item) &&
               !isAmmoItem &&
               onWieldingChange && (
                 <WieldingControl

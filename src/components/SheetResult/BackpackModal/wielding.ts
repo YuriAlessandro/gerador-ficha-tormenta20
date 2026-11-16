@@ -769,6 +769,14 @@ export function isClothing(item: Equipment): boolean {
  * conjunto (ficha legada) ou id fora dele = vestida. Item sem id nunca pôde ser
  * guardado, então também conta como vestido — nunca perder bônus por acidente.
  */
+/**
+ * O item veste como peça de vestuário (controle vestir/guardar, conjunto
+ * `unwornClothingIds`): o Vestuário e os itens marcados com `canBeWorn`.
+ */
+export function isWornLikeClothing(item: Equipment): boolean {
+  return item.group === 'Vestuário' || item.canBeWorn === true;
+}
+
 export function isClothingWorn(
   itemId: string | undefined,
   unwornClothingIds: string[] | undefined

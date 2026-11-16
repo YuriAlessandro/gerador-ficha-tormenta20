@@ -465,6 +465,51 @@ describe('melhorias de arma e armadura que mexem nas magias', () => {
   });
 });
 
+describe('CD de itens diferentes não acumula (JdA, Acumulando Efeitos)', () => {
+  const withCanonicoAndWand = (wandMods: string[] = []): CharacterSheet => {
+    const sheet = {
+      ...createMockCharacterSheet(),
+      devoto: {
+        divindade: { name: 'Khalmyr' },
+        poderes: [],
+      } as unknown as CharacterSheet['devoto'],
+    };
+    sheet.bag.equipments.Arma = [
+      {
+        id: 'espada',
+        nome: 'Espada longa',
+        group: 'Arma',
+        modifications: [{ mod: 'Canônico', deity: 'Khalmyr' }],
+      } as Equipment,
+    ];
+    sheet.bag.equipments.Esotérico = [
+      esoteric('varinha', 'Varinha arcana', wandMods),
+    ];
+    sheet.mainHandItemId = 'espada';
+    sheet.offHandItemId = 'varinha';
+    return sheet;
+  };
+
+  it('Canônico na arma + Varinha arcana: +1, não +2', () => {
+    const base = resolveSpellCast(
+      createMockCharacterSheet(),
+      BOLA_DE_FOGO
+    ).dcBonus;
+    const profile = resolveSpellCast(withCanonicoAndWand(), BOLA_DE_FOGO);
+    expect(profile.dcBonus).toBe(base + 1);
+    expect(profile.notes.filter((n) => n.includes('na CD'))).toHaveLength(1);
+  });
+
+  it('vale o melhor item somado às próprias melhorias: Varinha (Poderoso) +2', () => {
+    const base = resolveSpellCast(
+      createMockCharacterSheet(),
+      BOLA_DE_FOGO
+    ).dcBonus;
+    const sheet = withCanonicoAndWand(['Poderoso']);
+    expect(resolveSpellCast(sheet, BOLA_DE_FOGO).dcBonus).toBe(base + 2);
+  });
+});
+
 describe('instrumento musical como esotérico de bardo', () => {
   const instrument = (mods: string[] = [], extra = {}): Equipment =>
     ({
@@ -609,6 +654,22 @@ describe('encantos de esotérico (Heróis de Arton)', () => {
     });
     expect(active.pmReduction).toBe(plain.pmReduction + 2);
     expect(active.dcBonus).toBe(plain.dcBonus - 2);
+  });
+
+  it('Frugal não acumula com outra redução de PM (JdA, Acumulando Efeitos)', () => {
+    const sheet = enchanted(['Frugal']);
+    sheet.classPowers = [
+      {
+        name: 'Redução Inventada',
+        text: '',
+        spellModifiers: [{ effect: { type: 'PmReduction', value: 2 } }],
+      },
+    ];
+    const option = resolveSpellCast(sheet, BOLA_DE_FOGO).castOptions[0];
+    const active = resolveSpellCast(sheet, BOLA_DE_FOGO, {
+      castOptions: [option.key],
+    });
+    expect(active.pmReduction).toBe(2);
   });
 
   it('editor: "outro encanto" e exclusões', () => {

@@ -11,6 +11,9 @@ import { getSpellTraditionMap } from '../../spells/spellTradition';
 import { sheetCastsSpells } from '../spellcasting';
 import { isPowerAvailable } from '../../powers';
 import { formatRequirement } from '../../requirementText';
+import { getSpellPmLimitBase } from '../../spells/pmLimit';
+import { getArcanistaSpellPath } from '../../../data/systems/tormenta20/classes/arcanista';
+import { serializeSpellPath } from '../../multiclass';
 
 const spellOfTradition = (tradition: 'arcane' | 'divine'): Spell => {
   const nome = [...getSpellTraditionMap()].find(
@@ -111,6 +114,56 @@ describe('sheetCastsSpells', () => {
   });
 });
 
+describe('sheetCastsSpells em multiclasse', () => {
+  // Guerreiro 1 / Arcanista 5: o Arcanista não tem spellPath no registry, ele
+  // nasce do subtipo e fica gravado (sem funções) em `multiclassSpellPaths`.
+  const guerreiroArcanista = (withSerialized: boolean): CharacterSheet => {
+    const sheet = createMockCharacterSheet();
+    sheet.nivel = 6;
+    sheet.classe = { ...sheet.classe, name: 'Guerreiro', spellPath: undefined };
+    sheet.classLevels = [
+      { level: 1, className: 'Guerreiro' },
+      ...[2, 3, 4, 5, 6].map((level) => ({ level, className: 'Arcanista' })),
+    ];
+    sheet.multiclassSetups = withSerialized
+      ? { Arcanista: { arcanistaSubtype: 'Mago' } }
+      : undefined;
+    sheet.multiclassSpellPaths = withSerialized
+      ? {
+          Arcanista: serializeSpellPath(
+            getArcanistaSpellPath('Mago'),
+            'Arcanista',
+            'Mago'
+          ),
+        }
+      : undefined;
+    sheet.spells = [ARCANE];
+    return sheet;
+  };
+
+  it('classe secundária reconstruída do spellPath gravado', () => {
+    const sheet = guerreiroArcanista(true);
+    expect(sheetCastsSpells(sheet, { circle: 2 })).toBe(true);
+    expect(sheetCastsSpells(sheet, { circle: 3 })).toBe(false);
+    expect(sheetCastsSpells(sheet, { circle: 1, tradition: 'arcane' })).toBe(
+      true
+    );
+    expect(sheetCastsSpells(sheet, { tradition: 'divine' })).toBe(false);
+  });
+
+  it('ficha antiga sem spellPath gravado ainda conta o Arcanista', () => {
+    const sheet = guerreiroArcanista(false);
+    expect(sheetCastsSpells(sheet, { circle: 2, tradition: 'arcane' })).toBe(
+      true
+    );
+  });
+
+  it('limite de PM é o nível de Arcanista, não o de personagem', () => {
+    expect(getSpellPmLimitBase(guerreiroArcanista(true), ARCANE)).toBe(5);
+    expect(getSpellPmLimitBase(guerreiroArcanista(false), ARCANE)).toBe(5);
+  });
+});
+
 describe('requisito LANCAR_MAGIAS nos dados', () => {
   const powers = dataRegistry.getPowersBySupplements(
     Object.values(SupplementId)
@@ -133,6 +186,34 @@ describe('requisito LANCAR_MAGIAS nos dados', () => {
       )
     );
     expect(textual.map((p) => p.name)).toEqual([]);
+  });
+
+  it('nenhum poder de Magia fica sem pré-requisito', () => {
+    // Barreira Mística, Explosão Fulgente etc. (HdA) estavam com
+    // `requirements: []`, e o guarda de TEXT acima não as pegava.
+    const open = powers.MAGIA.filter(
+      (power) => (power.requirements ?? []).flat().length === 0
+    );
+    expect(open.map((p) => p.name)).toEqual([]);
+  });
+
+  it('Barreira Mística exige lançar magias; Magia Suspensa, 2º círculo', () => {
+    expect(isPowerAvailable(sheetWith({}), find('Barreira Mística'))).toBe(
+      false
+    );
+    expect(
+      isPowerAvailable(
+        sheetWith({ spellType: 'Arcane' }),
+        find('Barreira Mística')
+      )
+    ).toBe(true);
+    const suspensa = find('Magia Suspensa');
+    expect(
+      isPowerAvailable(sheetWith({ nivel: 4, spellType: 'Arcane' }), suspensa)
+    ).toBe(false);
+    expect(
+      isPowerAvailable(sheetWith({ nivel: 5, spellType: 'Arcane' }), suspensa)
+    ).toBe(true);
   });
 
   it('Presente de Wynlla exige magia arcana', () => {

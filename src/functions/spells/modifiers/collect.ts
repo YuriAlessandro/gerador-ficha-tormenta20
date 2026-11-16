@@ -6,7 +6,13 @@ import type {
   SpellModifierChoiceSpec,
   SpellModifierFilter,
 } from '../../../interfaces/SpellModifiers';
-import { isItemWielded } from '../../../components/SheetResult/BackpackModal/wielding';
+import {
+  getWieldingSlot,
+  isClothingWorn,
+  isItemWielded,
+  isTwoHanded,
+  isWornLikeClothing,
+} from '../../../components/SheetResult/BackpackModal/wielding';
 import { dataRegistry } from '../../../data/registry';
 import { isMusicalInstrument } from '../../musicalInstruments';
 import { getClassLevel } from '../../multiclass';
@@ -47,6 +53,11 @@ export interface SourcedSpellModifier {
   modifier: SpellModifier;
   /** Vem de um esotérico — só um por magia (ver `resolveSpellCast`). */
   esoteric?: boolean;
+  /**
+   * Vem de um item (o próprio, uma melhoria ou o material dele). Efeitos de
+   * itens diferentes não acumulam entre si (ver `resolveSpellCast`).
+   */
+  fromItem?: boolean;
   /** A fonte deixa escolher magias (filtro `chosen`). */
   choice?: ResolvedSpellChoice;
 }
@@ -84,12 +95,6 @@ function resolveEntry(
 }
 
 /**
- * O item está em uso? "Para usar um esotérico, você precisa empunhá-lo" (JdA):
- * esotérico só conta empunhado. Ficha que nunca marcou nada nas mãos segue a
- * regra legada da mochila ("tudo está equipado"), senão toda ficha antiga
- * perderia o efeito de uma vez. Demais itens contam por estar na mochila.
- */
-/**
  * O item funciona como esotérico para esta ficha: esotérico, ou instrumento
  * musical de bardo ("Instrumentos musicais podem ser usados como esotéricos
  * por bardos", JdA).
@@ -102,8 +107,23 @@ export function actsAsEsoteric(
   return isMusicalInstrument(item) && sheetHasCasterClass(sheet, 'Bardo');
 }
 
+/**
+ * O item está em uso? "Para usar um esotérico, você precisa empunhá-lo" (JdA):
+ * esotérico só conta empunhado, e o de duas mãos (cajado: "precisa ser
+ * empunhado com as duas mãos") só com as duas. O vestível (Estola: "pode ser
+ * vestida em vez de empunhada") conta também vestido. Ficha que nunca marcou
+ * nada nas mãos segue a regra legada da mochila ("tudo está equipado"), senão
+ * toda ficha antiga perderia o efeito de uma vez. Demais itens contam por
+ * estar na mochila.
+ */
 export function isItemInUse(sheet: CharacterSheet, item: Equipment): boolean {
   if (!actsAsEsoteric(sheet, item)) return true;
+  if (
+    isWornLikeClothing(item) &&
+    isClothingWorn(item.id, sheet.unwornClothingIds)
+  ) {
+    return true;
+  }
   const hands = [
     sheet.mainHandItemId,
     sheet.offHandItemId,
@@ -111,7 +131,10 @@ export function isItemInUse(sheet: CharacterSheet, item: Equipment): boolean {
     sheet.extraHand2ItemId,
   ];
   if (hands.every((id) => id === undefined)) return true;
-  return isItemWielded(item.id, sheet);
+  if (!isItemWielded(item.id, sheet)) return false;
+  if (!isTwoHanded(item)) return true;
+  const slot = getWieldingSlot(item.id, sheet);
+  return slot === 'both' || slot === 'bothExtra';
 }
 
 /**
@@ -405,6 +428,7 @@ export function collectSheetSpellModifiers(
           ...(label !== name ? { label: name } : {}),
           modifier,
           esoteric,
+          ...(kind === 'item' ? { fromItem: true } : {}),
           choice,
         })
       );
@@ -426,6 +450,7 @@ export function collectSheetSpellModifiers(
             label: `${improvement.mod} (${name})`,
             modifier,
             esoteric,
+            fromItem: true,
             choice: improvementChoice,
           })
         );

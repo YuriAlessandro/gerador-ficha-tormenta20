@@ -351,6 +351,10 @@ export type SheetActionStep =
       // família (Xamã Místico → 'Druida'). O assistente esconde as escolas que a
       // classe já tem, e o sorteio também as evita.
       appendChosenSpellSchoolTo?: string;
+      // Só as opções já escolhidas sob esta outra `optionKey` (Mestre em
+      // Escola: "Especialista em Escola com a escola escolhida"). Sem escolha
+      // gravada lá (ficha antiga), a lista fica completa.
+      onlyOptionsChosenIn?: string;
     }
   | {
       type: 'trainSkillOrBonus';

@@ -382,6 +382,13 @@ export default interface Equipment {
    * esotérico por bardos. Ver `isMusicalInstrument`.
    */
   musicalInstrument?: boolean;
+  /**
+   * Item fora do Vestuário que também pode ser vestido (Estola, "pode ser
+   * vestida em vez de empunhada"). Usa o mesmo vestido/guardado do vestuário
+   * (`unwornClothingIds`) e, vestido, conta como em uso. Ver
+   * `isWornLikeClothing`.
+   */
+  canBeWorn?: boolean;
   // Weapon requires both hands to be wielded. When true, equipping the item
   // occupies both `mainHandItemId` and `offHandItemId` slots.
   twoHanded?: boolean;

@@ -20,6 +20,7 @@ import {
   applyClothingWorn,
   commitWielding,
   isWieldedTwoHanded,
+  isWornLikeClothing,
   migrateLegacyEquipState,
   pruneUnwornClothing,
   pruneWielding,
@@ -789,7 +790,7 @@ export function reducer(state: StagedState, action: Action): StagedState {
       // 2ª Bandana somada a uma Bandana guardada. Vestir explicitamente evita
       // que a peça recém-comprada nasça sem efeito.
       let { unwornClothingIds } = state;
-      if (action.item.group === 'Vestuário' && addedId) {
+      if (isWornLikeClothing(action.item) && addedId) {
         unwornClothingIds = applyClothingWorn(unwornClothingIds, addedId, true);
       }
 
@@ -1046,8 +1047,12 @@ export function reducer(state: StagedState, action: Action): StagedState {
           ? WORN_ARMOR_NONE
           : state.wornArmorId;
       let { unwornClothingIds } = state;
-      const isClothing = (state.equipments.Vestuário ?? []).some(
-        (it) => it.id === action.id
+      const isClothing = Object.values(state.equipments).some(
+        (items) =>
+          Array.isArray(items) &&
+          items.some(
+            (it: Equipment) => it.id === action.id && isWornLikeClothing(it)
+          )
       );
       if (sourceGone && isClothing) {
         unwornClothingIds = applyClothingWorn(

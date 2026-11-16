@@ -254,6 +254,8 @@ export function resolveSpellCast(
   };
   let pmLimitBonus = 0;
   let pmLimitMultiplier = 1;
+  /** Bônus de CD por item (o próprio + melhorias e material dele). */
+  const itemDc = new Map<string, { value: number; notes: string[] }>();
 
   const applyEffect = (
     effect: SpellModifierEffect,
@@ -264,7 +266,9 @@ export function resolveSpellCast(
     // Efeitos de uma opção marcada não viram notas: a opção já aparece.
     quiet = false,
     // Fonte que identifica a opção de lançamento; `source` é só o rótulo.
-    optionSource = source
+    optionSource = source,
+    // O item de onde o efeito vem (identidade, não rótulo), se vier de um.
+    item?: string
   ): void => {
     const note = (text: string) => {
       if (!quiet) profile.notes.push(text);
@@ -342,10 +346,22 @@ export function resolveSpellCast(
       case 'DamageTypeOverride':
         profile.damageTypeOverride = effect.damageType;
         break;
-      case 'SpellDC':
+      case 'SpellDC': {
+        const text = `${sign(effect.value)} na CD (${source})`;
+        // Bônus de itens diferentes não acumulam (JdA, "Acumulando Efeitos"):
+        // fica só o melhor item, somado ao fim. Penalidade (Frugal) é o custo
+        // de uma escolha e sempre vale.
+        if (item && effect.value > 0) {
+          const entry = itemDc.get(item) ?? { value: 0, notes: [] };
+          entry.value += effect.value;
+          if (!quiet) entry.notes.push(text);
+          itemDc.set(item, entry);
+          break;
+        }
         profile.dcBonus += effect.value;
-        note(`${sign(effect.value)} na CD (${source})`);
+        note(text);
         break;
+      }
       case 'AprimoramentoPm':
         if (effect.value > profile.aprimoramentoPm) {
           profile.aprimoramentoPm = effect.value;
@@ -426,7 +442,7 @@ export function resolveSpellCast(
           (effect.effects ?? [])
             .filter((sub) => sub.type !== 'CastOption')
             .forEach((sub) =>
-              applyEffect(sub, source, chosen, true, optionSource)
+              applyEffect(sub, source, chosen, true, optionSource, item)
             );
         }
         break;
@@ -440,23 +456,70 @@ export function resolveSpellCast(
   // quantos esotéricos a 2ª etapa aceita.
   matching
     .filter((m) => !m.esoteric)
-    .forEach(({ source, label, modifier: { effect }, choice }) =>
-      applyEffect(effect, label ?? source, choice?.chosen, false, source)
+    .forEach(({ source, label, modifier: { effect }, choice, fromItem }) =>
+      applyEffect(
+        effect,
+        label ?? source,
+        choice?.chosen,
+        false,
+        source,
+        fromItem ? source : undefined
+      )
     );
 
   // 2ª etapa: os esotéricos que valem, até o limite.
   const picked = Array.from(new Set(options.esoterics ?? []))
     .filter((name) => profile.esotericOptions.includes(name))
     .slice(0, profile.esotericLimit);
+  // Sem escolha do jogador (lista de magias, PDF), vale o que mais rende para
+  // ESTA magia: primeiro a CD, depois quantos efeitos casam. Empate fica na
+  // ordem da mochila. Sem isso, uma Orbe cristalina antes da Varinha arcana
+  // (+1 no limite, vale para toda magia) apagava o +1 na CD da Varinha.
+  const esotericScore = (name: string): [number, number] => {
+    const effects = matching
+      .filter((m) => m.esoteric && m.source === name)
+      .map((m) => m.modifier.effect)
+      .filter((effect) => effect.type !== 'CastOption');
+    const dc = effects.reduce(
+      (sum, effect) => sum + (effect.type === 'SpellDC' ? effect.value : 0),
+      0
+    );
+    return [dc, effects.length];
+  };
+  const ranked = profile.esotericOptions
+    .map((name, index) => ({ name, index, score: esotericScore(name) }))
+    .sort(
+      (a, b) =>
+        b.score[0] - a.score[0] || b.score[1] - a.score[1] || a.index - b.index
+    )
+    .map(({ name }) => name);
   profile.esoterics = [
     ...picked,
-    ...profile.esotericOptions.filter((name) => !picked.includes(name)),
+    ...ranked.filter((name) => !picked.includes(name)),
   ].slice(0, profile.esotericLimit);
   matching
     .filter((m) => m.esoteric && profile.esoterics.includes(m.source))
-    .forEach(({ source, label, modifier: { effect }, choice }) =>
-      applyEffect(effect, label ?? source, choice?.chosen, false, source)
+    .forEach(({ source, label, modifier: { effect }, choice, fromItem }) =>
+      applyEffect(
+        effect,
+        label ?? source,
+        choice?.chosen,
+        false,
+        source,
+        fromItem ? source : undefined
+      )
     );
+
+  const bestItemDc = Array.from(itemDc.values()).reduce<
+    { value: number; notes: string[] } | undefined
+  >(
+    (best, entry) => (!best || entry.value > best.value ? entry : best),
+    undefined
+  );
+  if (bestItemDc) {
+    profile.dcBonus += bestItemDc.value;
+    profile.notes.push(...bestItemDc.notes);
+  }
 
   if (aprimoramentoSource) {
     profile.notes.push(

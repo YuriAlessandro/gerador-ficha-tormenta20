@@ -131,6 +131,14 @@ export function stampCatalogData(
     delete item.twoHanded;
   }
 
+  // Vestível (Estola): espelha o catálogo, como `twoHanded` — o editor não
+  // expõe o campo.
+  if (catalogItem.canBeWorn) {
+    item.canBeWorn = true;
+  } else if (item.canBeWorn !== undefined) {
+    delete item.canBeWorn;
+  }
+
   if (hasEnhancementOwnership(item)) return;
 
   if (catalogItem.sheetBonuses) {

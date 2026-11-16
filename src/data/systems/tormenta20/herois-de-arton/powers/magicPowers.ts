@@ -26,7 +26,7 @@ const magicPowers: Record<string, GeneralPower> = {
       },
     ],
     type: GeneralPowerType.MAGIA,
-    requirements: [],
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS }]],
   },
   ESOTERISMO: {
     name: 'Esoterismo',
@@ -123,7 +123,7 @@ const magicPowers: Record<string, GeneralPower> = {
       },
     ],
     type: GeneralPowerType.MAGIA,
-    requirements: [],
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS }]],
   },
   GENESE_ELEMENTAL: {
     name: 'Gênese Elemental',
@@ -164,7 +164,7 @@ const magicPowers: Record<string, GeneralPower> = {
     description:
       'Quando lança uma magia com execução de ação de movimento ou padrão, você pode aumentar sua execução para uma ação completa ou para 2 ou 3 rodadas. Se fizer isso, a CD para resistir à magia aumenta respectivamente em +1, +2 ou +5.',
     type: GeneralPowerType.MAGIA,
-    requirements: [],
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS, value: 2 }]],
   },
   MIASMA_TOXICO: {
     name: 'Miasma Tóxico',
@@ -181,7 +181,7 @@ const magicPowers: Record<string, GeneralPower> = {
       },
     ],
     type: GeneralPowerType.MAGIA,
-    requirements: [],
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS }]],
   },
   PRISAO_GELIDA: {
     name: 'Prisão Gélida',
@@ -198,7 +198,7 @@ const magicPowers: Record<string, GeneralPower> = {
       },
     ],
     type: GeneralPowerType.MAGIA,
-    requirements: [],
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS }]],
   },
   TROVAO_RETUMBANTE: {
     name: 'Trovão Retumbante',
@@ -215,7 +215,7 @@ const magicPowers: Record<string, GeneralPower> = {
       },
     ],
     type: GeneralPowerType.MAGIA,
-    requirements: [],
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS }]],
   },
 };
 

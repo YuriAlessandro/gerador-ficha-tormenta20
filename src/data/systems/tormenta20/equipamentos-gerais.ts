@@ -599,6 +599,9 @@ export const esotericos: Equipment[] = [
   {
     nome: 'Cajado arcano',
     group: 'Esotérico',
+    // "Para fornecer seus benefícios, um cajado precisa ser empunhado com as
+    // duas mãos" (JdA, itens esotéricos).
+    twoHanded: true,
     preco: parsePrice('T$ 1000'),
     descricao:
       'O limite de PM que você pode gastar em magias arcanas e a CD para resistir a elas aumentam em +1.',

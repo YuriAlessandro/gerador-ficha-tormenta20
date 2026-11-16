@@ -591,7 +591,9 @@ const ARCANISTA: ClassDescription = {
           { type: 'power', name: 'Mestre em Escola' },
           'mestreEmEscola',
           { type: 'PmReduction', value: 1 },
-          (school) => `–1 PM nas magias de ${school}.`
+          (school) => `–1 PM nas magias de ${school}.`,
+          // "Especialista em Escola com a escola escolhida".
+          'especialistaEmEscola'
         ),
       ],
     },

@@ -127,7 +127,7 @@ export const esotericEnchantments: ItemE[] = [
             label: '–2 na CD e –2 PM',
             addPm: 0,
             effects: [
-              { type: 'PmReduction', value: 2, cumulative: true },
+              { type: 'PmReduction', value: 2 },
               { type: 'SpellDC', value: -2 },
             ],
           },

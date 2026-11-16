@@ -4,6 +4,7 @@ import {
   SelectionOptions,
   ManualPowerSelections,
 } from '@/interfaces/PowerSelections';
+import { filterOptionsChosenIn } from './powers/optionChoices';
 import { getClassFamilyName, isSameClassFamily } from './classFamily';
 import { resolveHerancaPower } from './powers/feiticeiroHeranca';
 import {
@@ -3555,6 +3556,7 @@ export const applyPower = (
           linkedTo,
           applyChosenAttributeTo,
           appendChosenSpellSchoolTo,
+          onlyOptionsChosenIn,
         } = sheetAction.action;
         const pick = sheetAction.action.pick ?? 1;
 
@@ -3617,7 +3619,10 @@ export const applyPower = (
             ? findSchoolTargetByFamily(sheet, appendChosenSpellSchoolTo)
                 ?.schools ?? []
             : [];
-          const pool = options.filter((opt) => {
+          const allowed = onlyOptionsChosenIn
+            ? filterOptionsChosenIn(sheet, onlyOptionsChosenIn, options)
+            : options;
+          const pool = allowed.filter((opt) => {
             const school = appendChosenSpellSchoolTo
               ? spellSchoolFromLabel(opt.name)
               : undefined;

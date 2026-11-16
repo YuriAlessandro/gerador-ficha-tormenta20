@@ -70,11 +70,11 @@ export function extractSpellModifierSource(
   };
 }
 
-/** Todos os suplementos, como em `spellTradition`: o índice é só lookup. */
-const catalogSupplements = (): SupplementId[] => [
-  ...Object.values(SupplementId),
-  ...(dataRegistry.getRuntimeSupplementIds() as SupplementId[]),
-];
+/** Todos os livros, como em `spellTradition`: o índice é só lookup. */
+const bookSupplements = (): SupplementId[] => Object.values(SupplementId);
+
+const runtimeSupplements = (): SupplementId[] =>
+  dataRegistry.getRuntimeSupplementIds() as SupplementId[];
 
 const keyOf = (kind: SpellModifierSourceKind, name: string): string =>
   `${kind}:${name}`;
@@ -83,6 +83,10 @@ const keyOf = (kind: SpellModifierSourceKind, name: string): string =>
  * `null` = nome AMBÍGUO no catálogo (duas entradas de mesmo nome com
  * modificadores diferentes, inclusive "com" × "sem"). Nesse caso o índice não
  * escolhe e o motor usa a cópia da própria ficha.
+ *
+ * A ambiguidade só é medida dentro de cada camada (livros; homebrews). Na
+ * colisão entre as duas, o livro vence: um homebrew que declare "Mago Branco"
+ * não pode desligar o efeito do livro em toda ficha salva.
  */
 type IndexValue = SpellModifierSource | null;
 
@@ -129,6 +133,13 @@ function buildIndex(supplements: SupplementId[]): Map<string, IndexValue> {
   return map;
 }
 
+function buildCatalog(): Map<string, IndexValue> {
+  const runtime = runtimeSupplements();
+  const books = buildIndex(bookSupplements());
+  if (runtime.length === 0) return books;
+  return new Map([...buildIndex(runtime), ...books]);
+}
+
 /**
  * O que o catálogo declara para a fonte. `undefined` quando o nome não está no
  * catálogo ou é ambíguo — aí vale a cópia da ficha.
@@ -137,9 +148,11 @@ export function getCatalogSpellModifierSource(
   kind: SpellModifierSourceKind,
   name: string
 ): SpellModifierSource | undefined {
-  const supplements = catalogSupplements();
-  const key = supplements.join('|');
-  if (cache?.key !== key) cache = { key, map: buildIndex(supplements) };
+  // Homebrew re-registrado (edição) mantém o id: a versão do registry muda.
+  const key = `${runtimeSupplements().join(
+    '|'
+  )}#${dataRegistry.getRuntimeSupplementsVersion()}`;
+  if (cache?.key !== key) cache = { key, map: buildCatalog() };
   return cache.map.get(keyOf(kind, name)) ?? undefined;
 }
 

@@ -1,7 +1,7 @@
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import { SpellPath } from '../../interfaces/Class';
 import { Spell } from '../../interfaces/Spells';
-import { findClassDescription, getClassLevelsMap } from '../multiclass';
+import { getClassLevelsMap, getClassSpellPath } from '../multiclass';
 import { getSpellTradition } from '../spells/spellTradition';
 
 /** Tradição exigida por "Lançar magias arcanas/divinas". */
@@ -48,10 +48,7 @@ interface ClassCasting {
 function getClassCastings(sheet: CharacterSheet): ClassCasting[] {
   const castings: ClassCasting[] = [];
   getClassLevelsMap(sheet).forEach((level, className) => {
-    const spellPath =
-      className === sheet.classe?.name
-        ? sheet.classe.spellPath
-        : findClassDescription(className)?.spellPath;
+    const spellPath = getClassSpellPath(sheet, className)?.spellPath;
     const circle = spellPath?.spellCircleAvailableAtLevel?.(level) ?? 0;
     if (spellPath && circle > 0) {
       castings.push({

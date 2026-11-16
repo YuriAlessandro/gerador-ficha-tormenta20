@@ -564,6 +564,57 @@ export function resolveClassSetup(
   );
 }
 
+export interface ClassSpellPath {
+  spellPath: SpellPath;
+  /**
+   * Arcanista secundário de ficha antiga, sem nada gravado do subtipo: o
+   * caminho é de um subtipo qualquer. Tradição e círculos valem (são iguais
+   * nos três); atributo-chave e magias iniciais, não.
+   */
+  subtypeGuessed: boolean;
+}
+
+/**
+ * SpellPath (com as funções) de uma classe da ficha, no nível dela.
+ *
+ * A principal mora em `sheet.classe`. A secundária é reconstruída do que foi
+ * gravado em `multiclassSpellPaths`, que é serializado e não traz as funções —
+ * e o Arcanista nem tem spellPath no registry: ele nasce do subtipo. O
+ * subtipo vem do setup gravado; sem ele o registry cairia no setup()
+ * aleatório. Ficha antiga sem o campo cai no registry/setup da classe.
+ */
+export function getClassSpellPath(
+  sheet: CharacterSheet,
+  className: string
+): ClassSpellPath | undefined {
+  if (className === sheet.classe?.name) {
+    const { spellPath } = sheet.classe;
+    return spellPath ? { spellPath, subtypeGuessed: false } : undefined;
+  }
+
+  const setup = resolveClassSetup(sheet, className, undefined);
+  const serialized = sheet.multiclassSpellPaths?.[className];
+  if (serialized) {
+    const spellPath = buildSpellPathFromSetup(
+      serialized.className,
+      serialized.classSubname,
+      { ...setup, spellSchools: serialized.schools }
+    );
+    if (!spellPath) return undefined;
+    applySerializedOverrides(spellPath, serialized);
+    return { spellPath, subtypeGuessed: false };
+  }
+
+  const fromRegistry =
+    findClassDescription(className)?.spellPath ??
+    buildSpellPathFromSetup(className, undefined, setup);
+  if (fromRegistry) return { spellPath: fromRegistry, subtypeGuessed: false };
+  if (className === 'Arcanista') {
+    return { spellPath: getArcanistaSpellPath('Mago'), subtypeGuessed: true };
+  }
+  return undefined;
+}
+
 /**
  * Maior círculo de magia que o personagem lança (0 se não conjura), olhando a
  * classe principal E as secundárias, cada uma no SEU nível de classe — nunca
@@ -594,34 +645,17 @@ export function getHighestSpellCircle(
     }
   }
 
-  Object.entries(sheet.multiclassSpellPaths ?? {}).forEach(
-    ([className, serialized]) => {
-      if (className === primaryName) return;
-      const level = getClassLevel(sheet, className);
-      if (level <= 0) return;
-      // O subtipo do Arcanista vem do setup gravado: sem ele o registry cai no
-      // setup() aleatório.
-      const spellPath = buildSpellPathFromSetup(
-        serialized.className,
-        serialized.classSubname,
-        {
-          ...resolveClassSetup(sheet, className, undefined),
-          spellSchools: serialized.schools,
-        }
-      );
-      if (
-        !spellPath ||
-        typeof spellPath.spellCircleAvailableAtLevel !== 'function'
-      ) {
-        return;
-      }
-      applySerializedOverrides(spellPath, serialized);
-      circles.push({
-        spellType: spellPath.spellType,
-        circle: spellPath.spellCircleAvailableAtLevel(level),
-      });
-    }
-  );
+  Object.keys(sheet.multiclassSpellPaths ?? {}).forEach((className) => {
+    if (className === primaryName) return;
+    const level = getClassLevel(sheet, className);
+    if (level <= 0) return;
+    const spellPath = getClassSpellPath(sheet, className)?.spellPath;
+    if (typeof spellPath?.spellCircleAvailableAtLevel !== 'function') return;
+    circles.push({
+      spellType: spellPath.spellType,
+      circle: spellPath.spellCircleAvailableAtLevel(level),
+    });
+  });
 
   const sameTradition =
     allowedType && allowedType !== 'Both'
