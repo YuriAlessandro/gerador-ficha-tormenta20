@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash';
 import { applyPower } from '../general';
-import { findClassDescription } from '../multiclass';
+import { findClassDescription, serializeSpellPath } from '../multiclass';
 import {
   getFilteredAvailableOptions,
   getPowerSelectionRequirements,
@@ -120,6 +120,38 @@ describe.each(CASES)('$powerName ($className)', (testCase) => {
     const sheet = makeSheet(className, schools);
     const [result] = applyPower(sheet, power);
 
+    expect(result.spells).toHaveLength(2);
+    result.spells.forEach((spell) => expect(schools).toContain(spell.school));
+  });
+});
+
+describe('multiclasse', () => {
+  it('Guerreiro / Bardo: usa as escolas da classe secundária', () => {
+    const schools: SpellSchool[] = ['Adiv', 'Conv', 'Trans'];
+    const sheet = createMockCharacterSheet();
+    sheet.nivel = 4;
+    sheet.classe = cloneDeep(findClassDescription('Guerreiro')!);
+    sheet.classLevels = [
+      { level: 1, className: 'Guerreiro' },
+      { level: 2, className: 'Guerreiro' },
+      { level: 3, className: 'Bardo' },
+      { level: 4, className: 'Bardo' },
+    ];
+    sheet.spells = [];
+    sheet.multiclassSpellPaths = {
+      Bardo: serializeSpellPath(
+        makeSheet('Bardo', schools).classe.spellPath!,
+        'Bardo'
+      ),
+    };
+    sheet.multiclassSetups = { Bardo: { spellSchools: [...schools] } };
+
+    const power = getPower('Bardo', 'Aumentar Repertório');
+    const offered = offeredSpells(sheet, power);
+    expect(offered.length).toBeGreaterThan(0);
+    offered.forEach((spell) => expect(schools).toContain(spell.school));
+
+    const [result] = applyPower(sheet, power);
     expect(result.spells).toHaveLength(2);
     result.spells.forEach((spell) => expect(schools).toContain(spell.school));
   });
