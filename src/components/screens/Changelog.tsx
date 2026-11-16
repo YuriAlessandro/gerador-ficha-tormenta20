@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            14/11/2026 (v4.39).
+            16/11/2026 (v4.39).
           </p>
 
           <p>
@@ -227,6 +227,23 @@ const Changelog: React.FC = () => {
                   passar o mouse. Condições que vêm de outra (como Desprevenido
                   e Lento, vindas de Cego) aparecem tracejadas, e tocar em
                   qualquer uma mostra o efeito completo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o poder{' '}
+                  <strong>Herói dos Sete Instrumentos</strong> agora soma o
+                  bônus sozinho em todas as perícias em que você não é treinado:
+                  +1, +2 a partir do 7º nível e +3 a partir do 15º. O bônus
+                  aparece no detalhamento de &quot;Outros&quot; de cada perícia,
+                  e fichas que já tinham o poder passam a recebê-lo no próximo
+                  recálculo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> no <strong>Moreau</strong>, a magia
+                  escolhida na <strong>Sapiência</strong> (Herança da Coruja)
+                  durante a criação da ficha não era mais trocada por outra
+                  sorteada, e o editor da ficha passou a reconhecer a herança. O
+                  editor também voltou a deixar escolher o atributo da própria
+                  herança no +1 livre, como o livro permite.
                 </li>
               </ul>
 
