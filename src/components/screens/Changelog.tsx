@@ -202,6 +202,16 @@ const Changelog: React.FC = () => {
                   aviso de quantos combatentes estão escondidos acima e abaixo.
                 </li>
                 <li>
+                  <strong>Melhoria:</strong> o poder{' '}
+                  <strong>Abençoar Arma</strong> (Clérigo) agora pode ser usado
+                  como <strong>efeito ativo</strong>. Você escolhe uma das armas
+                  da mochila, com a arma preferida da sua divindade já
+                  selecionada, e o dano dela aumenta em um passo até você
+                  encerrar o efeito. O custo é de 3 PM, ou 2 PM se a arma tiver
+                  a melhoria Conduíte. Para usar Sabedoria no ataque e no dano,
+                  troque o atributo nos atributos da arma.
+                </li>
+                <li>
                   <strong>Correção:</strong> ao aplicar uma magia como{' '}
                   <strong>efeito ativo</strong>, os aprimoramentos que aumentam
                   um bônus agora valem quantas vezes você pagou por eles, e não
