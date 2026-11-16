@@ -162,11 +162,17 @@ const Changelog: React.FC = () => {
                 <Typography variant='body1' sx={{ mb: 1 }}>
                   O <strong>rolador de recompensas</strong> chegou à mesa
                   virtual. Ao <strong>finalizar o combate</strong>, o mestre
-                  rola o tesouro ali mesmo, com o ND e o tipo de tesouro do
-                  encontro já preenchidos. O resultado aparece no aparelho de
-                  cada jogador, que marca os itens que quer pegar e combina com
-                  o grupo como dividir o dinheiro. Quando o mestre confirma, os
-                  itens e as moedas vão <strong>direto para as fichas</strong>.
+                  rola o tesouro ali mesmo, como manda o livro:{' '}
+                  <strong>uma rolagem por criatura derrotada</strong>, com o ND
+                  e o tipo de tesouro de cada uma (ou, se preferir, uma só pelo
+                  ND do combate). O <strong>equipamento das ameaças</strong>{' '}
+                  também entra no espólio: o app lê a linha de equipamento da
+                  ficha (&quot;machado de guerra cruel, flechas x20&quot;),
+                  encontra cada item no catálogo e o mestre revisa antes de
+                  mostrar. O resultado aparece no aparelho de cada jogador, que
+                  marca os itens que quer pegar e combina com o grupo como
+                  dividir o dinheiro. Quando o mestre confirma, os itens e as
+                  moedas vão <strong>direto para as fichas</strong>.
                 </Typography>
                 <Typography
                   variant='body2'
@@ -184,10 +190,11 @@ const Changelog: React.FC = () => {
                 <Typography variant='body2' sx={{ color: 'text.secondary' }}>
                   Itens superiores e mágicos chegam com as melhorias e os
                   encantos aplicados. Riquezas, poções e acessórios entram na
-                  mochila com o valor da tabela. O mestre também pode rolar uma
-                  recompensa avulsa (um baú, uma missão cumprida) pelo menu da
-                  mesa. Rolar a recompensa é exclusivo para mestres apoiadores;
-                  os jogadores participam em qualquer plano.
+                  mochila com o valor da tabela. O mestre pode acrescentar itens
+                  à mão (como os recursos extraídos de uma criatura) e também
+                  rolar uma recompensa avulsa (um baú, uma missão cumprida) pelo
+                  menu da mesa. Rolar a recompensa é exclusivo para mestres
+                  apoiadores; os jogadores participam em qualquer plano.
                 </Typography>
               </Alert>
 
