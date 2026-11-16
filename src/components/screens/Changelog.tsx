@@ -245,6 +245,18 @@ const Changelog: React.FC = () => {
                   editor também voltou a deixar escolher o atributo da própria
                   herança no +1 livre, como o livro permite.
                 </li>
+                <li>
+                  <strong>Correção:</strong> os poderes de raça{' '}
+                  <strong>Glamour</strong> e <strong>Glamour Maior</strong>{' '}
+                  (Duende, Eiradaan e Sílfide) e{' '}
+                  <strong>Grande Marca de Wynna</strong> (Qareen) agora abrem a
+                  escolha das magias que concedem — três de 1º círculo no
+                  Glamour, três de 1º ou 2º círculo no Glamour Maior e uma de 1º
+                  círculo na Grande Marca — arcanas ou divinas, incluindo as dos
+                  suplementos ativos, todas com atributo-chave Carisma. Fichas
+                  que já tinham um desses poderes precisam removê-lo e
+                  adicioná-lo de novo para escolher as magias.
+                </li>
               </ul>
 
               <h3>4.38</h3>
