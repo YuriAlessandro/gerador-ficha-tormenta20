@@ -3978,6 +3978,7 @@ export const applyPower = (
         }
       } else if (
         bonus.target.type === 'Skill' ||
+        bonus.target.type === 'UntrainedSkills' ||
         bonus.target.type === 'AllAttackBonus' ||
         bonus.target.type === 'ModifySkillAttribute' ||
         bonus.target.type === 'TrainSkill'
@@ -4003,6 +4004,8 @@ export const applyPower = (
         let description = '';
         if (bonus.target.type === 'Skill') {
           description = `${formatted} em ${bonus.target.name}`;
+        } else if (bonus.target.type === 'UntrainedSkills') {
+          description = `${formatted} em perícias não treinadas`;
         } else if (bonus.target.type === 'AllAttackBonus') {
           description = `${formatted} em Luta e Pontaria`;
         } else if (bonus.target.type === 'ModifySkillAttribute') {
@@ -5692,6 +5695,19 @@ export const applyStatModifiers = (
       skillSubSteps.push({
         name: subStepName,
         value: `${bonusValue} em ${skillName}`,
+      });
+    } else if (bonus.target.type === 'UntrainedSkills') {
+      // Espelha o Step 8 do recalculateSheet (Herói dos Sete Instrumentos).
+      const untrainedSkillNames = (sheet.completeSkills || [])
+        .filter((skill) => !skill.training)
+        .map((skill) => skill.name);
+      untrainedSkillNames.forEach((skillName) => {
+        addOtherBonusToSkill(sheet, skillName, bonusValue);
+      });
+
+      skillSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue} em perícias não treinadas`,
       });
     } else if (bonus.target.type === 'AllAttackBonus') {
       // Testes de ataque = testes de Luta/Pontaria (mesmo roteamento do
@@ -8033,6 +8049,11 @@ export function generateEmptySheet(
       skillBonusSubSteps.push({
         name: subStepName,
         value: `${bonusValue} em ${bonus.target.name}`,
+      });
+    } else if (bonus.target.type === 'UntrainedSkills') {
+      skillBonusSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue} em perícias não treinadas`,
       });
     } else if (bonus.target.type === 'AllAttackBonus') {
       skillBonusSubSteps.push({

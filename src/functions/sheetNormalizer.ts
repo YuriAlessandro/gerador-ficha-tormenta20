@@ -65,6 +65,7 @@ import {
   PELE_CORROMPIDA_SHEET_BONUSES,
 } from '../data/systems/tormenta20/powers/tormentaPowerSheetBonuses';
 import { CITADINO_SHEET_BONUSES } from '../data/systems/tormenta20/herois-de-arton/powers/racePowers';
+import { HEROI_DOS_SETE_INSTRUMENTOS_SHEET_BONUSES } from '../data/systems/tormenta20/herois-de-arton/powers/destinyPowers';
 import { updateUnarmedRolls } from './unarmedDamage';
 import {
   refreshFeiticeiroLinhagemAbility,
@@ -119,7 +120,7 @@ function getGrantedPowersByName(): Map<string, GeneralPower> {
 // Arremesso) eram texto puro ou só parcialmente automatizados — sem o refresh,
 // a ficha de quem já tinha o poder continuaria sem o bônus. Idem Pele de Aço e
 // Defesa Armada, que eram texto puro. Idem Citadino (poder racial de Heróis de
-// Arton).
+// Arton) e Herói dos Sete Instrumentos (poder de destino de Heróis de Arton).
 const REFRESHED_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
   ['Arqueiro', ARQUEIRO_SHEET_BONUSES],
   ['Esgrimista', ESGRIMISTA_SHEET_BONUSES],
@@ -135,6 +136,7 @@ const REFRESHED_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
   ['Pele de Aço', PELE_DE_ACO_SHEET_BONUSES],
   ['Defesa Armada', DEFESA_ARMADA_SHEET_BONUSES],
   ['Citadino', CITADINO_SHEET_BONUSES],
+  ['Herói dos Sete Instrumentos', HEROI_DOS_SETE_INSTRUMENTOS_SHEET_BONUSES],
 ]);
 
 function refreshPowerBonuses<

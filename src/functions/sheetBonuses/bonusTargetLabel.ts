@@ -35,6 +35,8 @@ export function describeBonusTarget(
       return { label: target.name, numeric: true };
     case 'PickSkill':
       return { label: 'Perícia à escolha', numeric: true };
+    case 'UntrainedSkills':
+      return { label: 'Perícias não treinadas', numeric: true };
     case 'TrainSkill':
       return {
         label:

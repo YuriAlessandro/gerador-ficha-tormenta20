@@ -2515,6 +2515,16 @@ export function recalculateSheet(
       } else if (bonus.target.type === 'Skill') {
         const skillName = bonus.target.name;
         addOtherBonusToSkill(updatedSheet, skillName, bonusValue);
+      } else if (bonus.target.type === 'UntrainedSkills') {
+        // Herói dos Sete Instrumentos. O Step 7.7 já resolveu o `training` de
+        // cada linha. Nomes lidos antes do laço: `addOtherBonusToSkill`
+        // reatribui `completeSkills`.
+        const untrainedSkillNames = (updatedSheet.completeSkills || [])
+          .filter((skill) => !skill.training)
+          .map((skill) => skill.name);
+        untrainedSkillNames.forEach((skillName) => {
+          addOtherBonusToSkill(updatedSheet, skillName, bonusValue);
+        });
       } else if (bonus.target.type === 'PickSkill') {
         // Re-apply PickSkill. Prioridade: seleção manual → escolha persistida
         // em optionChoices (homebrew com optionKey, sobrevive ao recálculo sem

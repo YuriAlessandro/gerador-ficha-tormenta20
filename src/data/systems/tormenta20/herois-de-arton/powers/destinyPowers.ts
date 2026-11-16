@@ -4,6 +4,21 @@ import {
   RequirementType,
 } from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
+import { SheetBonus } from '../../../../../interfaces/CharacterSheet';
+
+// Herói dos Sete Instrumentos: +1 nas perícias não treinadas, +2 no 7º nível e
+// +3 no 15º (nível de personagem). Exportado porque o `sheetNormalizer`
+// refresca a cópia embutida nas fichas salvas (o poder era texto puro).
+export const HEROI_DOS_SETE_INSTRUMENTOS_SHEET_BONUSES: SheetBonus[] = [
+  {
+    source: { type: 'power', name: 'Herói dos Sete Instrumentos' },
+    target: { type: 'UntrainedSkills' },
+    modifier: {
+      type: 'LevelCalc',
+      formula: '1 + ({level} >= 7 ? 1 : 0) + ({level} >= 15 ? 1 : 0)',
+    },
+  },
+];
 
 /**
  * Poderes de Destino do suplemento Heróis de Arton
@@ -81,6 +96,7 @@ const destinyPowers: Record<string, GeneralPower> = {
       'Você aprendeu de tudo um pouco e um pouco de tudo. Você recebe um bônus de +1 em testes de perícias nas quais não é treinado. No 7º nível esse bônus aumenta para +2 e, no 15º nível, aumenta para +3.',
     type: GeneralPowerType.DESTINO,
     requirements: [],
+    sheetBonuses: HEROI_DOS_SETE_INSTRUMENTOS_SHEET_BONUSES,
   },
   IMPOSTOR: {
     name: 'Impostor',

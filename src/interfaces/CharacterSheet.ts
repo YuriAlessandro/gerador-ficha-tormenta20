@@ -489,6 +489,13 @@ export type StatModifierTarget =
       type: 'ArmorPenalty';
     }
   | {
+      // Todas as perícias em que a ficha NÃO é treinada (Herói dos Sete
+      // Instrumentos). Avaliado no Step 8 do `recalculateSheet`, depois de o
+      // Step 7.7 resolver o `training` de cada linha de `completeSkills`: soma
+      // o valor ao `others` de toda linha com `training` 0 ou ausente.
+      type: 'UntrainedSkills';
+    }
+  | {
       type: 'PickSkill';
       skills: Skill[];
       pick: number; // Number of skills to pick
