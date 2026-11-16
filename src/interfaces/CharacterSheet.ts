@@ -126,6 +126,11 @@ export type SheetActionStep =
       pick: number; // Number of spells to learn
       allowedType: 'Arcane' | 'Divine' | 'Both'; // Allowed types of spells
       schools?: SpellSchool[]; // Optional list of allowed schools
+      // Família de classe (ex.: 'Bardo', 'Druida') cujas escolas ESCOLHIDAS
+      // restringem o pool ("devem pertencer às escolas que você sabe usar").
+      // Resolvido em tempo de execução via `resolveActionSchools`: as escolas
+      // são por personagem, então não dá para fixá-las no dado.
+      schoolsFromClass?: string;
       // Teto de círculo, para regras que fixam o círculo ("uma magia de 1º
       // círculo") em vez de acompanhar o mais alto que o personagem lança.
       maxCircle?: number;

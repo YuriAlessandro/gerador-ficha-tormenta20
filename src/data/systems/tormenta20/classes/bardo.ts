@@ -105,6 +105,7 @@ const BARDO: ClassDescription = {
             type: 'learnAnySpellFromHighestCircle',
             allowedType: 'Both',
             pick: 2,
+            schoolsFromClass: 'Bardo',
           },
         },
       ],

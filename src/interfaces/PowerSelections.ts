@@ -100,6 +100,9 @@ export interface PowerSelectionRequirement {
   metadata?: {
     allowedType?: 'Arcane' | 'Divine' | 'Both';
     schools?: string[];
+    // For learnAnySpellFromHighestCircle: família da classe cujas escolas
+    // escolhidas restringem o pool (ver `resolveActionSchools`).
+    schoolsFromClass?: string;
     maxCircle?: number; // For learnAnySpellFromHighestCircle: teto de círculo
     optionKey?: string; // For chooseFromOptions: the option key identifier
     // For chooseFromOptions com `appendChosenSpellSchoolTo`: família da classe

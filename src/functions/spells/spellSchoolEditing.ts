@@ -230,6 +230,28 @@ export function findSchoolTargetByFamily(
 }
 
 /**
+ * Escolas permitidas de um `learnAnySpellFromHighestCircle`: a lista fixa
+ * (`schools`) e/ou as escolas escolhidas da classe da família
+ * `schoolsFromClass` (Aumentar Repertório, Segredos da Natureza — "devem
+ * pertencer às escolas que você sabe usar"). Com as duas, vale a interseção.
+ * Sem classe da família na ficha (ou sem escolas), `schoolsFromClass` não
+ * restringe nada, para o pool nunca sair vazio. `[]` = sem filtro.
+ */
+export function resolveActionSchools(
+  sheet: CharacterSheet,
+  schools: readonly string[] | undefined,
+  schoolsFromClass: string | undefined
+): string[] {
+  const fixed = schools ?? [];
+  const classSchools = schoolsFromClass
+    ? findSchoolTargetByFamily(sheet, schoolsFromClass)?.schools ?? []
+    : [];
+  if (fixed.length === 0) return [...classSchools];
+  if (classSchools.length === 0) return [...fixed];
+  return fixed.filter((school) => classSchools.includes(school as SpellSchool));
+}
+
+/**
  * Acrescenta uma escola à classe da família `family` (sem duplicar). Devolve
  * as atualizações da ficha, ou `{}` quando não há classe ou ela já tem a
  * escola. Mesmo caminho de gravação do editor de escolas.

@@ -402,7 +402,22 @@ const DRUIDA: ClassDescription = {
     {
       name: 'Segredos da Natureza',
       text: 'Você aprende duas magias de qualquer círculo que possa lançar. Elas devem pertencer às escolas que você sabe usar, mas podem ser arcanas ou divinas. Você pode escolher este poder quantas vezes quiser.',
+      canRepeat: true,
       requirements: [],
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Segredos da Natureza',
+          },
+          action: {
+            type: 'learnAnySpellFromHighestCircle',
+            allowedType: 'Both',
+            pick: 2,
+            schoolsFromClass: 'Druida',
+          },
+        },
+      ],
     },
     {
       name: 'Tranquilidade dos Lagos',

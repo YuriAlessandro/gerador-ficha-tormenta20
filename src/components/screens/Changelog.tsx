@@ -257,6 +257,17 @@ const Changelog: React.FC = () => {
                   que já tinham um desses poderes precisam removê-lo e
                   adicioná-lo de novo para escolher as magias.
                 </li>
+                <li>
+                  <strong>Correção:</strong> o poder{' '}
+                  <strong>Segredos da Natureza</strong> (Druida) agora abre a
+                  escolha das duas magias que concede e pode ser escolhido mais
+                  de uma vez, como no livro. Ele e o{' '}
+                  <strong>Aumentar Repertório</strong> (Bardo) passam a oferecer
+                  só magias das escolas que a sua classe sabe usar, arcanas ou
+                  divinas. Antes, o Aumentar Repertório mostrava magias de
+                  qualquer escola. Fichas que já tinham o Segredos da Natureza
+                  não mudam: as magias continuam sendo adicionadas à mão.
+                </li>
               </ul>
 
               <h3>4.38</h3>

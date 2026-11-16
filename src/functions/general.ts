@@ -164,6 +164,7 @@ import { getSpellDisplayName } from './spells/spellDisplayName';
 import {
   buildAppendSpellSchoolUpdates,
   findSchoolTargetByFamily,
+  resolveActionSchools,
   spellSchoolFromLabel,
 } from './spells/spellSchoolEditing';
 import {
@@ -2565,7 +2566,11 @@ export const applyPower = (
             array.findIndex((s) => s.nome === spell.nome) === index
         );
 
-        const allowedSchools = sheetAction.action.schools || [];
+        const allowedSchools = resolveActionSchools(
+          sheet,
+          sheetAction.action.schools,
+          sheetAction.action.schoolsFromClass
+        );
         const availableSpells = allSpellsOfCircle.filter((spell) => {
           if (allowedSchools.length === 0) return true;
           return allowedSchools.includes(spell.school);

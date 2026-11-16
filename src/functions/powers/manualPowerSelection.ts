@@ -46,6 +46,7 @@ import { getHighestSpellCircle } from '../multiclass';
 import { getActiveWaivers } from './prerequisiteWaivers';
 import {
   findSchoolTargetByFamily,
+  resolveActionSchools,
   spellSchoolFromLabel,
 } from '../spells/spellSchoolEditing';
 import { getIntelligenceSkillsPick } from './intelligenceIncreaseSkills';
@@ -288,6 +289,7 @@ export function getPowerSelectionRequirements(
           metadata: {
             allowedType: action.allowedType,
             schools: action.schools,
+            schoolsFromClass: action.schoolsFromClass,
             maxCircle: action.maxCircle,
           },
         });
@@ -995,8 +997,12 @@ export function getFilteredAvailableOptions(
           array.findIndex((s) => s.nome === spell.nome) === index
       );
 
-      // Filter by schools if specified
-      const allowedSchools = requirement.metadata?.schools || [];
+      // Filter by schools if specified (fixas e/ou as escolhidas da classe)
+      const allowedSchools = resolveActionSchools(
+        sheet,
+        requirement.metadata?.schools,
+        requirement.metadata?.schoolsFromClass
+      );
       let availableSpells = uniqueSpells;
       if (allowedSchools.length > 0) {
         availableSpells = uniqueSpells.filter((spell) =>
