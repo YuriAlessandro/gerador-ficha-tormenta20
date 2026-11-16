@@ -120,13 +120,22 @@ function isAllDivineSpellsOfCircle(spells: Spell[]): {
 }
 
 /**
- * Helper to determine if a spell list represents "all spells (arcane+divine) of circle X"
+ * Helper to determine if a spell list represents "all spells (arcane+divine)"
+ * of one or more circles (ex.: Glamour Maior = 1º + 2º círculo). Só casa
+ * quando TODO círculo presente na lista tem mais de 40 magias — uma lista
+ * curta e específica (ex.: Magia das Fadas) segue como está.
  */
 function isAllSpellsOfCircle(spells: Spell[]): {
   isMatch: boolean;
-  circle: number;
+  circles: number[];
 } {
-  // Check if it's a combined list of arcane+divine spells
+  const circleMap: Record<string, number> = {
+    [spellsCircles.c1]: 1,
+    [spellsCircles.c2]: 2,
+    [spellsCircles.c3]: 3,
+    [spellsCircles.c4]: 4,
+    [spellsCircles.c5]: 5,
+  };
   const circleToSpells: Record<string, number> = {};
 
   spells.forEach((spell) => {
@@ -134,27 +143,22 @@ function isAllSpellsOfCircle(spells: Spell[]): {
     circleToSpells[circleKey] = (circleToSpells[circleKey] || 0) + 1;
   });
 
-  // Find the dominant circle
   const circles = Object.entries(circleToSpells);
-  if (circles.length === 1) {
-    const [circleKey, count] = circles[0];
-    // Map spellCircle enum to number
-    const circleMap: Record<string, number> = {
-      [spellsCircles.c1]: 1,
-      [spellsCircles.c2]: 2,
-      [spellsCircles.c3]: 3,
-      [spellsCircles.c4]: 4,
-      [spellsCircles.c5]: 5,
-    };
-    const circleNumber = circleMap[circleKey] || 0;
+  // If every circle has more than 40 spells, it's likely all spells of them
+  const isMatch =
+    circles.length > 0 &&
+    circles.every(
+      ([circleKey, count]) => count > 40 && (circleMap[circleKey] || 0) > 0
+    );
 
-    // If we have more than 40 spells from a single circle, it's likely all spells
-    if (count > 40 && circleNumber > 0) {
-      return { isMatch: true, circle: circleNumber };
-    }
-  }
+  if (!isMatch) return { isMatch: false, circles: [] };
 
-  return { isMatch: false, circle: 0 };
+  return {
+    isMatch: true,
+    circles: circles
+      .map(([circleKey]) => circleMap[circleKey])
+      .sort((a, b) => a - b),
+  };
 }
 
 /**
@@ -847,15 +851,18 @@ export function getFilteredAvailableOptions(
       // from arcane/divine checks when the list contains both traditions
       const allSpellsCheck = isAllSpellsOfCircle(spells);
       if (allSpellsCheck.isMatch) {
-        const arcaneSpells = dataRegistry.getArcaneSpellsByCircleAndSupplements(
-          allSpellsCheck.circle,
-          supplements
+        const allSpellsWithSupplements = allSpellsCheck.circles.flatMap(
+          (circle) => [
+            ...dataRegistry.getArcaneSpellsByCircleAndSupplements(
+              circle,
+              supplements
+            ),
+            ...dataRegistry.getDivineSpellsByCircleAndSupplements(
+              circle,
+              supplements
+            ),
+          ]
         );
-        const divineSpells = dataRegistry.getDivineSpellsByCircleAndSupplements(
-          allSpellsCheck.circle,
-          supplements
-        );
-        const allSpellsWithSupplements = [...arcaneSpells, ...divineSpells];
 
         // Remove duplicates
         const uniqueSpells = allSpellsWithSupplements.filter(
