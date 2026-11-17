@@ -2,7 +2,13 @@ import _ from 'lodash';
 import { Atributo } from '../../../../data/systems/tormenta20/atributos';
 import { AMEACAS_ARTON_WEAPONS } from '../../../../data/systems/tormenta20/ameacas-de-arton/equipment/weapons';
 import Equipment, { BagEquipments } from '../../../../interfaces/Equipment';
-import { BackpackStagedState, reducer } from '../useBackpackState';
+import {
+  BackpackStagedState,
+  reducer,
+  shouldSkipUpgradeCharge,
+  upgradeChargeAmount,
+  upgradeChargeUnits,
+} from '../useBackpackState';
 
 /**
  * Preço de item superior (Jogo do Ano p. 164, Tabela 3-7: 1 melhoria = +T$ 300).
@@ -154,5 +160,62 @@ describe('item superior: preço das melhorias sai do dinheiro', () => {
     });
 
     expect(next.money.dinheiro).toBe(1000);
+  });
+});
+
+describe('item ganho: opção de não cobrar a melhoria', () => {
+  it('Jão: porrete com Cruel ganho (skipUpgradeCharge) grava a melhoria sem cobrar', () => {
+    const state = makeState([porrete()]);
+
+    const next = reducer(state, {
+      type: 'UPDATE_ITEM',
+      id: 'porrete',
+      next: porrete({ modifications: CRUEL }),
+      skipUpgradeCharge: true,
+    });
+
+    expect(next.money.dinheiro).toBe(1000);
+    expect(allItems(next)[0].modifications).toEqual(CRUEL);
+  });
+
+  it('uma unidade separada da pilha, ganha: não cobra e separa', () => {
+    const state = makeState([porrete({ quantity: 2 })]);
+
+    const next = reducer(state, {
+      type: 'SPLIT_EDIT_ITEM',
+      id: 'porrete',
+      next: porrete({ modifications: CRUEL }),
+      newId: 'porrete-cruel',
+      skipUpgradeCharge: true,
+    });
+
+    expect(next.money.dinheiro).toBe(1000);
+    expect(allItems(next).map((i) => [i.id, i.quantity])).toEqual([
+      ['porrete', 1],
+      ['porrete-cruel', 1],
+    ]);
+  });
+
+  it('valor mostrado no editor = valor que o reducer cobra', () => {
+    const pilha = porrete({ quantity: 2 });
+    const cruel = porrete({ quantity: 2, modifications: CRUEL });
+
+    // Pilha inteira: 2 × T$ 300; uma unidade separada: T$ 300.
+    expect(upgradeChargeAmount(pilha, cruel, upgradeChargeUnits(pilha))).toBe(
+      600
+    );
+    expect(upgradeChargeAmount(pilha, cruel, 1)).toBe(300);
+    // Tirar melhoria nunca dá valor negativo (não há reembolso).
+    expect(upgradeChargeAmount(cruel, pilha, 2)).toBe(0);
+  });
+
+  it('pula a cobrança só se havia cobrança e a caixa foi desmarcada', () => {
+    expect(shouldSkipUpgradeCharge(true, 300, false)).toBe(true);
+    // Caixa marcada (padrão): cobra.
+    expect(shouldSkipUpgradeCharge(true, 300, true)).toBe(false);
+    // Desmarcou e depois tirou a melhoria: nada a pular.
+    expect(shouldSkipUpgradeCharge(true, 0, false)).toBe(false);
+    // Desconto automático desligado: a caixa nem aparece.
+    expect(shouldSkipUpgradeCharge(false, 300, false)).toBe(false);
   });
 });
