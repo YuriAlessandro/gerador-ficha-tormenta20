@@ -129,6 +129,11 @@ export interface BackpackFilters {
   selectedCategories: Set<equipGroup>;
 }
 
+export interface UpgradeChargeOptions {
+  /** Não debitar o acréscimo de item superior (item ganho, não comprado). */
+  skipUpgradeCharge?: boolean;
+}
+
 export interface BackpackActions {
   /** Adds (or merges qty into) an item. Replaces existing armor/shield. */
   addItem: (item: Equipment, options?: { quantity?: number }) => void;
@@ -136,13 +141,26 @@ export interface BackpackActions {
   removeItem: (id: string) => Equipment | null;
   /** Sets the quantity for an item; clamps to >= 1. */
   setQuantity: (id: string, quantity: number) => void;
-  /** Replaces the item in place by id. */
-  updateItem: (id: string, next: Equipment) => void;
+  /**
+   * Replaces the item in place by id. Melhoria/encanto novo debita o acréscimo
+   * de preço (desconto automático ligado), a menos que `skipUpgradeCharge` —
+   * item ganho, não comprado. A flag só deixa de cobrar; nunca reembolsa.
+   */
+  updateItem: (
+    id: string,
+    next: Equipment,
+    options?: UpgradeChargeOptions
+  ) => void;
   /**
    * Edita uma única unidade de uma pilha: `next` entra como item novo logo
-   * após a pilha, que perde uma unidade.
+   * após a pilha, que perde uma unidade. `skipUpgradeCharge` como em
+   * `updateItem`.
    */
-  splitEditItem: (id: string, next: Equipment) => void;
+  splitEditItem: (
+    id: string,
+    next: Equipment,
+    options?: UpgradeChargeOptions
+  ) => void;
   setMoney: (money: Partial<BackpackMoney>) => void;
   setMaxSpacesAttribute: (attribute: Atributo) => void;
   setCustomMaxSpaces: (value: number | undefined) => void;
@@ -219,8 +237,19 @@ type Action =
   | { type: 'ADD_ITEM'; item: Equipment; quantity: number }
   | { type: 'REMOVE_ITEM'; id: string }
   | { type: 'SET_QUANTITY'; id: string; quantity: number }
-  | { type: 'UPDATE_ITEM'; id: string; next: Equipment }
-  | { type: 'SPLIT_EDIT_ITEM'; id: string; next: Equipment; newId: string }
+  | {
+      type: 'UPDATE_ITEM';
+      id: string;
+      next: Equipment;
+      skipUpgradeCharge?: boolean;
+    }
+  | {
+      type: 'SPLIT_EDIT_ITEM';
+      id: string;
+      next: Equipment;
+      newId: string;
+      skipUpgradeCharge?: boolean;
+    }
   | { type: 'SET_MONEY'; money: Partial<BackpackMoney> }
   | { type: 'SET_MAX_SPACES_ATTRIBUTE'; attribute: Atributo }
   | { type: 'SET_CUSTOM_MAX_SPACES'; value: number | undefined }
@@ -429,6 +458,43 @@ function upgradePrice(item: Equipment): number {
 }
 
 /**
+ * Em quantas unidades o acréscimo de item superior é cobrado ao editar o item
+ * INTEIRO (a pilha toda; munição por pacotes fechados). Editar uma unidade só
+ * de uma pilha cobra 1.
+ */
+export function upgradeChargeUnits(item: Equipment): number {
+  return Math.max(1, purchaseUnits(item));
+}
+
+/**
+ * Quanto sai do dinheiro ao transformar `prev` em `next`, para `units`
+ * unidades: só o ACRÉSCIMO de aprimoramento, nunca negativo. Sem levar em conta
+ * o desconto automático nem a opção de não cobrar — é o valor que o editor
+ * mostra e que o reducer debita.
+ */
+export function upgradeChargeAmount(
+  prev: Equipment,
+  next: Equipment,
+  units: number
+): number {
+  const delta = upgradePrice(next) - upgradePrice(prev);
+  return delta > 0 ? delta * units : 0;
+}
+
+/**
+ * O save do editor deve pular a cobrança? Só quando haveria cobrança (desconto
+ * automático ligado e valor > 0) e o jogador desmarcou "Descontar do dinheiro"
+ * — desmarcar e depois tirar a melhoria não deixa a flag pendurada.
+ */
+export function shouldSkipUpgradeCharge(
+  chargesUpgradeOnSave: boolean,
+  amount: number,
+  payChecked: boolean
+): boolean {
+  return chargesUpgradeOnSave && amount > 0 && !payChecked;
+}
+
+/**
  * Débito de transformar `prev` em `next` (item superior), para `units` unidades.
  * Só cobra o ACRÉSCIMO e só com o desconto automático ligado. Tirar melhoria não
  * reembolsa: o crédito ficaria pendurado no id e sobreviveria a divisões de
@@ -439,14 +505,15 @@ function chargeUpgrade(
   state: StagedState,
   prev: Equipment | undefined,
   next: Equipment,
-  units: number
+  units: number,
+  skip = false
 ): BackpackMoney {
-  if (!state.autoDeductMoney || !prev) return state.money;
-  const delta = upgradePrice(next) - upgradePrice(prev);
-  if (delta <= 0) return state.money;
+  if (skip || !state.autoDeductMoney || !prev) return state.money;
+  const amount = upgradeChargeAmount(prev, next, units);
+  if (amount <= 0) return state.money;
   return {
     ...state.money,
-    dinheiro: state.money.dinheiro - delta * units,
+    dinheiro: state.money.dinheiro - amount,
   };
 }
 
@@ -964,7 +1031,8 @@ export function reducer(state: StagedState, action: Action): StagedState {
           state,
           prev,
           action.next,
-          prev ? Math.max(1, purchaseUnits(prev)) : 1
+          prev ? upgradeChargeUnits(prev) : 1,
+          action.skipUpgradeCharge
         ),
       };
     }
@@ -974,7 +1042,13 @@ export function reducer(state: StagedState, action: Action): StagedState {
       const prev = flattenEquipments(state.equipments).find(
         (it) => it.id === action.id
       );
-      const money = chargeUpgrade(state, prev, action.next, 1);
+      const money = chargeUpgrade(
+        state,
+        prev,
+        action.next,
+        1,
+        action.skipUpgradeCharge
+      );
       const next = splitItemInEquipments(
         state.equipments,
         state.displayOrder,
@@ -1410,14 +1484,25 @@ export function useBackpackState({
   );
 
   const updateItem = useCallback(
-    (id: string, next: Equipment) =>
-      dispatch({ type: 'UPDATE_ITEM', id, next }),
+    (id: string, next: Equipment, options?: UpgradeChargeOptions) =>
+      dispatch({
+        type: 'UPDATE_ITEM',
+        id,
+        next,
+        skipUpgradeCharge: options?.skipUpgradeCharge,
+      }),
     []
   );
 
   const splitEditItem = useCallback(
-    (id: string, next: Equipment) =>
-      dispatch({ type: 'SPLIT_EDIT_ITEM', id, next, newId: uuid() }),
+    (id: string, next: Equipment, options?: UpgradeChargeOptions) =>
+      dispatch({
+        type: 'SPLIT_EDIT_ITEM',
+        id,
+        next,
+        newId: uuid(),
+        skipUpgradeCharge: options?.skipUpgradeCharge,
+      }),
     []
   );
 
