@@ -493,11 +493,12 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
 
   const handleEditorSave = (
     next: Equipment,
-    options?: { splitFromStack?: boolean }
+    options?: { splitFromStack?: boolean; skipUpgradeCharge?: boolean }
   ) => {
     if (next.id) {
-      if (options?.splitFromStack) splitEditItem(next.id, next);
-      else updateItem(next.id, next);
+      const charge = { skipUpgradeCharge: options?.skipUpgradeCharge };
+      if (options?.splitFromStack) splitEditItem(next.id, next, charge);
+      else updateItem(next.id, next, charge);
     }
     setEditorOpen(false);
     setEditingItem(null);
@@ -1326,6 +1327,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         item={editingItem}
         onSave={handleEditorSave}
         ammoTypeOptions={ammoTypeOptions}
+        chargesUpgradeOnSave={staged.autoDeductMoney}
       />
     </Dialog>
   );

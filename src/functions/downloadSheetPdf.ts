@@ -2,6 +2,8 @@ import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
 import { manaExpenseByCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import CharacterSheet from '@/interfaces/CharacterSheet';
+import { SheetAge } from '@/interfaces/Age';
+import { getAgeBracket } from '@/premium/data/ageBrackets';
 import Equipment from '@/interfaces/Equipment';
 import Skill, { CompleteSkill } from '@/interfaces/Skills';
 import { Spell } from '@/interfaces/Spells';
@@ -139,6 +141,24 @@ interface OverflowText {
 }
 
 /**
+ * Corpo da seção "Idade": só os campos preenchidos. A faixa etária só existe com
+ * Idades Variadas (Heróis de Arton) — sem a regra, `bracket` é `undefined` e
+ * saía "undefined, 35 anos"; com ela, saía o id cru ("adulto").
+ */
+export const formatSheetAgeText = (age: SheetAge): string => {
+  const bracketLabel = age.bracket
+    ? getAgeBracket(age.bracket)?.label ?? age.bracket
+    : undefined;
+  const header = [bracketLabel, age.years ? `${age.years} anos` : undefined]
+    .filter(Boolean)
+    .join(', ');
+  const complications = (age.complications ?? [])
+    .map((comp) => `- ${comp.name}: ${comp.description}`)
+    .join('\n');
+  return `${header}\n${complications}`.trim();
+};
+
+/**
  * Monta as seções das páginas de continuação: o que não tem campo no template
  * mais o que transbordou dos campos de tamanho fixo.
  *
@@ -191,13 +211,7 @@ const buildExtraSections = (
   // `push` ignora corpo vazio: ficha não fundamentalista não ganha seção.
   push('Dogma fundamentalista', getFundamentalistaSummary(sheet));
 
-  if (sheet.age) {
-    const years = sheet.age.years ? `, ${sheet.age.years} anos` : '';
-    const complications = sheet.age.complications
-      .map((comp) => `- ${comp.name}: ${comp.description}`)
-      .join('\n');
-    push('Idade', `${sheet.age.bracket}${years}\n${complications}`.trimEnd());
-  }
+  if (sheet.age) push('Idade', formatSheetAgeText(sheet.age));
 
   if (sheet.poderesCapturados?.length) {
     push(

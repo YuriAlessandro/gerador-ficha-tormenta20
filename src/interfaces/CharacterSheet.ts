@@ -782,6 +782,17 @@ export type BonusConditionClause = (
       op: BonusConditionOp;
       value: number;
     }
+  /**
+   * Compara dois atributos da ficha (`attribute` op `otherAttribute`), pelo
+   * valor base — mesma leitura da cláusula `attribute`. Para habilidades do tipo
+   * "pode usar X em vez de Y" (Pernas Caprinas: Destreza no Atletismo).
+   */
+  | {
+      kind: 'attributeCompare';
+      attribute: Atributo;
+      op: BonusConditionOp;
+      otherAttribute: Atributo;
+    }
   | { kind: 'isClass'; value: string }
   | { kind: 'hasPower'; value: string }
   | { kind: 'hasProficiency'; value: string }

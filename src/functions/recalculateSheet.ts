@@ -148,6 +148,7 @@ import {
 } from './reverseSheetActions';
 import { syncFeiticeiroHerancas } from './powers/feiticeiroHeranca';
 import { applyTormentaAttributePenalty } from './tormentaCharismaPenalty';
+import { applyAcuidadeComArma } from './powers/acuidadeComArma';
 
 /**
  * Finds a class definition by name and optional subname.
@@ -716,7 +717,11 @@ export function reapplyEnhancementsAndWeaponBonuses(
     };
   }
 
-  return applyWeaponBonuses(updatedSheet, manualSelections);
+  const withBonuses = applyWeaponBonuses(updatedSheet, manualSelections);
+  // Acuidade com Arma: carimbo derivado nas armas (a mochila acima é cópia
+  // nova). Aqui porque esta função é comum aos dois motores de ficha.
+  applyAcuidadeComArma(withBonuses);
+  return withBonuses;
 }
 
 // Helper function to add bonus to skill

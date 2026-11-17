@@ -81,6 +81,12 @@ import ItemEnchantmentsEditor, {
 } from './ItemEnchantmentsEditor';
 import { isDefenseGroup } from './equipmentCatalog';
 import CustomItemBonusesSection from './CustomItemBonusesSection';
+import { getEnhancedItemPrice } from '../../../functions/itemEnhancements/pricing';
+import {
+  shouldSkipUpgradeCharge,
+  upgradeChargeAmount,
+  upgradeChargeUnits,
+} from './useBackpackState';
 import { MAX_CUSTOM_POWER_BONUSES } from '../../../functions/powers/customPowerBonuses';
 import {
   buildSavedItem,
@@ -105,9 +111,20 @@ export interface ItemEditorDialogProps {
    * `splitFromStack`: o item é uma pilha (`quantity > 1`) e o jogador escolheu
    * editar só uma unidade — `next` vira uma entrada nova e a pilha perde uma.
    */
-  onSave: (next: Equipment, options?: { splitFromStack?: boolean }) => void;
+  onSave: (
+    next: Equipment,
+    options?: { splitFromStack?: boolean; skipUpgradeCharge?: boolean }
+  ) => void;
   /** Tipos de munição + pacotes que os resolvem. Ver `getAmmoTypeOptions`. */
   ammoTypeOptions?: AmmoTypeOption[];
+  /**
+   * Salvar com melhoria/encanto novo debita o acréscimo de preço (mochila com
+   * desconto automático ligado — ver `chargeUpgrade` em useBackpackState).
+   * Mostra o valor e a opção "Descontar do dinheiro", que o jogador desmarca
+   * para item ganho; o save então manda `skipUpgradeCharge`. Quem cobra é o
+   * reducer.
+   */
+  chargesUpgradeOnSave?: boolean;
 }
 
 type TabKey = 'geral' | 'stats' | 'modificacoes' | 'encantamentos' | 'efeitos';
@@ -223,6 +240,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
   item,
   onSave,
   ammoTypeOptions = [],
+  chargesUpgradeOnSave = false,
 }) => {
   const [tab, setTab] = useState<TabKey>('geral');
   const [form, setForm] = useState(buildInitial(item));
@@ -245,6 +263,9 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
   // "Resetar" clicado nesta abertura: as estatísticas voltam ao catálogo, e
   // não aos snapshots `base*` (que podem ter capturado uma edição manual).
   const [statsReset, setStatsReset] = useState(false);
+  // "Descontar do dinheiro" do item superior: marcado = comprado (cobra);
+  // desmarcado = ganho (saque, recompensa), não cobra.
+  const [payUpgrade, setPayUpgrade] = useState(true);
   const userSupplements: SupplementId[] = useContentSupplements();
 
   const isWeapon = item?.group === 'Arma';
@@ -292,6 +313,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
       setTab('geral');
       setEditOnlyOne(true);
       setStatsReset(false);
+      setPayUpgrade(true);
       setModError('');
       setEnchError('');
     }
@@ -526,6 +548,62 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
     </Alert>
   ) : null;
 
+  // Preço do item superior (Jogo do Ano p. 164): o comum + melhorias, material
+  // e encantos selecionados. O acréscimo sobre o item atual é o que a mochila
+  // debita ao salvar, quando o desconto automático está ligado.
+  const pricePreview: Equipment = {
+    ...item,
+    modifications: form.selectedModifications.map((m) => ({
+      mod: m.mod,
+      specialMaterial:
+        m.mod === 'Material especial' ? form.selectedMaterial : undefined,
+    })),
+    enchantments: form.selectedEnchantments.map((e) => ({
+      enchantment: e.enchantment,
+    })),
+  };
+  const superiorTotal = getEnhancedItemPrice(pricePreview).total;
+  const superiorBase = item.preco ?? 0;
+  // O mesmo valor que o reducer debita: acréscimo × unidades editadas (a pilha
+  // inteira, ou 1 ao separar uma unidade).
+  const upgradeCharge = upgradeChargeAmount(
+    item,
+    pricePreview,
+    splitFromStack ? 1 : upgradeChargeUnits(item)
+  );
+  const showUpgradeCharge = chargesUpgradeOnSave && upgradeCharge > 0;
+  const superiorPriceInfo =
+    superiorTotal > superiorBase ? (
+      <Box>
+        <Typography variant='body2'>
+          Preço do item superior: T$ {superiorTotal} (T$ {superiorBase} + T${' '}
+          {superiorTotal - superiorBase}).
+        </Typography>
+        {showUpgradeCharge && (
+          <>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  size='small'
+                  checked={payUpgrade}
+                  onChange={(e) => setPayUpgrade(e.target.checked)}
+                />
+              }
+              label={`Descontar T$ ${upgradeCharge} do dinheiro ao salvar`}
+            />
+            <Typography
+              variant='caption'
+              component='p'
+              sx={{ color: 'text.secondary' }}
+            >
+              Desmarque se o item foi ganho (saque, recompensa do mestre) e não
+              comprado.
+            </Typography>
+          </>
+        )}
+      </Box>
+    ) : null;
+
   const spacesAreManual = manualEditedFields.has('spaces');
   let spacesHelperText: React.ReactNode;
   if (spacesAreManual && hasAutomaticSpaces) {
@@ -552,6 +630,12 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
       buildSavedItem(statsItem ?? item, form, manualEditedFields, touchedFields)
     );
 
+    const skipUpgradeCharge = shouldSkipUpgradeCharge(
+      chargesUpgradeOnSave,
+      upgradeCharge,
+      payUpgrade
+    );
+
     if (splitFromStack) {
       // Salvar sem mudar nada não deve partir a pilha em duas entradas iguais.
       const pristine = applyItemEnhancements(
@@ -563,10 +647,13 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
       if (unchanged) {
         onClose();
       } else {
-        onSave({ ...finalItem, quantity: 1 }, { splitFromStack: true });
+        onSave(
+          { ...finalItem, quantity: 1 },
+          { splitFromStack: true, skipUpgradeCharge }
+        );
       }
     } else {
-      onSave(finalItem);
+      onSave(finalItem, { skipUpgradeCharge });
     }
   };
 
@@ -1372,6 +1459,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
               automaticamente sobre os valores base do item. Custo máximo: 5
               pontos.
             </Typography>
+            {superiorPriceInfo}
             {modError && (
               <Typography
                 variant='caption'
@@ -1412,6 +1500,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
               condicionais, dano elemental, resistências) ficam registrados no
               item mas não modificam stats. Custo máximo: 5 pontos.
             </Typography>
+            {superiorPriceInfo}
             {enchError && (
               <Typography
                 variant='caption'
