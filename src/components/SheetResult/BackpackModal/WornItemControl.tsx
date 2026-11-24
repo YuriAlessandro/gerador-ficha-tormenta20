@@ -3,6 +3,7 @@ import { IconButton, Tooltip } from '@mui/material';
 import WearIcon from '@mui/icons-material/Checkroom';
 
 import Equipment from '../../../interfaces/Equipment';
+import { isWornLikeClothing } from './wielding';
 
 export interface WornItemControlProps {
   item: Equipment;
@@ -12,9 +13,9 @@ export interface WornItemControlProps {
 }
 
 /**
- * Botão de vestir/tirar dos dois únicos grupos com estado de vestimenta:
- * `Armadura` (id único em `wornArmorId`) e `Vestuário` (conjunto de guardados
- * em `unwornClothingIds`). O componente é agnóstico ao armazenamento — só
+ * Botão de vestir/tirar dos itens com estado de vestimenta: `Armadura` (id
+ * único em `wornArmorId`) e `Vestuário` + vestíveis como a Estola (conjunto de
+ * guardados em `unwornClothingIds`, ver `isWornLikeClothing`). O componente é agnóstico ao armazenamento — só
  * reporta a intenção; quem decide é o reducer da mochila.
  *
  * A microcópia difere de propósito: armadura se "tira", peça de vestuário se
@@ -27,7 +28,7 @@ const WornItemControl: React.FC<WornItemControlProps> = ({
   size = 'small',
 }) => {
   const isArmor = item.group === 'Armadura';
-  const isClothingItem = item.group === 'Vestuário';
+  const isClothingItem = isWornLikeClothing(item);
   if (!isArmor && !isClothingItem) return null;
 
   let title: string;

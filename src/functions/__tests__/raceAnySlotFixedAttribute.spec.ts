@@ -6,6 +6,7 @@
  * Moreau, Golem Desperto) ficam como estão.
  */
 import { describe, it, expect } from 'vitest';
+import { itWithPremium } from '../../__tests__/premiumGate';
 import { dataRegistry } from '../../data/registry';
 import { SupplementId } from '../../types/supplement.types';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
@@ -17,6 +18,10 @@ import {
 import { applyOpenRace } from '../../premium/functions/openRaces';
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
 import Race from '../../interfaces/Race';
+import {
+  MOREAU_HERITAGES,
+  MOREAU_HERITAGE_NAMES,
+} from '../../data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 
 const ALL_SUPPLEMENTS = Object.values(SupplementId);
 
@@ -111,9 +116,45 @@ describe('slot livre de raça com "outro atributo"', () => {
     }
   );
 
-  it('Raças Abertas (Heróis p. 281) continua sem trava no Meio-Orc', () => {
-    const meioOrc = race('Meio-Orc');
-    const open = applyOpenRace(meioOrc, getEffectiveRaceAttrs(meioOrc));
-    expect(exclusions(open)).toEqual([]);
-  });
+  // Toda herança do Moreau diz "X +1, +1 em dois atributos" (Ameaças de
+  // Arton, p. 304-305), sem "outro": o +1 pode repetir o atributo da herança.
+  it.each(MOREAU_HERITAGE_NAMES)(
+    'Moreau (Herança %s): o +1 pode cair no atributo da herança',
+    (heritageName) => {
+      const heritage = MOREAU_HERITAGES[heritageName];
+      const moreau: Race = {
+        ...race('Moreau'),
+        heritage: heritageName,
+        attributes: { attrs: heritage.attributes },
+      };
+      const fixed = heritage.attributes.find((attr) => attr.attr !== 'any');
+      if (!fixed || fixed.attr === 'any') {
+        throw new Error(`Herança ${heritageName} sem atributo fixo`);
+      }
+
+      expect(exclusions(moreau)).not.toContain(fixed.attr);
+
+      const { atributos } = createMockCharacterSheet();
+      const other =
+        fixed.attr === Atributo.FORCA ? Atributo.DESTREZA : Atributo.FORCA;
+      const result = modifyAttributesBasedOnRace(
+        moreau,
+        atributos,
+        [],
+        [],
+        [fixed.attr, other]
+      );
+      expect(result[fixed.attr].value).toBe(atributos[fixed.attr].value + 2);
+      expect(result[other].value).toBe(atributos[other].value + 1);
+    }
+  );
+
+  itWithPremium(
+    'Raças Abertas (Heróis p. 281) continua sem trava no Meio-Orc',
+    () => {
+      const meioOrc = race('Meio-Orc');
+      const open = applyOpenRace(meioOrc, getEffectiveRaceAttrs(meioOrc));
+      expect(exclusions(open)).toEqual([]);
+    }
+  );
 });

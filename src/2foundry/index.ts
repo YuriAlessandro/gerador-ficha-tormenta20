@@ -3,12 +3,14 @@ import { buildActorSystem, buildClassItems } from './actor';
 import { collectSheetPowers } from '../functions/powers/collectSheetPowers';
 import {
   buildActorToggleEffects,
+  buildAttributeLayerEffects,
   buildAutomations,
   findToggles,
 } from './automations';
 import { buildPassiveEffect } from './effects';
 import { buildEquipmentItems } from './items/equipment';
 import { buildPowerItems } from './items/powers';
+import { buildRaceItem } from './items/race';
 import { buildSpellItems } from './items/spells';
 import { FoundryJSON } from './types';
 import { FOUNDRY_SYSTEM_VERSION } from './version';
@@ -31,25 +33,33 @@ export function convertToFoundry(sheet: CharacterSheet): FoundryJSON {
   const powers = buildPowerItems(sheet, automations.groups);
 
   const items = [
+    ...buildRaceItem(sheet),
     ...buildClassItems(sheet),
     ...powers.items,
     ...buildSpellItems(sheet),
     ...buildEquipmentItems(sheet),
   ];
 
+  // Ativáveis: desligados, para o jogador ligar na aba de Efeitos do ator —
+  // ligados quando a opção está ativa na ficha.
+  const toggleEffects = buildActorToggleEffects(sheet, toggles);
+  const effects = [
+    // Bônus de raça, item, ajuste manual… — sem item de poder para carregá-los.
+    ...powers.unclaimed.map((group) =>
+      buildPassiveEffect(group.label, group.changes, false)
+    ),
+    ...toggleEffects,
+    // O resto da camada de atributo efetivo, ligado como está na ficha.
+    ...buildAttributeLayerEffects(sheet, toggleEffects),
+  ];
+
   return {
-    name: sheet.nome,
+    // O Foundry recusa documento sem nome.
+    name: sheet.nome?.trim() || 'Personagem',
     type: 'character',
-    system: buildActorSystem(sheet, items, automations),
+    system: buildActorSystem(sheet, items, effects, automations),
     items,
-    effects: [
-      // Bônus de raça, item, ajuste manual… — sem item de poder para carregá-los.
-      ...powers.unclaimed.map((group) =>
-        buildPassiveEffect(group.label, group.changes, false)
-      ),
-      // Ativáveis: desligados, para o jogador ligar na aba de Efeitos do ator.
-      ...buildActorToggleEffects(sheet, toggles),
-    ],
+    effects,
     flags: { tormenta20: { lvlconfig: { manual: true } } },
     // Sem `systemVersion` o sistema trata o ator como anterior à edição Jogo
     // do Ano e converte os atributos como se fossem valores de 3 a 18.

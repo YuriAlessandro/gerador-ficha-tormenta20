@@ -30,6 +30,7 @@ import {
   PowerSelectionRequirement,
   ManualPowerSelections,
   SelectionOptions,
+  SuperiorItemGroup,
 } from '@/interfaces/PowerSelections';
 import { GeneralPower } from '@/interfaces/Poderes';
 import { Spell } from '@/interfaces/Spells';
@@ -37,6 +38,7 @@ import { GolpePessoalBuild } from '@/data/systems/tormenta20/golpePessoal';
 import GolpePessoalBuilder from '@/components/SheetResult/EditDrawers/GolpePessoalBuilder';
 import Divindade from '@/interfaces/Divindade';
 import {
+  clampPickToOptions,
   getPowerSelectionRequirements,
   getChosenOptionNestedRequirements,
   getOptionBranchSelectionKeys,
@@ -45,7 +47,10 @@ import {
   resolveLearnSkillRemainingPick,
   isRequirementApplicable,
 } from '@/functions/powers/manualPowerSelection';
-import { getIntelligenceSkillsPick } from '@/functions/powers/intelligenceIncreaseSkills';
+import {
+  getIntelligenceSkillsPick,
+  getSelectedIntelligenceIncrease,
+} from '@/functions/powers/intelligenceIncreaseSkills';
 import { getCurrentPlateau } from '@/functions/powers/general';
 import { FAMILIARS } from '@/data/systems/tormenta20/familiars';
 import { ANIMAL_TOTEMS } from '@/data/systems/tormenta20/animalTotems';
@@ -66,6 +71,8 @@ import AlmaLivreSelectionField from './AlmaLivreSelectionField';
 import ClassAbilitySelectionField from './ClassAbilitySelectionField';
 import MashinSelectionField from './MashinSelectionField';
 import AmbicaoHerdadaSelectionField from './AmbicaoHerdadaSelectionField';
+import SuperiorItemField from './SuperiorItemField';
+import AttributePointsField from './AttributePointsField';
 import IntelligenceIncreaseSkillField from './IntelligenceIncreaseSkillField';
 
 interface PowerEffectSelectionStepProps {
@@ -718,7 +725,11 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           );
 
     // Adjust pick when some options were filtered out (e.g., class already has the proficiency)
-    const effectivePick = Math.min(declaredPick, allAvailableOptions.length);
+    const effectivePick = clampPickToOptions(
+      requirement,
+      declaredPick,
+      allAvailableOptions.length
+    );
 
     // Get search query for this requirement
     const searchQuery = searchQueries[requirementIndex] || '';
@@ -1750,6 +1761,29 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       );
     }
 
+    // Item superior com melhorias (ex.: Cavaleiro do Reino)
+    if (type === 'grantSuperiorItem') {
+      return (
+        <Box key={requirementIndex} sx={{ mb: 2 }}>
+          <Typography variant='subtitle1' gutterBottom>
+            {label}
+          </Typography>
+          <SuperiorItemField
+            groups={allAvailableOptions as SuperiorItemGroup[]}
+            pick={requirement.metadata?.modificationCount ?? 1}
+            supplements={supplements}
+            value={powerSelections.superiorItem}
+            onChange={(superiorItem) =>
+              onChange({
+                ...selections,
+                [powerName]: { ...powerSelections, superiorItem },
+              })
+            }
+          />
+        </Box>
+      );
+    }
+
     // Render learnClassAbility class + ability selection (origem "Duplo Feérico")
     if (type === 'learnClassAbility') {
       const eligibleClassNames = allAvailableOptions as unknown as string[];
@@ -1883,6 +1917,63 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         )
       );
     };
+
+    const intelligenceSkillField = type === 'increaseAttribute' && (
+      <IntelligenceIncreaseSkillField
+        pick={getIntelligenceSkillsPick(
+          requirement,
+          powerSelections,
+          currentIntelligence
+        )}
+        intelligence={currentIntelligence}
+        increase={getSelectedIntelligenceIncrease(requirement, powerSelections)}
+        trainedSkills={sheetForFiltering.skills ?? []}
+        selectedSkills={(powerSelections.intelligenceSkills ?? []) as Skill[]}
+        onChange={(skills) =>
+          onChange({
+            ...selections,
+            [powerName]: {
+              ...powerSelections,
+              intelligenceSkills: skills,
+            },
+          })
+        }
+      />
+    );
+
+    // Vários pontos que podem cair no mesmo atributo (ex.: Rei Mercenário)
+    if (type === 'increaseAttribute' && requirement.metadata?.allowRepeats) {
+      return (
+        <Box key={requirementIndex} sx={{ mb: 2 }}>
+          <Typography variant='subtitle1' gutterBottom>
+            {label}
+          </Typography>
+          <Typography
+            variant='caption'
+            sx={{ color: 'text.secondary', display: 'block' }}
+          >
+            Distribuídos: {currentCount} / {effectivePick}
+          </Typography>
+          <AttributePointsField
+            pick={effectivePick}
+            attributes={allAvailableOptions as string[]}
+            selected={powerSelections.attributes ?? []}
+            onChange={(attributes) => {
+              // As perícias por Inteligência valem para os pontos de antes.
+              onChange({
+                ...selections,
+                [powerName]: {
+                  ...powerSelections,
+                  attributes,
+                  intelligenceSkills: undefined,
+                },
+              });
+            }}
+          />
+          {intelligenceSkillField}
+        </Box>
+      );
+    }
 
     if (isSingleSelection) {
       // Single selection - use radio buttons
@@ -2082,30 +2173,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               })}
             </RadioGroup>
           </FormControl>
-          {type === 'increaseAttribute' && (
-            <IntelligenceIncreaseSkillField
-              pick={getIntelligenceSkillsPick(
-                requirement,
-                powerSelections,
-                currentIntelligence
-              )}
-              intelligence={currentIntelligence}
-              increase={requirement.metadata?.increaseValue ?? 1}
-              trainedSkills={sheetForFiltering.skills ?? []}
-              selectedSkills={
-                (powerSelections.intelligenceSkills ?? []) as Skill[]
-              }
-              onChange={(skills) =>
-                onChange({
-                  ...selections,
-                  [powerName]: {
-                    ...powerSelections,
-                    intelligenceSkills: skills,
-                  },
-                })
-              }
-            />
-          )}
+          {intelligenceSkillField}
           {renderGrantedPowerRequirements()}
         </Box>
       );
@@ -2280,10 +2348,21 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             })}
           </FormGroup>
         </FormControl>
+        {intelligenceSkillField}
         {renderGrantedPowerRequirements()}
       </Box>
     );
   };
+
+  // Requisito de outro caminho (ex.: Rei Mercenário) não aparece nem é contado.
+  const applicableRequirements = allRequirements
+    .map((powerReq) => ({
+      ...powerReq,
+      requirements: powerReq.requirements.filter((requirement) =>
+        isRequirementApplicable(requirement, sheetForFiltering)
+      ),
+    }))
+    .filter((powerReq) => powerReq.requirements.length > 0);
 
   const getSourceLabel = (source: 'race' | 'class' | 'origin'): string => {
     switch (source) {
@@ -2309,7 +2388,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         Alguns dos seus poderes requerem seleções manuais. Escolha as opções
         abaixo para cada poder:
       </Typography>
-      {allRequirements.map((powerReq) => (
+      {applicableRequirements.map((powerReq) => (
         <Accordion
           key={`${powerReq.source}-${powerReq.powerName}`}
           defaultExpanded={allRequirements.length === 1}

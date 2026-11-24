@@ -15,6 +15,13 @@ import {
   allDivineSpellsCircle4,
   allDivineSpellsCircle5,
 } from '../../magias/divine';
+import {
+  CAMINHO_GOVERNANTE,
+  CAMINHO_SOLDADO,
+  CAVALEIRO_DO_REINO_ACTIONS,
+  ESCUDEIRO_APRENDIZ_BONUSES,
+  MARQUES_SHEET_BONUSES,
+} from './vassaloSheetBonuses';
 
 const codigoDeHonra = CAVALEIRO.abilities.find(
   (a) => a.name === 'Código de Honra'
@@ -26,8 +33,7 @@ const baluarte = CAVALEIRO.abilities.find((a) => a.name === 'Baluarte')!;
  * 13 e 17 dependem de qual foi escolhido — e são lidos do `sheetActionHistory`
  * pela `optionKey` `caminhoDoVassalo`.
  */
-export const CAMINHO_SOLDADO = 'Caminho do Soldado';
-export const CAMINHO_GOVERNANTE = 'Caminho do Governante';
+export { CAMINHO_SOLDADO, CAMINHO_GOVERNANTE };
 
 /**
  * Magias divinas até o círculo informado. O Vassalo aprende "uma magia divina
@@ -83,14 +89,19 @@ const VASSALO: VariantClassOverrides = {
     // ao seu para propósitos de pré-requisitos)".
     { level: 7, fromClasses: ['Cavaleiro', 'Guerreiro'] },
     // Lorde: o caminho escolhido NESTE nível decide entre guerreiro e nobre.
-    // Como a escolha acontece no mesmo level-up, a lista oferece os dois — o
-    // texto da habilidade é quem diz ao jogador qual vale.
     {
       level: 9,
       fromClasses: ['Guerreiro', 'Nobre'],
       // O próprio Lorde concede Autoridade Feudal neste nível; oferecê-la
       // também na escolha deixava o personagem com o poder duplicado.
       excludePowers: ['Autoridade Feudal'],
+      classesByOption: {
+        abilityName: 'Lorde',
+        classes: {
+          [CAMINHO_SOLDADO]: ['Guerreiro'],
+          [CAMINHO_GOVERNANTE]: ['Nobre'],
+        },
+      },
     },
     { level: 12, fromClasses: ['Cavaleiro'] },
     { level: 14, fromClasses: ['Cavaleiro'] },
@@ -109,7 +120,7 @@ const VASSALO: VariantClassOverrides = {
           source: { type: 'power', name: 'Jovem Pajem' },
           action: {
             type: 'trainSkillOrBonus',
-            skills: [Skill.ADESTRAMENTO, Skill.OFICIO],
+            skills: [Skill.ADESTRAMENTO, Skill.OFICIO_ARMEIRO],
           },
         },
       ],
@@ -146,15 +157,14 @@ const VASSALO: VariantClassOverrides = {
           },
         },
         {
-          // O vassalo não começa proficiente com armaduras pesadas (suas
-          // proficiências iniciais são apenas armas marciais e escudos), então
-          // esta concessão de 3º nível é sempre efetiva. O caso alternativo do
-          // livro (+2 na Defesa se já for proficiente) não ocorre pela classe.
+          // Quem já tem a proficiência (poder geral, multiclasse) recebe +2 na
+          // Defesa enquanto usa armadura pesada.
           source: { type: 'power', name: 'Escudeiro Aprendiz' },
           action: {
             type: 'addProficiency',
             availableProficiencies: [PROFICIENCIAS.PESADAS],
             pick: 1,
+            bonusesIfOwned: ESCUDEIRO_APRENDIZ_BONUSES,
           },
         },
       ],
@@ -210,6 +220,7 @@ const VASSALO: VariantClassOverrides = {
       name: 'Cavaleiro do Reino',
       text: 'No 6º nível, você recebe o título de sir ou dame e atinge o grau mais baixo da nobreza. Você recebe uma arma, armadura ou escudo superior com duas melhorias a sua escolha e recebe um poder de cavaleiro a sua escolha.',
       nivel: 6,
+      sheetActions: CAVALEIRO_DO_REINO_ACTIONS,
     },
     {
       name: 'Sargento do Reino',
@@ -328,14 +339,7 @@ const VASSALO: VariantClassOverrides = {
       name: 'Marquês',
       text: 'No 13º nível, seus feitos alçam-no a um título ainda mais alto. Se escolheu o Caminho do Soldado, você recebe redução de dano 5 e +2 na Defesa. Se escolheu o Caminho do Governante, você passa a somar seu Carisma em seus testes de resistência.',
       nivel: 13,
-      sheetBonuses: [
-        {
-          source: { type: 'power', name: 'Marquês' },
-          target: { type: 'Defense' },
-          modifier: { type: 'Fixed', value: 2 },
-          condition: { combinator: 'AND', clauses: [soldado] },
-        },
-      ],
+      sheetBonuses: MARQUES_SHEET_BONUSES,
     },
     {
       name: 'Duque',

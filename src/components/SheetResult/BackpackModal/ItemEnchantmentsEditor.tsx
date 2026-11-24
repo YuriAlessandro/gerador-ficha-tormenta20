@@ -13,6 +13,8 @@ import { ItemE } from '../../../interfaces/Rewards';
 import { SupplementId } from '../../../types/supplement.types';
 import {
   calculateEnchantmentCost,
+  canAddEnchantment,
+  dropUnsupportedEnchantments,
   validateEnchantmentForItemType,
 } from '../../../utils/magicalItemsValidation';
 import {
@@ -22,7 +24,7 @@ import {
 import { allArcaneSpellsUpToCircle } from '../../../data/systems/tormenta20/magias/arcane';
 import { allDivineSpellsUpToCircle } from '../../../data/systems/tormenta20/magias/divine';
 
-export type EnchantmentItemType = 'weapon' | 'armor' | 'shield';
+export type EnchantmentItemType = 'weapon' | 'armor' | 'shield' | 'esoteric';
 
 export interface ItemEnchantmentsEditorProps {
   itemType: EnchantmentItemType;
@@ -64,8 +66,9 @@ function getEnchantmentsForType(
 ): ItemE[] {
   const enchantments =
     dataRegistry.getEnchantmentsBySupplements(userSupplements);
-  const forType =
-    itemType === 'weapon' ? enchantments.weapons : enchantments.armors;
+  let forType = enchantments.armors;
+  if (itemType === 'weapon') forType = enchantments.weapons;
+  else if (itemType === 'esoteric') forType = enchantments.esoterics;
 
   return forType.filter((e) => validateEnchantmentForItemType(e, itemType));
 }
@@ -106,8 +109,9 @@ const ItemEnchantmentsEditor: React.FC<ItemEnchantmentsEditorProps> = ({
 
   const handleSelectionChange = (
     _event: React.SyntheticEvent,
-    value: ItemE[]
+    picked: ItemE[]
   ) => {
+    const value = dropUnsupportedEnchantments(picked);
     const cost = calculateEnchantmentCost(value);
     if (cost > maxCost) {
       if (onError) {
@@ -131,6 +135,9 @@ const ItemEnchantmentsEditor: React.FC<ItemEnchantmentsEditorProps> = ({
           multiple
           options={availableEnchantments}
           getOptionLabel={(option) => option.enchantment}
+          getOptionDisabled={(option) =>
+            !canAddEnchantment(option, selectedEnchantments)
+          }
           value={selectedEnchantments}
           onChange={handleSelectionChange}
           renderInput={(params) => (
@@ -144,7 +151,8 @@ const ItemEnchantmentsEditor: React.FC<ItemEnchantmentsEditorProps> = ({
           renderValue={(value, getItemProps) =>
             value.map((option, index) => {
               const hasNumericEffect =
-                enchantmentEffects[option.enchantment] !== undefined;
+                enchantmentEffects[option.enchantment] !== undefined ||
+                !!option.spellModifiers?.length;
               const supplementMeta = option.supplementId
                 ? dataRegistry.getSupplementLabel(option.supplementId)
                 : null;
@@ -188,7 +196,8 @@ const ItemEnchantmentsEditor: React.FC<ItemEnchantmentsEditorProps> = ({
           }
           renderOption={(props, option) => {
             const hasNumericEffect =
-              enchantmentEffects[option.enchantment] !== undefined;
+              enchantmentEffects[option.enchantment] !== undefined ||
+              !!option.spellModifiers?.length;
             const isTextOnly = TEXT_ONLY_ENCHANTMENTS.has(option.enchantment);
             const supplementMeta = option.supplementId
               ? dataRegistry.getSupplementLabel(option.supplementId)

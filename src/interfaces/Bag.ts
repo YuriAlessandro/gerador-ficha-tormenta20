@@ -5,6 +5,7 @@ import {
   calcAmmoSpaces,
   seedAmmoUnits,
 } from '../components/SheetResult/BackpackModal/ammo';
+import { filterCarried } from '../functions/bagStorage';
 
 // Canonical list of category keys. Iterating these (instead of `Object.values`)
 // makes the Bag resilient to callers who pass wrapper objects with extra
@@ -89,8 +90,12 @@ export function getItemSpaces(equipment: Equipment): number {
   return (equipment.spaces || 0) * (equipment.quantity || 1);
 }
 
+/**
+ * Espaços que o personagem CARREGA: itens num recipiente (Alforje, Carroça) ou
+ * guardados fora da aventura não contam — ver `functions/bagStorage.ts`.
+ */
 function calcBagSpaces(bagEquipments: BagEquipments): number {
-  return flattenEquipments(bagEquipments).reduce(
+  return filterCarried(flattenEquipments(bagEquipments)).reduce(
     (spaces, equipment) => spaces + getItemSpaces(equipment),
     0
   );
@@ -231,6 +236,9 @@ const SEMANTIC_EQUIPMENT_FIELDS = [
   'damageAttribute',
   'customDisplayName',
   'weaponCategory',
+  // Local do item (Alforje, Carroça, guardado): sem isso, um poder que
+  // re-concede a arma a traria de volta para a carga do personagem.
+  'storedIn',
 ] as const;
 
 /**

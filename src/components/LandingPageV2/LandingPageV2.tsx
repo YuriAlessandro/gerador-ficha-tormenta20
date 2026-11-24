@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Stack, useTheme } from '@mui/material';
+import BlackFridayBanner from '@/premium/components/BlackFriday/BlackFridayBanner';
 import { useAuth } from '../../hooks/useAuth';
 import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import { SEO, getPageSEO } from '../SEO';
@@ -91,6 +92,10 @@ const LandingPageV2: React.FC = () => {
             boxSizing: 'border-box',
           }}
         >
+          {/* Campanha com data: ocupa a largura do bloco abaixo e some
+              sozinha fora do período */}
+          <BlackFridayBanner />
+
           {/* Two-column layout: main content (with hero on top) + tools sidebar */}
           <Box
             sx={{

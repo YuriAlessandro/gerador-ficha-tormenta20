@@ -24,6 +24,9 @@ const premiumAvailable = isPremiumAvailable(ROOT_DIR);
 // cobertura menor (130 de 187 suítes); o CI interno, com o submódulo, continua
 // rodando as 187. A lista só pode causar cobertura a MENOS no fork, nunca um
 // verde falso na main.
+//
+// Quando só alguns casos de um arquivo dependem do premium, não liste o arquivo
+// aqui: use `itWithPremium`/`describeWithPremium` de src/__tests__/premiumGate.ts.
 const PREMIUM_DEPENDENT_TESTS = [
   'src/functions/__tests__/devocaoDupla.spec.ts',
   'src/functions/__tests__/homebrewChoiceBonus.spec.ts',
@@ -75,6 +78,8 @@ export default defineConfig({
       '**/build/**',
       ...(premiumAvailable ? [] : PREMIUM_DEPENDENT_TESTS),
     ],
+    // Lido por `src/__tests__/premiumGate.ts` (trava por teste).
+    env: { PREMIUM_AVAILABLE: String(premiumAvailable) },
     setupFiles: ['./src/setupTests.ts'],
     environment: 'jsdom',
     server: {

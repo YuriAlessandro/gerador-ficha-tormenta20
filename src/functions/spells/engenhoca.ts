@@ -10,7 +10,7 @@ import {
   Aparato,
 } from '../../data/systems/tormenta20/herois-de-arton/aparatos';
 import { getEffectiveAttributeModifier } from '../effectiveAttributes';
-import { getActiveArmorPenalty } from '../proficiencies';
+import { getTotalArmorPenalty } from '../armorPenalty';
 import { getClassLevel } from '../multiclass';
 import { buildSpellPool } from '../spellPathUtils';
 import { SupplementId } from '../../types/supplement.types';
@@ -254,7 +254,7 @@ export function getEngenhocaArmorPenalty(
   sheet: CharacterSheet,
   spell: Spell
 ): number {
-  const total = getActiveArmorPenalty(sheet);
+  const total = getTotalArmorPenalty(sheet);
   if (!ignoresWornArmorPenalty(sheet, spell)) return total;
   const worn = Math.max(0, getWornArmor(sheet)?.armorPenalty ?? 0);
   return Math.max(0, total - worn);
