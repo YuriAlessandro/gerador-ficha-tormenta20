@@ -122,6 +122,11 @@ const DRUIDA: ClassDescription = {
       name: 'Força da Natureza',
       text: 'No 20º nível, você diminui o custo de todas as suas magias em –2 PM e aumenta a CD delas em +2. Os bônus dobram (–4 PM e +4 na CD) se você estiver em terrenos naturais.',
       nivel: 20,
+      // A dobra em terrenos naturais é situacional e fica no texto.
+      spellModifiers: [
+        { effect: { type: 'PmReduction', value: 2 } },
+        { effect: { type: 'SpellDC', value: 2 } },
+      ],
     },
   ],
   powers: [
@@ -150,6 +155,17 @@ const DRUIDA: ClassDescription = {
           modifier: { type: 'Fixed', value: 5 },
         },
       ],
+      spellModifiers: [
+        {
+          filter: { damageTypes: ['frio'] },
+          effect: {
+            type: 'RollBonus',
+            rolls: 'damage',
+            perDie: 1,
+            damageTypes: ['frio'],
+          },
+        },
+      ],
     },
     {
       name: 'Aspecto do Outono',
@@ -174,6 +190,12 @@ const DRUIDA: ClassDescription = {
       name: 'Aspecto da Primavera',
       text: 'Você aprende e pode lançar uma magia de encantamento ou ilusão, arcana ou divina, de qualquer círculo que possa lançar. Além disso, escolha uma quantidade de magias igual ao seu Carisma (mínimo 1). O custo dessas magias é reduzido em −1 PM.',
       requirements: [],
+      spellChoice: {
+        count: { type: 'attribute', attribute: Atributo.CARISMA, min: 1 },
+      },
+      spellModifiers: [
+        { filter: { chosen: true }, effect: { type: 'PmReduction', value: 1 } },
+      ],
       sheetActions: [
         {
           source: {
@@ -293,6 +315,21 @@ const DRUIDA: ClassDescription = {
     {
       name: 'Espírito dos Solstícios',
       text: 'Você transita entre os extremos do mundo natural. Quando lança uma magia, pode gastar +4 PM para maximizar os efeitos numéricos variáveis dela. Por exemplo, uma magia Curar Ferimentos aprimorada para curar 5d8+5 PV irá curar automaticamente 45 PV, sem a necessidade de rolar dados. Uma magia sem efeitos variáveis não pode ser afetada por este poder.',
+      spellModifiers: [
+        {
+          effect: {
+            type: 'CastOption',
+            id: 'solsticios',
+            label: 'maximiza os efeitos numéricos',
+            addPm: 4,
+            effects: [
+              {
+                type: 'RollMaximize',
+              },
+            ],
+          },
+        },
+      ],
       requirements: [
         [
           { type: RequirementType.PODER, name: 'Aspecto do Inverno' },
@@ -355,6 +392,16 @@ const DRUIDA: ClassDescription = {
     {
       name: 'Liberdade da Pradaria',
       text: 'Você recebe +2 em Reflexos. Se estiver ao ar livre, sempre que lança uma magia, pode gastar 1 PM para aumentar o alcance dela em um passo (de toque para curto, de curto para médio ou de médio para longo).',
+      spellModifiers: [
+        {
+          effect: {
+            type: 'CastOption',
+            id: 'pradaria',
+            label: 'ao ar livre: alcance +1 passo',
+            addPm: 1,
+          },
+        },
+      ],
       requirements: [],
       sheetBonuses: [
         {

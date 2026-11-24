@@ -28,6 +28,7 @@ import { sheetHasClassAbility } from '../learnedClassAbility';
 import { deityRequirementMatches, getSheetDeityNames } from './deityNames';
 import { deityAcceptsClass } from './deityClassAcceptance';
 import { sheetHasDistinction } from '../../premium/functions/distinctions';
+import { CastingTradition, sheetCastsSpells } from './spellcasting';
 
 /**
  * Avaliação de pré-requisito **item a item**, para a UI poder dizer *qual*
@@ -312,6 +313,14 @@ function isRequirementMet(
       const countsItself = owned.some((p) => p.name === powerName);
       return owned.length - (countsItself ? 1 : 0) >= (req.value ?? 0);
     }
+
+    case RequirementType.LANCAR_MAGIAS:
+      // Mesmo avaliador de `isPowerAvailable`: sem isto o tipo caía no
+      // `default` e o editor liberava "Lançar magias" para quem não lança.
+      return sheetCastsSpells(sheet, {
+        circle: req.value,
+        tradition: req.name as CastingTradition | undefined,
+      });
 
     case RequirementType.TIER_LIMIT: {
       const category = req.name as string;

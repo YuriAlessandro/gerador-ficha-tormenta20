@@ -1,5 +1,7 @@
 import type { EnhancementEffect } from '../functions/itemEnhancements/core';
 import Equipment from './Equipment';
+import type { SheetBonus } from './CharacterSheet';
+import type { SpellModifier, SpellModifierChoiceSpec } from './SpellModifiers';
 
 export enum LEVELS {
   S4 = 'S4',
@@ -126,6 +128,12 @@ export interface ItemE {
    * `effect` acima é a PROSA do encanto; este é a mecânica.
    */
   effectStats?: EnhancementEffect;
+  /** Efeito nas magias (encantos de esotérico), como em `ItemMod`. */
+  spellModifiers?: SpellModifier[];
+  /** "Pré-requisito: outro encanto" (Implacável, Majestoso, Pulverizante). */
+  requiresOtherEnchantment?: boolean;
+  /** Encantos que não podem estar no mesmo item ("não pode ser nímbico"). */
+  excludes?: string[];
 }
 
 export interface ItemMod {
@@ -145,7 +153,24 @@ export interface ItemMod {
   prerequisite?: string | string[];
   double?: boolean;
   /** What item types this modification applies to */
-  appliesTo?: 'weapon' | 'armor' | 'shield' | 'all';
+  appliesTo?: 'weapon' | 'armor' | 'shield' | 'esoteric' | 'all';
+  /**
+   * Efeito nas magias (melhorias de esotérico: Poderoso, Canalizador…). Vale
+   * enquanto o item está em uso — esotérico, só empunhado — e o item com as
+   * melhorias conta como UM esotérico.
+   */
+  spellModifiers?: SpellModifier[];
+  /** A melhoria pede uma divindade (Canônico); ver `deity`. */
+  choosesDeity?: boolean;
+  /** Divindade escolhida no editor (vira `AppliedModification.deity`). */
+  deity?: string;
+  /** "Escolha uma magia" da melhoria (Harmonizado), gravada por item. */
+  spellChoice?: SpellModifierChoiceSpec;
+  /**
+   * Bônus na ficha que só valem com o item em uso (Vigilante: +2 na Defesa
+   * com o esotérico empunhado).
+   */
+  inUseSheetBonuses?: SheetBonus[];
   /** Optional supplement ID for supplement-specific modifications */
   supplementId?: string;
   /** Nome de exibição do suplemento de origem (carimbado pelo registry) */

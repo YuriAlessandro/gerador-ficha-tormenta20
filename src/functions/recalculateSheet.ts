@@ -148,6 +148,8 @@ import {
 } from './reverseSheetActions';
 import { syncFeiticeiroHerancas } from './powers/feiticeiroHeranca';
 import { applyTormentaAttributePenalty } from './tormentaCharismaPenalty';
+import { getInUseImprovementBonuses } from './itemEnhancements/inUseImprovements';
+import { actsAsEsoteric, isItemInUse } from './spells/modifiers/collect';
 
 /**
  * Finds a class definition by name and optional subname.
@@ -1564,6 +1566,15 @@ function applyEquipmentBonuses(sheet: CharacterSheet): CharacterSheet {
           (bonus) => bonus.target.type !== 'DamageReduction'
         )
       );
+    }
+
+    // Melhorias de esotérico com bônus "em uso" (Vigilante: +2 na Defesa):
+    // só com o item empunhado, como os efeitos dele nas magias.
+    if (
+      actsAsEsoteric(updatedSheet, equip) &&
+      isItemInUse(updatedSheet, equip)
+    ) {
+      updatedSheet.sheetBonuses.push(...getInUseImprovementBonuses(equip));
     }
 
     // Process conditional bonuses

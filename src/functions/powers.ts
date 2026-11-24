@@ -24,6 +24,7 @@ import {
   getSheetDeityNames,
 } from './powers/deityNames';
 import { deityAcceptsClass } from './powers/deityClassAcceptance';
+import { CastingTradition, sheetCastsSpells } from './powers/spellcasting';
 import { getPlateauByLevel } from './powers/general';
 import {
   sheetHasPowerNamed,
@@ -315,6 +316,11 @@ function evaluateRule(
         (rule.value ?? 0)
       );
     }
+    case RequirementType.LANCAR_MAGIAS:
+      return sheetCastsSpells(sheet, {
+        circle: rule.value,
+        tradition: rule.name as CastingTradition | undefined,
+      });
     case RequirementType.TEXT:
       // TEXT requirements are always considered met - the user reads
       // the text description and judges if they meet the requirement

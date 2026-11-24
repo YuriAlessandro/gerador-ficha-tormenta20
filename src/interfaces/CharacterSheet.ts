@@ -1,3 +1,4 @@
+import type { SpellModifier } from './SpellModifiers';
 import { ClassDescription, ClassPower, CrossTraditionRules } from './Class';
 import { GeneralPower, GeneralPowerType, OriginPower } from './Poderes';
 import Race, { AttributeVariant, RaceSize, raceSize } from './Race';
@@ -287,6 +288,10 @@ export type SheetActionStep =
         name: string;
         text: string;
         sheetBonuses?: SheetBonus[];
+        // Efeitos sobre magias que a opção concede (ex.: Mestre em Escola, a
+        // escola escolhida). Lidos pelo motor de modificadores de magia a
+        // partir de `optionChoices[optionKey]`.
+        spellModifiers?: SpellModifier[];
         repeatable?: boolean; // Pode ser escolhida mais de uma vez (multi-pick)
         grantedSpells?: Spell[]; // Magias concedidas ao escolher esta opção (fixas)
         // Concessão de magias por ESCOLHA do jogador ao escolher esta opção
@@ -352,6 +357,10 @@ export type SheetActionStep =
       // família (Xamã Místico → 'Druida'). O assistente esconde as escolas que a
       // classe já tem, e o sorteio também as evita.
       appendChosenSpellSchoolTo?: string;
+      // Só as opções já escolhidas sob esta outra `optionKey` (Mestre em
+      // Escola: "Especialista em Escola com a escola escolhida"). Sem escolha
+      // gravada lá (ficha antiga), a lista fica completa.
+      onlyOptionsChosenIn?: string;
     }
   | {
       type: 'trainSkillOrBonus';
@@ -949,6 +958,12 @@ export default interface CharacterSheet {
    * e do recálculo final pós-level-up).
    */
   optionChoices?: Record<string, string[]>;
+  /**
+   * Magias escolhidas para modificadores de "escolha uma magia" (Foco em
+   * Magia, Estola…): nome da fonte → nomes das magias. Ver
+   * `SpellModifierChoiceSpec`.
+   */
+  spellModifierChoices?: Record<string, string[]>;
   defesa: number;
   bag: Bag;
   // Currently wielded items (Equipment.id references). Optional — when both are

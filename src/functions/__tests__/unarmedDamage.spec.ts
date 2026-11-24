@@ -13,6 +13,10 @@
  */
 import { describe, it, expect } from 'vitest';
 import _ from 'lodash';
+import {
+  describeWithPremium,
+  itWithPremium,
+} from '../../__tests__/premiumGate';
 import { recalculateSheet } from '../recalculateSheet';
 import generateRandomSheet from '../general';
 import { normalizeSheet } from '../sheetNormalizer';
@@ -109,7 +113,8 @@ describe('dado base do ataque desarmado', () => {
   });
 });
 
-describe('Corpo Aberrante', () => {
+// Bônus de ficha passam por código premium: sem ele, o passo não chega.
+describeWithPremium('Corpo Aberrante', () => {
   const withOthers = (qtd: number) =>
     sheetWith([CORPO_ABERRANTE, ...FILLERS.slice(0, qtd)]);
 
@@ -181,7 +186,7 @@ describe('passo de tamanho', () => {
     expect(getUnarmedDamageDice(sized(RACE_SIZES.COLOSSAL))).toBe('1d6');
   });
 
-  it('soma UMA vez só junto de Corpo Aberrante', () => {
+  itWithPremium('soma UMA vez só junto de Corpo Aberrante', () => {
     // O Step 11.7 emite o passo de tamanho como `WeaponDamageStep`; se o motor
     // desarmado também o lesse dali, Grande + Corpo Aberrante daria 3 passos.
     const breakdown = computeUnarmedDamage(
@@ -230,7 +235,7 @@ describe('integração com o motor de recálculo', () => {
       ?.find((power) => power.name === 'Corpo Aberrante')
       ?.rolls?.find((roll) => roll.label === 'Dano Desarmado');
 
-  it('escreve o dado na rolagem do card do poder', () => {
+  itWithPremium('escreve o dado na rolagem do card do poder', () => {
     const sheet = recalculateSheet(sheetWith([CORPO_ABERRANTE, ANTENAS]));
     expect(corpoAberranteRoll(sheet)?.dice).toBe('1d4');
   });
@@ -247,7 +252,7 @@ describe('integração com o motor de recálculo', () => {
     expect(last?.id).toBe(first?.id);
   });
 
-  it('reverte quando o poder é removido', () => {
+  itWithPremium('reverte quando o poder é removido', () => {
     let sheet = recalculateSheet(lutadorSheet(9, [CORPO_ABERRANTE]));
     const briga = () =>
       sheet.classe.abilities.find((ability) => ability.name === 'Briga')
@@ -269,23 +274,26 @@ describe('integração com o motor de recálculo', () => {
     ).toBe('1d10');
   });
 
-  it('preserva rolagem que o jogador adicionou ao mesmo poder', () => {
-    const base = sheetWith([CORPO_ABERRANTE]);
-    const power = base.generalPowers?.[0] as GeneralPower;
-    power.rolls = [
-      ...(power.rolls ?? []),
-      { id: 'custom-1', label: 'Sangramento', dice: '1d6' },
-    ];
+  itWithPremium(
+    'preserva rolagem que o jogador adicionou ao mesmo poder',
+    () => {
+      const base = sheetWith([CORPO_ABERRANTE]);
+      const power = base.generalPowers?.[0] as GeneralPower;
+      power.rolls = [
+        ...(power.rolls ?? []),
+        { id: 'custom-1', label: 'Sangramento', dice: '1d6' },
+      ];
 
-    const sheet = recalculateSheet(base);
-    const rolls = sheet.generalPowers?.[0]?.rolls ?? [];
-    expect(rolls.find((roll) => roll.label === 'Sangramento')?.dice).toBe(
-      '1d6'
-    );
-    expect(rolls.find((roll) => roll.label === 'Dano Desarmado')?.dice).toBe(
-      '1d4'
-    );
-  });
+      const sheet = recalculateSheet(base);
+      const rolls = sheet.generalPowers?.[0]?.rolls ?? [];
+      expect(rolls.find((roll) => roll.label === 'Sangramento')?.dice).toBe(
+        '1d6'
+      );
+      expect(rolls.find((roll) => roll.label === 'Dano Desarmado')?.dice).toBe(
+        '1d4'
+      );
+    }
+  );
 
   it('não toca em poderes da Tormenta que não são do dano desarmado', () => {
     const sheet = recalculateSheet(
@@ -298,7 +306,7 @@ describe('integração com o motor de recálculo', () => {
   });
 });
 
-describe('fichas salvas antes da automação', () => {
+describeWithPremium('fichas salvas antes da automação', () => {
   it('normalizeSheet cura a cópia congelada, sem recálculo', () => {
     // Ficha salva embute o poder como era: texto puro, sem `sheetBonuses` nem
     // `rolls`. Abrir uma ficha não dispara recálculo, então quem cura é o

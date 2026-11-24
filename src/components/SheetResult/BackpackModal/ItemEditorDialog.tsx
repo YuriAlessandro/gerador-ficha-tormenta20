@@ -31,6 +31,7 @@ import RollsIcon from '@mui/icons-material/Casino';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ResetIcon from '@mui/icons-material/RestartAlt';
+import { isMusicalInstrument } from '../../../functions/musicalInstruments';
 
 import Equipment, {
   AppliedEnchantment,
@@ -118,6 +119,9 @@ function modItemTypeFor(item: Equipment): ModificationItemType | null {
   if (item.group === 'Arma') return 'weapon';
   if (item.group === 'Armadura') return 'armor';
   if (item.group === 'Escudo') return 'shield';
+  if (item.group === 'Esotérico') return 'esoteric';
+  // Instrumento musical recebe melhorias de esotérico (só magias de bardo).
+  if (isMusicalInstrument(item)) return 'esoteric';
   return null;
 }
 
@@ -125,6 +129,8 @@ function enchItemTypeFor(item: Equipment): EnchantmentItemType | null {
   if (item.group === 'Arma') return 'weapon';
   if (item.group === 'Armadura') return 'armor';
   if (item.group === 'Escudo') return 'shield';
+  // Encantos para esotéricos: só de Heróis de Arton.
+  if (item.group === 'Esotérico') return 'esoteric';
   return null;
 }
 
@@ -1368,9 +1374,15 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                 color: 'text.secondary',
               }}
             >
-              Modificações de item superior aplicam bônus numéricos
-              automaticamente sobre os valores base do item. Custo máximo: 5
-              pontos.
+              {item && isMusicalInstrument(item) && (
+                <>
+                  Instrumento musical: as melhorias de esotérico valem para as
+                  magias de bardo, com o instrumento empunhado.{' '}
+                </>
+              )}
+              {modItemType === 'esoteric'
+                ? 'Melhorias de esotérico valem nas suas magias (e o Vigilante, na Defesa) enquanto o item estiver empunhado. Escolha a magia do Harmonizado no detalhe da magia ou pelo ícone do item em Equipamentos. Custo máximo: 5 pontos.'
+                : 'Modificações de item superior aplicam bônus numéricos automaticamente sobre os valores base do item. Custo máximo: 5 pontos.'}
             </Typography>
             {modError && (
               <Typography
@@ -1407,10 +1419,9 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                 color: 'text.secondary',
               }}
             >
-              Encantamentos mágicos aplicam bônus numéricos automaticamente
-              sobre os valores base do item. Encantamentos descritivos (efeitos
-              condicionais, dano elemental, resistências) ficam registrados no
-              item mas não modificam stats. Custo máximo: 5 pontos.
+              {enchItemType === 'esoteric'
+                ? 'Encantos de esotérico (Heróis de Arton) valem nas suas magias com o item empunhado; os descritivos ficam no texto do item. Ative Heróis de Arton para ver a lista. Custo máximo: 5 pontos.'
+                : 'Encantamentos mágicos aplicam bônus numéricos automaticamente sobre os valores base do item. Encantamentos descritivos (efeitos condicionais, dano elemental, resistências) ficam registrados no item mas não modificam stats. Custo máximo: 5 pontos.'}
             </Typography>
             {enchError && (
               <Typography

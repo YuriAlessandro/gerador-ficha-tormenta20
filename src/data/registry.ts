@@ -60,6 +60,7 @@ import { SpecialMaterial } from '../interfaces/SpecialMaterials';
 import {
   weaponsModifications,
   armorsModifications,
+  esotericModifications,
   weaponsEnchantments,
   armorEnchantments,
 } from './rewards/items';
@@ -107,12 +108,15 @@ export interface GolpePessoalEffectWithSupplement extends GolpePessoalEffect {
 export interface ResolvedImprovements {
   weapons: ItemMod[];
   armors: ItemMod[];
+  esoterics: ItemMod[];
 }
 
 /** Encantos mágicos combinados de core + suplementos ativos */
 export interface ResolvedEnchantments {
   weapons: ItemE[];
   armors: ItemE[];
+  /** Só de suplemento (Heróis de Arton): o livro básico não tem. */
+  esoterics: ItemE[];
 }
 
 /**
@@ -1026,6 +1030,7 @@ class DataRegistry {
     const result: ResolvedImprovements = {
       weapons: [...weaponsModifications],
       armors: [...armorsModifications],
+      esoterics: [...esotericModifications],
     };
 
     const systemData = this.getResolvedSystemData(systemId);
@@ -1046,6 +1051,9 @@ class DataRegistry {
         }
         if (improvements.armors) {
           result.armors.push(...improvements.armors.map(stamp));
+        }
+        if (improvements.esoterics) {
+          result.esoterics.push(...improvements.esoterics.map(stamp));
         }
       });
     }
@@ -1074,6 +1082,7 @@ class DataRegistry {
     const result: ResolvedEnchantments = {
       weapons: [...weaponsEnchantments],
       armors: [...armorEnchantments],
+      esoterics: [],
     };
 
     const systemData = this.getResolvedSystemData(systemId);
@@ -1094,6 +1103,9 @@ class DataRegistry {
         }
         if (enchantments.armors) {
           result.armors.push(...enchantments.armors.map(stamp));
+        }
+        if (enchantments.esoterics) {
+          result.esoterics.push(...enchantments.esoterics.map(stamp));
         }
       });
     }
@@ -1159,17 +1171,26 @@ class DataRegistry {
    */
   getImprovementByName(
     name: string,
-    context: 'weapon' | 'defense'
+    context: 'weapon' | 'defense' | 'esoteric'
   ): ItemMod | undefined {
     const systemData = this.getResolvedSystemData(this.currentSystem);
-    const side = context === 'weapon' ? 'weapons' : 'armors';
+    const side = (
+      {
+        weapon: 'weapons',
+        defense: 'armors',
+        esoteric: 'esoterics',
+      } as const
+    )[context];
     const fromSupplements = systemData
       ? Object.values(systemData.supplements).flatMap(
           (supplement) => supplement?.improvements?.[side] ?? []
         )
       : [];
-    const core =
-      context === 'weapon' ? weaponsModifications : armorsModifications;
+    const core = {
+      weapon: weaponsModifications,
+      defense: armorsModifications,
+      esoteric: esotericModifications,
+    }[context];
 
     return [...core, ...fromSupplements].find((mod) => mod.mod === name);
   }
@@ -1188,6 +1209,7 @@ class DataRegistry {
       ? Object.values(systemData.supplements).flatMap((supplement) => [
           ...(supplement?.enchantments?.weapons ?? []),
           ...(supplement?.enchantments?.armors ?? []),
+          ...(supplement?.enchantments?.esoterics ?? []),
         ])
       : [];
 

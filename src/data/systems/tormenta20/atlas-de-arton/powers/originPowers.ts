@@ -1294,6 +1294,16 @@ const atlasOriginPowers: Record<string, OriginPower> = {
       'A CD para resistir a suas magias arcanas aumenta em +1 e elas causam +1 ponto de dano.',
     type: ORIGIN_POWER_TYPE,
     sheetBonuses: [],
+    spellModifiers: [
+      {
+        filter: { tradition: 'arcane' },
+        effect: { type: 'SpellDC', value: 1 },
+      },
+      {
+        filter: { tradition: 'arcane', damaging: true },
+        effect: { type: 'RollBonus', rolls: 'damage', flat: 1 },
+      },
+    ],
   },
   RECRUTA_DA_FENIX: {
     name: 'Recruta da Fênix',

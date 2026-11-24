@@ -23,6 +23,10 @@ import { SpellTradition } from '@/functions/spells/spellTradition';
 import { getEngenhocaAparatos } from '@/functions/spells/engenhoca';
 import { manaExpenseByCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import CharacterSheet from '@/interfaces/CharacterSheet';
+import {
+  computeSpellPmCost,
+  SpellCastProfile,
+} from '@/functions/spells/modifiers';
 import type {
   ActiveEffectUsageOption,
   ActivePowerDefinition,
@@ -55,6 +59,8 @@ export interface SpellRowProps {
   isMago?: boolean;
   onToggleMemorized?: (spell: Spell) => void;
   onToggleAlwaysPrepared?: (spell: Spell) => void;
+  /** Marca/desmarca a magia para uma fonte de "escolha N magias". */
+  onSpellChoiceToggle?: (key: string, spell: Spell) => void;
   /** Efeito ativo que esta magia aplica na ficha, quando tem um. */
   activeEffect?: ActivePowerDefinition | null;
   /** Com estes dois, a estrelinha aparece no rail. */
@@ -71,6 +77,10 @@ export interface SpellRowProps {
   onRepairEngenhoca?: (spell: Spell) => void;
   /** Arcana, divina ou universal — resolvido pelo pai contra o catálogo. */
   tradition?: SpellTradition;
+  /** Perfil do motor de modificadores (custo com reduções de poderes). */
+  castProfile?: SpellCastProfile;
+  /** CD própria da magia, quando poderes/itens a alteram. */
+  spellDC?: number;
 }
 
 /**
@@ -96,6 +106,7 @@ const SpellRow: React.FC<SpellRowProps> = ({
   onOpenCast,
   isMago,
   onToggleMemorized,
+  onSpellChoiceToggle,
   onToggleAlwaysPrepared,
   activeEffect,
   sheet,
@@ -104,6 +115,8 @@ const SpellRow: React.FC<SpellRowProps> = ({
   onOpenEngenhoca,
   onRepairEngenhoca,
   tradition,
+  castProfile,
+  spellDC,
 }) => {
   const { engenhoca } = spell;
   const displayName = getSpellDisplayName(spell);
@@ -112,8 +125,12 @@ const SpellRow: React.FC<SpellRowProps> = ({
   // personalizada) não tem entrada na tabela, e sem ele o custo viraria NaN.
   const circleCost = manaExpenseByCircle[spell.spellCircle] ?? 0;
   const baseCost = spell.manaExpense ?? circleCost;
-  const reduction = spell.manaReduction ?? 0;
-  const cost = Math.max(0, baseCost - reduction);
+  const cost = castProfile
+    ? computeSpellPmCost(baseCost, castProfile)
+    : computeSpellPmCost(baseCost, {
+        pmReduction: spell.manaReduction ?? 0,
+        pmHalve: false,
+      });
   /** O custo mora no cabeçalho do círculo; na linha só quando foge da regra. */
   const hasCustomCost = cost !== circleCost;
 
@@ -405,8 +422,15 @@ const SpellRow: React.FC<SpellRowProps> = ({
         <SpellDetailBody
           spell={spell}
           onCast={enguicada ? undefined : onOpenCast}
+          onSpellChoiceToggle={
+            onSpellChoiceToggle
+              ? (key) => onSpellChoiceToggle(key, spell)
+              : undefined
+          }
           engenhocaInfo={engenhocaInfo}
           tradition={tradition}
+          castProfile={castProfile}
+          spellDC={spellDC}
         />
       </AccordionDetails>
     </Accordion>

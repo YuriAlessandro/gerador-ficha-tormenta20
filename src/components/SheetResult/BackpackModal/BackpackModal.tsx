@@ -68,6 +68,7 @@ import {
   getWieldingSlot,
   getWornArmor,
   isClothingWorn,
+  isWornLikeClothing,
   sheetHasFourArms,
   WieldingDisabledSlots,
 } from './wielding';
@@ -519,7 +520,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         onWornChange: (worn) => setWornArmor(worn ? itemId : null),
       };
     }
-    if (item.group === 'Vestuário') {
+    if (isWornLikeClothing(item)) {
       return {
         isWorn: isClothingWorn(itemId, staged.unwornClothingIds),
         onWornChange: (worn) => setWornClothing(itemId, worn),
