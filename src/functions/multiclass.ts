@@ -605,13 +605,15 @@ export function getClassSpellPath(
     return { spellPath, subtypeGuessed: false };
   }
 
+  // Sem subtipo gravado, `buildSpellPathFromSetup` cairia no `setup()` do
+  // Arcanista, que SORTEIA o subtipo a cada chamada.
+  if (className === 'Arcanista' && !setup?.arcanistaSubtype) {
+    return { spellPath: getArcanistaSpellPath('Mago'), subtypeGuessed: true };
+  }
   const fromRegistry =
     findClassDescription(className)?.spellPath ??
     buildSpellPathFromSetup(className, undefined, setup);
   if (fromRegistry) return { spellPath: fromRegistry, subtypeGuessed: false };
-  if (className === 'Arcanista') {
-    return { spellPath: getArcanistaSpellPath('Mago'), subtypeGuessed: true };
-  }
   return undefined;
 }
 

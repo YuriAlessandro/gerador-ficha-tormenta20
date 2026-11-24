@@ -13,7 +13,7 @@ import { isPowerAvailable } from '../../powers';
 import { formatRequirement } from '../../requirementText';
 import { getSpellPmLimitBase } from '../../spells/pmLimit';
 import { getArcanistaSpellPath } from '../../../data/systems/tormenta20/classes/arcanista';
-import { serializeSpellPath } from '../../multiclass';
+import { getClassSpellPath, serializeSpellPath } from '../../multiclass';
 
 const spellOfTradition = (tradition: 'arcane' | 'divine'): Spell => {
   const nome = [...getSpellTraditionMap()].find(
@@ -161,6 +161,19 @@ describe('sheetCastsSpells em multiclasse', () => {
   it('limite de PM é o nível de Arcanista, não o de personagem', () => {
     expect(getSpellPmLimitBase(guerreiroArcanista(true), ARCANE)).toBe(5);
     expect(getSpellPmLimitBase(guerreiroArcanista(false), ARCANE)).toBe(5);
+  });
+
+  it('sem subtipo gravado, o Arcanista é chute marcado (não sorteia)', () => {
+    // O setup() do Arcanista sorteia o subtipo: sem isto, o atributo-chave
+    // mudava entre chamadas e vinha marcado como confiável.
+    const sheet = guerreiroArcanista(false);
+    const results = Array.from({ length: 30 }, () =>
+      getClassSpellPath(sheet, 'Arcanista')
+    );
+    results.forEach((result) => {
+      expect(result?.subtypeGuessed).toBe(true);
+      expect(result?.spellPath.spellCircleAvailableAtLevel?.(5)).toBe(2);
+    });
   });
 });
 
