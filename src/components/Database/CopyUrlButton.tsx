@@ -11,6 +11,15 @@ interface CopyUrlButtonProps {
   variant?: 'floating' | 'integrated' | 'minimal';
 }
 
+const ITEM_TYPE_ROUTE: Record<CopyUrlButtonProps['itemType'], string> = {
+  raça: 'raças',
+  classe: 'classes',
+  origem: 'origens',
+  divindade: 'divindades',
+  poder: 'poderes',
+  magia: 'magias',
+};
+
 const CopyUrlButton: React.FC<CopyUrlButtonProps> = ({
   itemName,
   itemType,
@@ -22,9 +31,15 @@ const CopyUrlButton: React.FC<CopyUrlButtonProps> = ({
   const [showSnackbar, setShowSnackbar] = useState(false);
 
   const handleCopy = async () => {
-    const url = `${window.location.href}/${encodeURIComponent(
-      itemName.toLowerCase()
-    )}`;
+    const routeSegment = ITEM_TYPE_ROUTE[itemType];
+    const encodedItem = encodeURIComponent(itemName.toLowerCase());
+    const { origin, pathname, href } = window.location;
+    const isDatabaseRoute =
+      pathname.includes('/database/') ||
+      decodeURIComponent(pathname).includes('/database/');
+    const url = isDatabaseRoute
+      ? `${origin}/database/${routeSegment}/${encodedItem}`
+      : `${href.replace(/\/$/, '')}/${encodedItem}`;
 
     try {
       await navigator.clipboard.writeText(url);

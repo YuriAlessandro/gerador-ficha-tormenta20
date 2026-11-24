@@ -1,325 +1,110 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  IconButton,
-  Collapse,
   Box,
-  Typography,
-  Divider,
+  Button,
   Chip,
+  Divider,
+  Paper,
+  Stack,
+  Typography,
   useTheme,
 } from '@mui/material';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import BrowseGalleryIcon from '@mui/icons-material/BrowseGallery';
 import { useHistory, useRouteMatch } from 'react-router-dom';
-
-import { useIsMobile } from '@/hooks/useIsMobile';
-import { DESKTOP_ONLY_CELL_SX } from '@/components/common/responsiveSx';
-import SearchInput from './SearchInput';
-import { SEO, getPageSEO } from '../SEO';
-import SupplementFilter from './SupplementFilter';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry, OriginWithSupplement } from '../../data/registry';
 import { ORIGIN_POWER_TYPE } from '../../data/systems/tormenta20/powers/originPowers';
+import { normalizeSearch } from '../../functions/stringUtils';
+import { encyclopediaIds } from '../../functions/encyclopediaSearch';
+import { SEO, getPageSEO } from '../SEO';
 import TormentaTitle from '../Database/TormentaTitle';
+import SearchInput from './SearchInput';
+import SupplementFilter from './SupplementFilter';
+import DatabaseGrid from '../Database/DatabaseGrid';
+import DatabaseCard from '../Database/DatabaseCard';
+import ClickableChipFilterGroup, {
+  ClickableFilterOption,
+} from '../Database/ClickableChipFilterGroup';
 import CopyUrlButton from '../Database/CopyUrlButton';
 import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
-import { encyclopediaIds } from '../../functions/encyclopediaSearch';
-import { EncyclopediaSummaryRow } from '../Database/EncyclopediaRowSummary';
-import { normalizeSearch } from '../../functions/stringUtils';
 
-const Row: React.FC<{ origin: OriginWithSupplement; defaultOpen: boolean }> = ({
-  origin,
-  defaultOpen,
-}) => {
-  const theme = useTheme();
-  const [open, setOpen] = useState(false);
-  const isMobile = useIsMobile();
-
-  useEffect(() => {
-    setOpen(defaultOpen);
-  }, [defaultOpen]);
-
-  const supplementChip = origin.supplementId !==
-    SupplementId.TORMENTA20_CORE && (
-    <Chip
-      label={origin.supplementName}
-      size='small'
-      sx={{
-        height: '20px',
-        fontSize: '0.7rem',
-        backgroundColor: 'secondary.main',
-        color: 'secondary.contrastText',
-      }}
-    />
-  );
-  const shareButton = (
-    <CopyUrlButton
-      itemName={origin.name}
-      itemType='origem'
-      size='small'
-      variant='minimal'
-    />
-  );
-  // Guardar no grimório fica junto do compartilhar, no celular e no desktop.
-  const rowActions = (
-    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-      <AddToGrimoireButton
-        itemId={encyclopediaIds.origin(origin.name)}
-        itemName={origin.name}
-      />
-      {shareButton}
-    </Box>
-  );
-
-  return (
-    <>
-      {isMobile ? (
-        <EncyclopediaSummaryRow
-          colSpan={3}
-          name={origin.name}
-          open={open}
-          onToggle={() => setOpen(!open)}
-          tags={supplementChip}
-          action={rowActions}
-        />
-      ) : (
-        <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
-          <TableCell width={10}>
-            <IconButton
-              aria-label='expand row'
-              size='small'
-              onClick={() => setOpen(!open)}
-            >
-              {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-            </IconButton>
-          </TableCell>
-          <TableCell component='th' scope='row'>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: 1,
-                rowGap: 0.5,
-              }}
-            >
-              <BrowseGalleryIcon color='primary' fontSize='small' />
-              <Typography
-                variant='body1'
-                sx={{
-                  fontWeight: 500,
-                }}
-              >
-                {origin.name}
-              </Typography>
-              {supplementChip}
-              {rowActions}
-            </Box>
-          </TableCell>
-          <TableCell />
-        </TableRow>
-      )}
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
-          <Collapse in={open} timeout='auto' unmountOnExit>
-            <Box
-              sx={{
-                margin: 1,
-                p: 2,
-                borderLeft: `3px solid ${theme.palette.primary.main}`,
-              }}
-            >
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  columnGap: 1,
-                  rowGap: 0.5,
-                  mb: 1,
-                }}
-              >
-                <Typography
-                  variant='h6'
-                  color='primary'
-                  sx={{ fontFamily: 'Tfont, serif' }}
-                >
-                  {origin.name}
-                </Typography>
-                <Chip
-                  label={origin.supplementName}
-                  size='small'
-                  variant='outlined'
-                  color={
-                    origin.supplementId === SupplementId.TORMENTA20_CORE
-                      ? 'default'
-                      : 'secondary'
-                  }
-                  sx={{ fontFamily: 'Tfont, serif' }}
-                />
-              </Box>
-              <Box sx={{ mb: 2 }}>
-                <AddToGrimoireButton
-                  itemId={encyclopediaIds.origin(origin.name)}
-                  itemName={origin.name}
-                  variant='labeled'
-                />
-              </Box>
-
-              {/* Items */}
-              <Box sx={{ mb: 2 }}>
-                <Typography
-                  variant='h6'
-                  gutterBottom
-                  sx={{ fontFamily: 'Tfont, serif', fontSize: '1.1rem' }}
-                >
-                  Itens Iniciais
-                </Typography>
-                <Typography variant='body2'>
-                  {origin
-                    .getItems()
-                    .map((item) => {
-                      if (item.description) return item.description;
-                      if (item.equipment) {
-                        return typeof item.equipment === 'string'
-                          ? item.equipment
-                          : item.equipment.nome;
-                      }
-                      return '';
-                    })
-                    .join('; ')}
-                </Typography>
-              </Box>
-
-              {/* Benefits */}
-              <Box sx={{ mb: 3 }}>
-                <Typography
-                  variant='h6'
-                  gutterBottom
-                  sx={{ fontFamily: 'Tfont, serif', fontSize: '1.1rem' }}
-                >
-                  Benefícios
-                </Typography>
-                {origin.name !== 'Amnésico' ? (
-                  <>
-                    <Typography variant='body2' sx={{ mb: 1 }}>
-                      <strong>Perícias:</strong> {origin.pericias.join(', ')}
-                    </Typography>
-                    <Typography variant='body2'>
-                      <strong>Poderes:</strong>{' '}
-                      {origin.poderes.map((power) => power.name).join(', ')}
-                    </Typography>
-                  </>
-                ) : (
-                  <Typography variant='body2'>
-                    Uma perícia e um poder escolhidos pelo mestre e o poder
-                    Lembranças Graduais
-                  </Typography>
-                )}
-              </Box>
-
-              {origin.poderes.some(
-                (power) => power.type === ORIGIN_POWER_TYPE
-              ) && (
-                <>
-                  <Divider sx={{ my: 3 }} />
-                  <Typography
-                    variant='h6'
-                    gutterBottom
-                    sx={{ fontFamily: 'Tfont, serif', fontSize: '1.2rem' }}
-                  >
-                    Poderes de Origem
-                  </Typography>
-                  {origin.poderes.map((power) => {
-                    if (power.type === ORIGIN_POWER_TYPE) {
-                      return (
-                        <Box key={power.name} sx={{ mb: 2 }}>
-                          <Typography
-                            variant='h6'
-                            color='primary'
-                            sx={{
-                              fontFamily: 'Tfont, serif',
-                              fontSize: '1rem',
-                              mb: 1,
-                            }}
-                          >
-                            {power.name}
-                            <AddToGrimoireButton
-                              itemId={encyclopediaIds.originPower(
-                                origin.name,
-                                power.name
-                              )}
-                              itemName={power.name}
-                            />
-                          </Typography>
-                          <Typography
-                            variant='body1'
-                            sx={{
-                              marginBottom: '16px',
-                            }}
-                          >
-                            {power.description}
-                          </Typography>
-                        </Box>
-                      );
-                    }
-                    return null;
-                  })}
-                </>
-              )}
-            </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
-    </>
-  );
-};
+const ALL_ORIGIN_SUPPLEMENTS: SupplementId[] = [
+  SupplementId.TORMENTA20_CORE,
+  SupplementId.TORMENTA20_ATLAS_ARTON,
+  SupplementId.TORMENTA20_HEROIS_ARTON,
+];
 
 const OriginsTable: React.FC = () => {
   const theme = useTheme();
   const [value, setValue] = useState('');
-  const [selectedSupplements, setSelectedSupplements] = useState<
-    SupplementId[]
-  >([
-    SupplementId.TORMENTA20_CORE,
-    SupplementId.TORMENTA20_ATLAS_ARTON,
-    SupplementId.TORMENTA20_HEROIS_ARTON,
-  ]);
+  const [selectedSupplements, setSelectedSupplements] = useState<SupplementId[]>(
+    ALL_ORIGIN_SUPPLEMENTS
+  );
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+
   const { params } = useRouteMatch<{ selectedOrigin?: string }>();
   const history = useHistory();
 
-  // Derive filtered origins using useMemo - this ensures data is always in sync with state
-  const origins = useMemo(() => {
-    const allOrigins =
-      dataRegistry.getOriginsBySupplements(selectedSupplements);
-    const search = normalizeSearch(value);
+  const allOrigins = useMemo(
+    () => dataRegistry.getOriginsBySupplements(selectedSupplements),
+    [selectedSupplements]
+  );
 
-    if (search.length > 0) {
-      return allOrigins.filter((origin) =>
-        normalizeSearch(origin.name).includes(search)
-      );
-    }
-    return allOrigins;
-  }, [selectedSupplements, value]);
+  const skillOptions: ClickableFilterOption[] = useMemo(() => {
+    const counts = new Map<string, number>();
+    allOrigins.forEach((origin) => {
+      (origin.pericias || []).forEach((skill) => {
+        counts.set(skill, (counts.get(skill) || 0) + 1);
+      });
+    });
+    return Array.from(counts.entries())
+      .sort((a, b) => a[0].localeCompare(b[0], 'pt-BR'))
+      .map(([skill, count]) => ({ value: skill, label: skill, count }));
+  }, [allOrigins]);
+
+  const origins = useMemo(() => {
+    const search = normalizeSearch(value.trim());
+
+    return allOrigins.filter((origin) => {
+      if (selectedSkills.length > 0) {
+        const originSkills: string[] = origin.pericias || [];
+        if (!selectedSkills.some((s) => originSkills.includes(s))) return false;
+      }
+
+      if (search.length > 0) {
+        const itemsText = origin
+          .getItems()
+          .map((item) => {
+            if (item.description) return item.description;
+            if (item.equipment) {
+              return typeof item.equipment === 'string'
+                ? item.equipment
+                : item.equipment.nome;
+            }
+            return '';
+          })
+          .join(' ');
+        const haystack = normalizeSearch(
+          [
+            origin.name,
+            itemsText,
+            ...(origin.pericias || []),
+            ...(origin.poderes || []).flatMap((p) => [p.name, p.description]),
+          ].join(' ')
+        );
+        if (!haystack.includes(search)) return false;
+      }
+
+      return true;
+    });
+  }, [allOrigins, value, selectedSkills]);
 
   const handleToggleSupplement = (supplementId: SupplementId) => {
     setSelectedSupplements((prev) => {
       if (prev.includes(supplementId)) {
-        // Don't allow deselecting all supplements
         if (prev.length === 1) return prev;
         return prev.filter((id) => id !== supplementId);
       }
-      // Keep CORE at the top when adding
       if (supplementId === SupplementId.TORMENTA20_CORE) {
         return [supplementId, ...prev];
       }
@@ -327,33 +112,175 @@ const OriginsTable: React.FC = () => {
     });
   };
 
-  // Handle URL params for deep linking
   useEffect(() => {
     const { selectedOrigin } = params;
-    if (selectedOrigin && selectedOrigin !== value) {
-      setValue(selectedOrigin);
+    if (selectedOrigin) {
+      setValue(decodeURIComponent(selectedOrigin));
     }
   }, [params]);
 
-  // Handle URL navigation when filtering results in single match
-  useEffect(() => {
-    if (origins.length > 1 && value) {
-      history.push('/database/origens');
-    }
-  }, [origins.length, value, history]);
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(event.target.value);
+    if (params.selectedOrigin) history.push('/database/origens');
+  };
 
   const onVoiceSearch = (newValue: string) => {
     setValue(newValue);
+    if (params.selectedOrigin) history.push('/database/origens');
   };
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValue(event.target.value);
+  const clearFilters = () => {
+    setValue('');
+    setSelectedSkills([]);
+    if (params.selectedOrigin) history.push('/database/origens');
   };
 
-  // Get selected origin for SEO
+  const normalizedSelected = params.selectedOrigin
+    ? normalizeSearch(decodeURIComponent(params.selectedOrigin))
+    : '';
+
   const selectedOriginData =
     origins.length === 1 && params.selectedOrigin ? origins[0] : null;
   const originsSEO = getPageSEO('origins');
+
+  const renderOriginCard = (origin: OriginWithSupplement) => {
+    const exclusivePowers = origin.poderes.filter(
+      (p) => p.type === ORIGIN_POWER_TYPE
+    );
+    const itemsText = origin
+      .getItems()
+      .map((item) => {
+        if (item.description) return item.description;
+        if (item.equipment) {
+          return typeof item.equipment === 'string'
+            ? item.equipment
+            : item.equipment.nome;
+        }
+        return '';
+      })
+      .filter(Boolean)
+      .join('; ');
+
+    const actions = (
+      <>
+        <AddToGrimoireButton
+          itemId={encyclopediaIds.origin(origin.name)}
+          itemName={origin.name}
+        />
+        <CopyUrlButton
+          itemName={origin.name}
+          itemType='origem'
+          size='small'
+          variant='minimal'
+        />
+      </>
+    );
+
+    const badges = (
+      <>
+        <Chip
+          label={origin.supplementName}
+          size='small'
+          variant='outlined'
+          color={
+            origin.supplementId === SupplementId.TORMENTA20_CORE
+              ? 'default'
+              : 'secondary'
+          }
+          sx={{ fontFamily: 'Tfont, serif', fontSize: '0.7rem' }}
+        />
+        {origin.pericias.map((per) => (
+          <Chip
+            key={`${origin.name}-skill-${per}`}
+            label={per}
+            size='small'
+            variant='outlined'
+            color='primary'
+            sx={{ fontFamily: 'Tfont, serif', fontSize: '0.68rem' }}
+          />
+        ))}
+      </>
+    );
+
+    return (
+      <DatabaseCard
+        key={`${origin.supplementId}-${origin.name}`}
+        title={origin.name}
+        icon={<BrowseGalleryIcon fontSize='small' />}
+        badges={badges}
+        actions={actions}
+        highlighted={
+          Boolean(normalizedSelected) &&
+          normalizeSearch(origin.name) === normalizedSelected
+        }
+      >
+        {itemsText && (
+          <Typography variant='body2' sx={{ mb: 1.25 }}>
+            <strong>Itens Iniciais:</strong> {itemsText}
+          </Typography>
+        )}
+
+        {origin.name !== 'Amnésico' ? (
+          <Box sx={{ mb: exclusivePowers.length > 0 ? 1.5 : 0 }}>
+            <Typography variant='body2' sx={{ mb: 0.5 }}>
+              <strong>Perícias:</strong>{' '}
+              {origin.pericias.length > 0 ? origin.pericias.join(', ') : '—'}
+            </Typography>
+            <Typography variant='body2'>
+              <strong>Poderes:</strong>{' '}
+              {origin.poderes.map((power) => power.name).join(', ')}
+            </Typography>
+          </Box>
+        ) : (
+          <Typography variant='body2' sx={{ mb: 1.5 }}>
+            Uma perícia e um poder escolhidos pelo mestre e o poder Lembranças
+            Graduais.
+          </Typography>
+        )}
+
+        {exclusivePowers.length > 0 && (
+          <>
+            <Divider sx={{ my: 1.25 }} />
+            <Stack spacing={1.25}>
+              {exclusivePowers.map((power) => (
+                <Box key={`${origin.name}-pwr-${power.name}`}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 1,
+                    }}
+                  >
+                    <Typography
+                      variant='subtitle2'
+                      color='primary'
+                      sx={{ fontFamily: 'Tfont, serif', fontWeight: 700 }}
+                    >
+                      {power.name}
+                    </Typography>
+                    <AddToGrimoireButton
+                      itemId={encyclopediaIds.originPower(
+                        origin.name,
+                        power.name
+                      )}
+                      itemName={power.name}
+                    />
+                  </Box>
+                  <Typography
+                    variant='body2'
+                    sx={{ whiteSpace: 'pre-line', lineHeight: 1.55 }}
+                  >
+                    {power.description}
+                  </Typography>
+                </Box>
+              ))}
+            </Stack>
+          </>
+        )}
+      </DatabaseCard>
+    );
+  };
 
   return (
     <>
@@ -369,7 +296,9 @@ const OriginsTable: React.FC = () => {
             : originsSEO.description
         }
         url={`/database/origens${
-          selectedOriginData ? `/${params.selectedOrigin}` : ''
+          selectedOriginData && params.selectedOrigin
+            ? `/${params.selectedOrigin}`
+            : ''
         }`}
       />
       <Box>
@@ -377,20 +306,14 @@ const OriginsTable: React.FC = () => {
           Origens de Personagem
         </TormentaTitle>
 
-        {/* Supplement Filter */}
         <SupplementFilter
           selectedSupplements={selectedSupplements}
-          availableSupplements={[
-            SupplementId.TORMENTA20_CORE,
-            SupplementId.TORMENTA20_ATLAS_ARTON,
-            SupplementId.TORMENTA20_HEROIS_ARTON,
-          ]}
+          availableSupplements={ALL_ORIGIN_SUPPLEMENTS}
           onToggleSupplement={handleToggleSupplement}
         />
 
-        {/* Search Input */}
         <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
-          <Box sx={{ width: '100%', maxWidth: 500 }}>
+          <Box sx={{ width: '100%', maxWidth: 540 }}>
             <SearchInput
               value={value}
               handleChange={handleChange}
@@ -399,68 +322,68 @@ const OriginsTable: React.FC = () => {
           </Box>
         </Box>
 
-        {/* Results Summary */}
+        <Paper
+          variant='outlined'
+          sx={{
+            p: { xs: 1.5, sm: 2 },
+            mb: 3,
+            borderRadius: 2,
+            borderColor: `${theme.palette.primary.main}33`,
+            bgcolor:
+              theme.palette.mode === 'dark'
+                ? 'rgba(255,255,255,0.02)'
+                : 'rgba(0,0,0,0.015)',
+          }}
+        >
+          <ClickableChipFilterGroup
+            label='Filtrar por Perícia Concedida:'
+            allLabel='Todas'
+            options={skillOptions}
+            selected={selectedSkills}
+            onToggle={(skill) =>
+              setSelectedSkills((prev) =>
+                prev.includes(skill)
+                  ? prev.filter((s) => s !== skill)
+                  : [...prev, skill]
+              )
+            }
+            onClear={() => setSelectedSkills([])}
+            enableQuickFilter
+            quickFilterPlaceholder='Filtrar perícia...'
+          />
+        </Paper>
+
         <Box sx={{ mb: 2, textAlign: 'center' }}>
-          <Typography
-            variant='body1'
-            sx={{
-              color: 'text.secondary',
-            }}
-          >
-            {origins.length === 0
-              ? 'Nenhuma origem encontrada com os filtros aplicados'
-              : `${origins.length} origem${
-                  origins.length !== 1 ? 's' : ''
-                } encontrada${origins.length !== 1 ? 's' : ''}`}
+          <Typography variant='body1' sx={{ color: 'text.secondary' }}>
+            {origins.length} origem{origins.length !== 1 ? 's' : ''} exibida
+            {origins.length !== 1 ? 's' : ''}
           </Typography>
         </Box>
 
-        {/* Origins Table */}
-        <TableContainer component={Paper} className='table-container'>
-          <Table aria-label='origins table'>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={DESKTOP_ONLY_CELL_SX} />
-                <TableCell>
-                  <Typography
-                    variant='h6'
-                    sx={{
-                      fontFamily: 'Tfont, serif',
-                      color: theme.palette.primary.main,
-                    }}
-                  >
-                    Nome da Origem
-                  </Typography>
-                </TableCell>
-                <TableCell sx={DESKTOP_ONLY_CELL_SX} />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {origins.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={3} align='center' sx={{ py: 4 }}>
-                    <Typography
-                      variant='body1'
-                      sx={{
-                        color: 'text.secondary',
-                      }}
-                    >
-                      Nenhuma origem encontrada. Tente ajustar a busca.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                origins.map((origin) => (
-                  <Row
-                    key={origin.name}
-                    origin={origin}
-                    defaultOpen={origins.length === 1}
-                  />
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DatabaseGrid
+          ariaLabel='Grade de origens'
+          resetKey={`${value}|${selectedSkills.join(',')}|${selectedSupplements.join(',')}`}
+          emptyState={
+            <Paper
+              variant='outlined'
+              sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}
+            >
+              <Typography variant='body1' sx={{ color: 'text.secondary', mb: 2 }}>
+                Nenhuma origem encontrada com os filtros aplicados.
+              </Typography>
+              <Button
+                variant='outlined'
+                size='small'
+                onClick={clearFilters}
+                sx={{ fontFamily: 'Tfont, serif' }}
+              >
+                Limpar filtros
+              </Button>
+            </Paper>
+          }
+        >
+          {origins.map(renderOriginCard)}
+        </DatabaseGrid>
       </Box>
     </>
   );

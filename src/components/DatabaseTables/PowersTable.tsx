@@ -1,299 +1,125 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  IconButton,
-  Collapse,
-  Box,
-  Tabs,
-  Tab,
-  Typography,
-  Divider,
-  Chip,
-  useTheme,
-} from '@mui/material';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
-
+import React, { useEffect, useMemo, useState } from 'react';
+import { Box, Button, Paper, Tab, Tabs, Typography, useTheme } from '@mui/material';
 import { useHistory, useRouteMatch } from 'react-router-dom';
-import { useIsMobile } from '@/hooks/useIsMobile';
-import { DESKTOP_ONLY_CELL_SX } from '@/components/common/responsiveSx';
-import { Requirement } from '../../interfaces/Poderes';
-import { formatRequirement } from '../../functions/requirementText';
-import { SEO, getPageSEO } from '../SEO';
-import SearchInput from './SearchInput';
-import TormentaTitle from '../Database/TormentaTitle';
-import CopyUrlButton from '../Database/CopyUrlButton';
-import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
-import { powerItemId } from '../../functions/pocketGrimoire/resolveItems';
-import { EncyclopediaSummaryRow } from '../Database/EncyclopediaRowSummary';
-import SupplementFilter from './SupplementFilter';
+import { GeneralPowerType } from '../../interfaces/Poderes';
 import { SupplementId } from '../../types/supplement.types';
-import { dataRegistry, GeneralPowerWithSupplement } from '../../data/registry';
 import { normalizeSearch } from '../../functions/stringUtils';
+import { SEO, getPageSEO } from '../SEO';
+import TormentaTitle from '../Database/TormentaTitle';
+import DatabaseGrid from '../Database/DatabaseGrid';
+import SearchInput from './SearchInput';
+import SupplementFilter from './SupplementFilter';
+import PowerSubfilters from './PowerSubfilters';
+import PowerCard from './PowerCard';
+import {
+  ALL_POWER_SUPPLEMENTS,
+  POWER_CATEGORY_LABELS,
+  PowerTabCategory,
+  PrereqQuickFilter,
+  buildClassSubfilterOptions,
+  buildDeitySubfilterOptions,
+  buildDistinctionSubfilterOptions,
+  buildRaceSubfilterOptions,
+  buildTacticalSubfilterOptions,
+  buildUnifiedPowersCatalog,
+  filterPowersCatalog,
+} from './powersFilters';
 
-const Req: React.FC<{ requirement: Requirement }> = ({ requirement }) => (
-  <Chip
-    label={formatRequirement(requirement)}
-    size='small'
-    variant='outlined'
-    color='secondary'
-    sx={{
-      m: 0.5,
-      fontFamily: 'Tfont, serif',
-      fontSize: '0.75rem',
-    }}
-  />
-);
+const CATEGORY_ORDER: PowerTabCategory[] = [
+  'ALL',
+  GeneralPowerType.COMBATE,
+  GeneralPowerType.CONCEDIDOS,
+  GeneralPowerType.DESTINO,
+  GeneralPowerType.MAGIA,
+  GeneralPowerType.TORMENTA,
+  GeneralPowerType.RACA,
+  'CLASSE',
+  GeneralPowerType.DISTINCAO,
+];
 
-const Row: React.FC<{
-  power: GeneralPowerWithSupplement;
-  defaultOpen: boolean;
-}> = ({ power, defaultOpen }) => {
-  const theme = useTheme();
-  const [open, setOpen] = useState(false);
-  const isMobile = useIsMobile();
-
-  useEffect(() => {
-    setOpen(defaultOpen);
-  }, [defaultOpen]);
-
-  const typeChip = (
-    <Chip
-      label={power.type}
-      size='small'
-      variant='filled'
-      color='primary'
-      sx={{ ml: 1, fontFamily: 'Tfont, serif', fontSize: '0.7rem' }}
-    />
-  );
-  const supplementChip = (
-    <Chip
-      label={power.supplementName}
-      size='small'
-      variant='outlined'
-      color={
-        power.supplementId === SupplementId.TORMENTA20_CORE
-          ? 'default'
-          : 'secondary'
-      }
-      sx={{ fontFamily: 'Tfont, serif', fontSize: '0.7rem' }}
-    />
-  );
-  const shareButton = (
-    <CopyUrlButton
-      itemName={power.name}
-      itemType='poder'
-      size='small'
-      variant='minimal'
-    />
-  );
-  // Guardar no grimório fica junto do compartilhar, no celular e no desktop.
-  const rowActions = (
-    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-      <AddToGrimoireButton itemId={powerItemId(power)} itemName={power.name} />
-      {shareButton}
-    </Box>
-  );
-
-  return (
-    <>
-      {isMobile ? (
-        <EncyclopediaSummaryRow
-          colSpan={3}
-          name={power.name}
-          open={open}
-          onToggle={() => setOpen(!open)}
-          tags={
-            <>
-              {typeChip}
-              {supplementChip}
-            </>
-          }
-          action={rowActions}
-        />
-      ) : (
-        <TableRow
-          className='table-row'
-          sx={{
-            '& > *': { borderBottom: 'unset' },
-            position: 'relative',
-            '&:hover': {
-              backgroundColor: `${theme.palette.primary.main}05`,
-            },
-          }}
-        >
-          <TableCell width={10}>
-            <IconButton
-              aria-label='expand row'
-              size='small'
-              onClick={() => setOpen(!open)}
-            >
-              {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-            </IconButton>
-          </TableCell>
-          <TableCell component='th' scope='row' sx={{ position: 'relative' }}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: 1,
-                rowGap: 0.5,
-              }}
-            >
-              <LocalFireDepartmentIcon color='primary' fontSize='small' />
-              <Typography
-                variant='body1'
-                sx={{
-                  fontWeight: 500,
-                }}
-              >
-                {power.name}
-              </Typography>
-              {typeChip}
-              {supplementChip}
-            </Box>
-            {rowActions}
-          </TableCell>
-          <TableCell />
-        </TableRow>
-      )}
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
-          <Collapse in={open} timeout='auto' unmountOnExit>
-            <Box
-              sx={{
-                margin: 1,
-                p: 2,
-                borderLeft: `3px solid ${theme.palette.primary.main}`,
-              }}
-            >
-              <Typography
-                variant='h6'
-                color='primary'
-                gutterBottom
-                sx={{ fontFamily: 'Tfont, serif' }}
-              >
-                {power.name}
-              </Typography>
-              <Box sx={{ mb: 2 }}>
-                <AddToGrimoireButton
-                  itemId={powerItemId(power)}
-                  itemName={power.name}
-                  variant='labeled'
-                />
-              </Box>
-
-              <Typography
-                variant='body1'
-                sx={{
-                  marginBottom: '16px',
-                }}
-              >
-                {power.description}
-              </Typography>
-
-              {power.requirements.length > 0 &&
-                power.requirements.some((reqGroup) => reqGroup.length > 0) && (
-                  <>
-                    <Divider sx={{ my: 2 }} />
-                    <Typography
-                      variant='h6'
-                      gutterBottom
-                      sx={{ fontFamily: 'Tfont, serif', fontSize: '1.1rem' }}
-                    >
-                      Requisitos
-                    </Typography>
-                    {power.requirements.map((reqGroup, reqIndex) => (
-                      <Box
-                        key={`${power.name}-reqGroup-${reqGroup
-                          .map((r) => r.name || r.text)
-                          .join('-')}`}
-                        sx={{ mb: 1 }}
-                      >
-                        {reqGroup.map((req, _reqSubIndex) => (
-                          <Req
-                            key={`${power.name}-req-${req.name || req.text}-${
-                              req.value || 'novalue'
-                            }`}
-                            requirement={req}
-                          />
-                        ))}
-                        {power.requirements.length > 1 &&
-                          reqIndex + 1 < power.requirements.length && (
-                            <Typography
-                              variant='body2'
-                              sx={{ my: 1, fontStyle: 'italic' }}
-                            >
-                              ou
-                            </Typography>
-                          )}
-                      </Box>
-                    ))}
-                  </>
-                )}
-            </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
-    </>
-  );
-};
+const toggleSelection = (list: string[], value: string): string[] =>
+  list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
 
 const PowersTable: React.FC = () => {
   const theme = useTheme();
-  const [selectedSupplements, setSelectedSupplements] = useState<
-    SupplementId[]
-  >([
-    SupplementId.TORMENTA20_CORE,
-    SupplementId.TORMENTA20_AMEACAS_ARTON,
-    SupplementId.TORMENTA20_DEUSES_ARTON,
-    SupplementId.TORMENTA20_HEROIS_ARTON,
-  ]);
+  const [selectedSupplements, setSelectedSupplements] = useState<SupplementId[]>(
+    ALL_POWER_SUPPLEMENTS
+  );
+  const [category, setCategory] = useState<PowerTabCategory>('ALL');
+  const [search, setSearch] = useState('');
+  const [selectedRaces, setSelectedRaces] = useState<string[]>([]);
+  const [selectedDeities, setSelectedDeities] = useState<string[]>([]);
+  const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
+  const [selectedDistinctions, setSelectedDistinctions] = useState<string[]>(
+    []
+  );
+  const [selectedTactical, setSelectedTactical] = useState<string[]>([]);
+  const [prereqFilter, setPrereqFilter] = useState<PrereqQuickFilter>('ALL');
 
-  const [value, setValue] = useState('');
-  const { params } = useRouteMatch();
+  const { params } = useRouteMatch<{ selectedPower?: string }>();
   const history = useHistory();
 
-  const combatRef = useRef<null | HTMLDivElement>(null);
-  const concedidoRef = useRef<null | HTMLDivElement>(null);
-  const destinyRef = useRef<null | HTMLDivElement>(null);
-  const magicRef = useRef<null | HTMLDivElement>(null);
-  const tormentaRef = useRef<null | HTMLDivElement>(null);
-  const racaRef = useRef<null | HTMLDivElement>(null);
-
-  // Derive powers by category using useMemo - always in sync with selectedSupplements
-  const allPowersByCategory = useMemo(
-    () => dataRegistry.getPowersWithSupplementInfo(selectedSupplements),
+  const fullCatalog = useMemo(
+    () => buildUnifiedPowersCatalog(selectedSupplements),
     [selectedSupplements]
   );
 
-  // Derive filtered powers using useMemo - always in sync with state
-  const powers = useMemo(() => {
-    const search = normalizeSearch(value);
-    if (search.length > 0) {
-      const allPowersList = [
-        ...allPowersByCategory.COMBATE,
-        ...allPowersByCategory.CONCEDIDOS,
-        ...allPowersByCategory.DESTINO,
-        ...allPowersByCategory.MAGIA,
-        ...allPowersByCategory.TORMENTA,
-        ...allPowersByCategory.RACA,
-      ];
-      return allPowersList.filter((power) =>
-        normalizeSearch(power.name).includes(search)
-      );
-    }
-    return [];
-  }, [allPowersByCategory, value]);
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = { ALL: fullCatalog.length };
+    CATEGORY_ORDER.forEach((cat) => {
+      if (cat !== 'ALL') {
+        counts[cat] = fullCatalog.filter((item) => item.category === cat).length;
+      }
+    });
+    return counts;
+  }, [fullCatalog]);
+
+  const raceOptions = useMemo(
+    () => buildRaceSubfilterOptions(fullCatalog),
+    [fullCatalog]
+  );
+  const deityOptions = useMemo(
+    () => buildDeitySubfilterOptions(fullCatalog),
+    [fullCatalog]
+  );
+  const classOptions = useMemo(
+    () => buildClassSubfilterOptions(fullCatalog),
+    [fullCatalog]
+  );
+  const distinctionOptions = useMemo(
+    () => buildDistinctionSubfilterOptions(fullCatalog),
+    [fullCatalog]
+  );
+  const tacticalOptions = useMemo(
+    () => buildTacticalSubfilterOptions(fullCatalog, category),
+    [fullCatalog, category]
+  );
+
+  const filteredPowers = useMemo(
+    () =>
+      filterPowersCatalog(fullCatalog, {
+        category,
+        search,
+        selectedRaces,
+        selectedDeities,
+        selectedClasses,
+        selectedDistinctions,
+        selectedTactical,
+        prereqFilter,
+      }),
+    [
+      fullCatalog,
+      category,
+      search,
+      selectedRaces,
+      selectedDeities,
+      selectedClasses,
+      selectedDistinctions,
+      selectedTactical,
+      prereqFilter,
+    ]
+  );
 
   const handleToggleSupplement = (supplementId: SupplementId) => {
     setSelectedSupplements((prev) => {
@@ -301,7 +127,6 @@ const PowersTable: React.FC = () => {
         if (prev.length === 1) return prev;
         return prev.filter((id) => id !== supplementId);
       }
-      // Keep CORE at the top when adding
       if (supplementId === SupplementId.TORMENTA20_CORE) {
         return [supplementId, ...prev];
       }
@@ -309,95 +134,68 @@ const PowersTable: React.FC = () => {
     });
   };
 
-  // Handle URL params for deep linking
+  // Suporte a deep link (/database/poderes/:selectedPower)
   useEffect(() => {
-    const { selectedPower } = params as any;
-    if (selectedPower && selectedPower !== value) {
-      setValue(selectedPower);
+    const { selectedPower } = params;
+    if (selectedPower) {
+      const decoded = decodeURIComponent(selectedPower);
+      setCategory('ALL');
+      setSearch(decoded);
     }
   }, [params]);
 
-  // Handle URL navigation when filtering results in multiple matches
-  useEffect(() => {
-    if (powers.length > 1 && value) {
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const nextValue = event.target.value;
+    setSearch(nextValue);
+    if (params.selectedPower) {
       history.push('/database/poderes');
     }
-  }, [powers.length, value, history]);
+  };
 
   const onVoiceSearch = (newValue: string) => {
-    setValue(newValue);
-  };
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValue(event.target.value);
-  };
-
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    switch (newValue) {
-      case 0:
-        combatRef.current?.scrollIntoView({ behavior: 'smooth' });
-        break;
-      case 1:
-        concedidoRef.current?.scrollIntoView({ behavior: 'smooth' });
-        break;
-      case 2:
-        destinyRef.current?.scrollIntoView({ behavior: 'smooth' });
-        break;
-      case 3:
-        magicRef.current?.scrollIntoView({ behavior: 'smooth' });
-        break;
-      case 4:
-        tormentaRef.current?.scrollIntoView({ behavior: 'smooth' });
-        break;
-      case 5:
-        racaRef.current?.scrollIntoView({ behavior: 'smooth' });
-        break;
-      default:
-        break;
+    setSearch(newValue);
+    if (params.selectedPower) {
+      history.push('/database/poderes');
     }
   };
 
-  const renderPowerSection = (
-    title: string,
-    powersList: GeneralPowerWithSupplement[],
-    ref: React.RefObject<HTMLDivElement>
-  ) => (
-    <>
-      <TableRow>
-        <TableCell
-          colSpan={3}
-          sx={{ py: 2, backgroundColor: `${theme.palette.primary.main}0D` }}
-        >
-          <Box ref={ref} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography
-              variant='h5'
-              sx={{
-                fontFamily: 'Tfont, serif',
-                color: theme.palette.primary.main,
-                m: 0,
-              }}
-            >
-              {title}
-            </Typography>
-          </Box>
-        </TableCell>
-      </TableRow>
-      {powersList.map((power) => (
-        <Row
-          key={`${power.name}-${power.type}`}
-          power={power}
-          defaultOpen={powers.length === 1}
-        />
-      ))}
-    </>
-  );
+  const handleCategoryChange = (
+    _event: React.SyntheticEvent,
+    nextCategory: PowerTabCategory
+  ) => {
+    setCategory(nextCategory);
+    setSelectedRaces([]);
+    setSelectedDeities([]);
+    setSelectedClasses([]);
+    setSelectedDistinctions([]);
+    setSelectedTactical([]);
+  };
 
-  // Get selected power for SEO
+  const clearAllFilters = () => {
+    setSearch('');
+    setCategory('ALL');
+    setSelectedRaces([]);
+    setSelectedDeities([]);
+    setSelectedClasses([]);
+    setSelectedDistinctions([]);
+    setSelectedTactical([]);
+    setPrereqFilter('ALL');
+    if (params.selectedPower) {
+      history.push('/database/poderes');
+    }
+  };
+
+  const normalizedSelectedParam = params.selectedPower
+    ? normalizeSearch(decodeURIComponent(params.selectedPower))
+    : '';
+
   const selectedPowerData =
-    powers.length === 1 && (params as { selectedPower?: string }).selectedPower
-      ? powers[0]
+    filteredPowers.length === 1 && params.selectedPower
+      ? filteredPowers[0]
       : null;
   const powersSEO = getPageSEO('powers');
+
+  const resetKey = `${category}|${search}|${selectedRaces.join(',')}|${selectedDeities.join(',')}|${selectedClasses.join(',')}|${selectedDistinctions.join(',')}|${selectedTactical.join(',')}|${prereqFilter}|${selectedSupplements.join(',')}`;
 
   return (
     <>
@@ -409,154 +207,159 @@ const PowersTable: React.FC = () => {
         }
         description={
           selectedPowerData
-            ? `Requisitos e efeitos do poder ${selectedPowerData.name} (${selectedPowerData.type}) em Tormenta 20.`
+            ? `Requisitos e efeitos do poder ${selectedPowerData.name} (${selectedPowerData.categoryLabel}) em Tormenta 20.`
             : powersSEO.description
         }
         url={`/database/poderes${
-          selectedPowerData
-            ? `/${(params as { selectedPower?: string }).selectedPower}`
+          selectedPowerData && params.selectedPower
+            ? `/${params.selectedPower}`
             : ''
         }`}
       />
       <Box>
         <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
-          Poderes Gerais
+          Poderes
         </TormentaTitle>
 
-        {/* Supplement Filter */}
+        {/* Filtro de Suplementos */}
         <SupplementFilter
           selectedSupplements={selectedSupplements}
-          availableSupplements={[
-            SupplementId.TORMENTA20_CORE,
-            SupplementId.TORMENTA20_AMEACAS_ARTON,
-            SupplementId.TORMENTA20_DEUSES_ARTON,
-            SupplementId.TORMENTA20_HEROIS_ARTON,
-          ]}
+          availableSupplements={ALL_POWER_SUPPLEMENTS}
           onToggleSupplement={handleToggleSupplement}
         />
 
-        {/* Search Input */}
+        {/* Barra de Busca Ampliada */}
         <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
-          <Box sx={{ width: '100%', maxWidth: 500 }}>
+          <Box sx={{ width: '100%', maxWidth: 540 }}>
             <SearchInput
-              value={value}
-              handleChange={handleChange}
+              value={search}
+              handleChange={handleSearchChange}
               onVoiceSearch={onVoiceSearch}
             />
           </Box>
         </Box>
 
-        {/* Category Tabs */}
-        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+        {/* Abas Reais de Categoria */}
+        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
           <Tabs
-            onChange={handleTabChange}
-            aria-label='power categories'
+            value={category}
+            onChange={handleCategoryChange}
+            aria-label='Categorias de poderes'
             variant='scrollable'
             scrollButtons='auto'
+            allowScrollButtonsMobile
             sx={{
+              maxWidth: '100%',
               background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-              borderRadius: 1,
+              borderRadius: 1.5,
               '& .MuiTab-root': {
                 fontFamily: 'Tfont, serif',
                 fontWeight: 600,
-                color: 'white',
+                color: 'rgba(255,255,255,0.82)',
+                textTransform: 'none',
+                minHeight: 44,
               },
               '& .MuiTab-root.Mui-selected': {
-                color: '#FAFAFA',
+                color: '#FFFFFF',
+                backgroundColor: 'rgba(255,255,255,0.14)',
+              },
+              '& .MuiTabs-indicator': {
+                backgroundColor: '#FFFFFF',
+                height: 3,
               },
             }}
           >
-            <Tab label='Combate' />
-            <Tab label='Concedidos' />
-            <Tab label='Destino' />
-            <Tab label='Magia' />
-            <Tab label='Tormenta' />
-            <Tab label='Raça' />
+            {CATEGORY_ORDER.map((cat) => {
+              const label =
+                cat === 'ALL'
+                  ? `Todos (${categoryCounts.ALL})`
+                  : `${POWER_CATEGORY_LABELS[cat]} (${categoryCounts[cat] ?? 0})`;
+              return <Tab key={cat} value={cat} label={label} />;
+            })}
           </Tabs>
         </Box>
 
-        {/* Results Summary */}
+        {/* Subfiltros Contextuais em Chips Clicáveis */}
+        <PowerSubfilters
+          category={category}
+          raceOptions={raceOptions}
+          selectedRaces={selectedRaces}
+          onToggleRace={(r) => setSelectedRaces((prev) => toggleSelection(prev, r))}
+          onClearRaces={() => setSelectedRaces([])}
+          deityOptions={deityOptions}
+          selectedDeities={selectedDeities}
+          onToggleDeity={(d) =>
+            setSelectedDeities((prev) => toggleSelection(prev, d))
+          }
+          onClearDeities={() => setSelectedDeities([])}
+          classOptions={classOptions}
+          selectedClasses={selectedClasses}
+          onToggleClass={(c) =>
+            setSelectedClasses((prev) => toggleSelection(prev, c))
+          }
+          onClearClasses={() => setSelectedClasses([])}
+          distinctionOptions={distinctionOptions}
+          selectedDistinctions={selectedDistinctions}
+          onToggleDistinction={(dist) =>
+            setSelectedDistinctions((prev) => toggleSelection(prev, dist))
+          }
+          onClearDistinctions={() => setSelectedDistinctions([])}
+          tacticalOptions={tacticalOptions}
+          selectedTactical={selectedTactical}
+          onToggleTactical={(t) =>
+            setSelectedTactical((prev) => toggleSelection(prev, t))
+          }
+          onClearTactical={() => setSelectedTactical([])}
+          prereqFilter={prereqFilter}
+          onSelectPrereq={setPrereqFilter}
+        />
+
+        {/* Resumo de Resultados */}
         <Box sx={{ mb: 2, textAlign: 'center' }}>
-          <Typography
-            variant='body1'
-            sx={{
-              color: 'text.secondary',
-            }}
-          >
-            {powers.length > 0
-              ? `${powers.length} poder${
-                  powers.length !== 1 ? 'es' : ''
-                } encontrado${powers.length !== 1 ? 's' : ''}`
-              : 'Navegue pelas categorias ou use a busca para encontrar poderes específicos'}
+          <Typography variant='body1' sx={{ color: 'text.secondary' }}>
+            {filteredPowers.length} poder
+            {filteredPowers.length !== 1 ? 'es' : ''} exibido
+            {filteredPowers.length !== 1 ? 's' : ''}
           </Typography>
         </Box>
 
-        {/* Powers Table */}
-        <TableContainer component={Paper} className='table-container'>
-          <Table aria-label='powers table'>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={DESKTOP_ONLY_CELL_SX} />
-                <TableCell>
-                  <Typography
-                    variant='h6'
-                    sx={{
-                      fontFamily: 'Tfont, serif',
-                      color: theme.palette.primary.main,
-                    }}
-                  >
-                    Nome do Poder
-                  </Typography>
-                </TableCell>
-                <TableCell sx={DESKTOP_ONLY_CELL_SX} />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {powers.length > 0 ? (
-                powers.map((power) => (
-                  <Row
-                    key={power.name}
-                    power={power}
-                    defaultOpen={powers.length === 1}
-                  />
-                ))
-              ) : (
-                <>
-                  {renderPowerSection(
-                    'Poderes de Combate',
-                    allPowersByCategory.COMBATE,
-                    combatRef
-                  )}
-                  {renderPowerSection(
-                    'Poderes Concedidos',
-                    allPowersByCategory.CONCEDIDOS,
-                    concedidoRef
-                  )}
-                  {renderPowerSection(
-                    'Poderes de Destino',
-                    allPowersByCategory.DESTINO,
-                    destinyRef
-                  )}
-                  {renderPowerSection(
-                    'Poderes de Magia',
-                    allPowersByCategory.MAGIA,
-                    magicRef
-                  )}
-                  {renderPowerSection(
-                    'Poderes da Tormenta',
-                    allPowersByCategory.TORMENTA,
-                    tormentaRef
-                  )}
-                  {renderPowerSection(
-                    'Poderes de Raça',
-                    allPowersByCategory.RACA,
-                    racaRef
-                  )}
-                </>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        {/* Grade de Cards Abertos com Texto Integral */}
+        <DatabaseGrid
+          ariaLabel='Grade de poderes'
+          resetKey={resetKey}
+          emptyState={
+            <Paper
+              variant='outlined'
+              sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}
+            >
+              <Typography variant='body1' sx={{ color: 'text.secondary', mb: 2 }}>
+                {category === GeneralPowerType.DISTINCAO &&
+                distinctionOptions.length === 0
+                  ? 'Nenhuma distinção disponível no build público atual.'
+                  : 'Nenhum poder encontrado com os filtros aplicados.'}
+              </Typography>
+              <Button
+                variant='outlined'
+                size='small'
+                onClick={clearAllFilters}
+                sx={{ fontFamily: 'Tfont, serif' }}
+              >
+                Limpar filtros
+              </Button>
+            </Paper>
+          }
+        >
+          {filteredPowers.map((power) => (
+            <PowerCard
+              key={power.id}
+              power={power}
+              highlighted={
+                Boolean(normalizedSelectedParam) &&
+                normalizeSearch(power.name) === normalizedSelectedParam
+              }
+            />
+          ))}
+        </DatabaseGrid>
       </Box>
     </>
   );
