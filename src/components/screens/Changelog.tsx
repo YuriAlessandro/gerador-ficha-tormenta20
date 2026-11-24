@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            16/11/2026 (v4.39).
+            24/11/2026 (v4.39).
           </p>
 
           <p>
@@ -313,6 +313,13 @@ const Changelog: React.FC = () => {
                   divinas. Antes, o Aumentar Repertório mostrava magias de
                   qualquer escola. Fichas que já tinham o Segredos da Natureza
                   não mudam: as magias continuam sendo adicionadas à mão.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a página de uma{' '}
+                  <strong>coleção de homebrews</strong> voltou a listar todos os
+                  itens. As <strong>Classes Variantes</strong> eram contadas no
+                  total, mas não apareciam na lista. Agora ficam numa seção
+                  própria, sem precisar editar a coleção.
                 </li>
               </ul>
 
