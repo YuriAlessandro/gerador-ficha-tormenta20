@@ -23,6 +23,7 @@ const HEROIS_ARTON_POWERS: GeneralPowers = {
     ...Object.values(racePowers),
     ...DUENDE_PRESENTES_POWERS,
   ],
+  [GeneralPowerType.DISTINCAO]: [],
 };
 
 export default HEROIS_ARTON_POWERS;

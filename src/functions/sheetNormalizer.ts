@@ -4,6 +4,7 @@ import CharacterSheet, {
   SheetAction,
   SheetBonus,
 } from '../interfaces/CharacterSheet';
+import { ClassAbility } from '../interfaces/Class';
 import { RaceAbility } from '../interfaces/Race';
 import { DUENDE_PRESENTES } from '../data/systems/tormenta20/herois-de-arton/races/duende-config';
 import { CharacterAttributes } from '../interfaces/Character';
@@ -36,6 +37,10 @@ import {
   CENTAURO_REFRESHED_PREREQ_HOOKS,
 } from '../data/systems/tormenta20/ameacas-de-arton/races/centauro';
 import { HOBGOBLIN_REFRESHED_DESCRIPTIONS } from '../data/systems/tormenta20/ameacas-de-arton/races/hobgoblin';
+import { applyAcuidadeComArma } from './powers/acuidadeComArma';
+import SATIRO, {
+  SATIRO_REFRESHED_ABILITIES,
+} from '../data/systems/tormenta20/herois-de-arton/races/satiro';
 import { getComplicationByName } from '../premium/data/complications';
 import { getAgeBracket } from '../premium/data/ageBrackets';
 import { getAgeComplicationByName } from '../premium/data/ageComplications';
@@ -48,6 +53,7 @@ import { sanitizeCustomPowerBonuses } from './powers/customPowerBonuses';
 import {
   ARQUEIRO_SHEET_BONUSES,
   ESGRIMISTA_SHEET_BONUSES,
+  MAGO_VERMELHO_SHEET_BONUSES,
   ESTILO_DE_DISPARO_SHEET_BONUSES,
   INEXPUGNAVEL_SHEET_BONUSES,
   PELE_DE_ACO_SHEET_BONUSES,
@@ -64,6 +70,13 @@ import {
   CORPO_ABERRANTE_SHEET_BONUSES,
   PELE_CORROMPIDA_SHEET_BONUSES,
 } from '../data/systems/tormenta20/powers/tormentaPowerSheetBonuses';
+import { CITADINO_SHEET_BONUSES } from '../data/systems/tormenta20/herois-de-arton/powers/racePowers';
+import { HEROI_DOS_SETE_INSTRUMENTOS_SHEET_BONUSES } from '../data/systems/tormenta20/herois-de-arton/powers/destinyPowers';
+import {
+  CAVALEIRO_DO_REINO_ACTIONS,
+  ESCUDEIRO_APRENDIZ_BONUSES,
+  MARQUES_SHEET_BONUSES,
+} from '../data/systems/tormenta20/herois-de-arton/variantClasses/vassaloSheetBonuses';
 import { updateUnarmedRolls } from './unarmedDamage';
 import {
   refreshFeiticeiroLinhagemAbility,
@@ -117,7 +130,9 @@ function getGrantedPowersByName(): Map<string, GeneralPower> {
 // Os estilos de combate (Estilo Clássico, Estilo de Duas Mãos, Estilo de
 // Arremesso) eram texto puro ou só parcialmente automatizados — sem o refresh,
 // a ficha de quem já tinha o poder continuaria sem o bônus. Idem Pele de Aço e
-// Defesa Armada, que eram texto puro.
+// Defesa Armada, que eram texto puro. Idem Citadino (poder racial de Heróis de
+// Arton), Herói dos Sete Instrumentos (poder de destino de Heróis de Arton)
+// e Mago Vermelho (Bardo, Heróis de Arton).
 const REFRESHED_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
   ['Arqueiro', ARQUEIRO_SHEET_BONUSES],
   ['Esgrimista', ESGRIMISTA_SHEET_BONUSES],
@@ -132,6 +147,9 @@ const REFRESHED_POWER_BONUSES_BY_NAME = new Map<string, SheetBonus[]>([
   ['Estilo de Arremesso', ESTILO_DE_ARREMESSO_SHEET_BONUSES],
   ['Pele de Aço', PELE_DE_ACO_SHEET_BONUSES],
   ['Defesa Armada', DEFESA_ARMADA_SHEET_BONUSES],
+  ['Mago Vermelho', MAGO_VERMELHO_SHEET_BONUSES],
+  ['Citadino', CITADINO_SHEET_BONUSES],
+  ['Herói dos Sete Instrumentos', HEROI_DOS_SETE_INSTRUMENTOS_SHEET_BONUSES],
 ]);
 
 function refreshPowerBonuses<
@@ -140,6 +158,48 @@ function refreshPowerBonuses<
   const bonuses = REFRESHED_POWER_BONUSES_BY_NAME.get(power.name);
   if (!bonuses) return power;
   return { ...power, sheetBonuses: _.cloneDeep(bonuses) };
+}
+
+// Mesmo princípio, para habilidades de classe (`classe.abilities` e
+// `classe.originalAbilities` são cópias embutidas). Por classe, para o nome da
+// habilidade não alcançar outra classe ou homebrew.
+const REFRESHED_ABILITIES: Record<
+  string,
+  Record<string, (ability: ClassAbility) => ClassAbility>
+> = {
+  Vassalo: {
+    Marquês: (ability) => ({
+      ...ability,
+      sheetBonuses: _.cloneDeep(MARQUES_SHEET_BONUSES),
+    }),
+    'Cavaleiro do Reino': (ability) => ({
+      ...ability,
+      sheetActions: _.cloneDeep(CAVALEIRO_DO_REINO_ACTIONS),
+    }),
+    'Escudeiro Aprendiz': (ability) => ({
+      ...ability,
+      sheetActions: ability.sheetActions?.map((entry) =>
+        entry.action.type === 'addProficiency'
+          ? {
+              ...entry,
+              action: {
+                ...entry.action,
+                bonusesIfOwned: _.cloneDeep(ESCUDEIRO_APRENDIZ_BONUSES),
+              },
+            }
+          : entry
+      ),
+    }),
+  },
+};
+
+function refreshClassAbility(
+  ability: ClassAbility,
+  className: string
+): ClassAbility {
+  const refresh =
+    REFRESHED_ABILITIES[ability.sourceClassName ?? className]?.[ability.name];
+  return refresh ? refresh(ability) : ability;
 }
 
 // Habilidades de RAÇA (e o poder falso que uma delas concede) cujo texto
@@ -173,6 +233,29 @@ function refreshDuendePresente<
   return {
     ...entry,
     description: current.description,
+    sheetActions: _.cloneDeep(current.sheetActions),
+    sheetBonuses: _.cloneDeep(current.sheetBonuses),
+  };
+}
+
+/**
+ * Sátiro: Pernas Caprinas (Destreza no Atletismo) e Marrada (arma natural) eram
+ * só texto. A ficha embute a cópia da habilidade da criação; com a mecânica
+ * nova na cópia, o próximo recálculo aplica. Allowlist + gate na raça, como o
+ * Duende: os nomes são da raça e não há variação por instância a preservar.
+ */
+function refreshSatiroAbility<
+  T extends {
+    name: string;
+    sheetActions?: SheetAction[];
+    sheetBonuses?: SheetBonus[];
+  }
+>(entry: T): T {
+  if (!SATIRO_REFRESHED_ABILITIES.includes(entry.name)) return entry;
+  const current = SATIRO.abilities.find((a) => a.name === entry.name);
+  if (!current) return entry;
+  return {
+    ...entry,
     sheetActions: _.cloneDeep(current.sheetActions),
     sheetBonuses: _.cloneDeep(current.sheetBonuses),
   };
@@ -592,6 +675,14 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
       );
     }
     syncFeiticeiroHerancas(sheet);
+
+    const className = sheet.classe.name;
+    const refreshBonuses = (ability: ClassAbility) =>
+      refreshClassAbility(ability, className);
+    sheet.classe.abilities = sheet.classe.abilities.map(refreshBonuses);
+    sheet.classe.originalAbilities =
+      sheet.classe.originalAbilities?.map(refreshBonuses);
+
     // Proficiência inválida (`null`/`undefined`) quebra tudo que compara nomes:
     // o aviso de não proficiência no Result, o PDF e o editor de proficiências.
     // Fichas antigas têm essas entradas porque o sorteio completava com
@@ -641,6 +732,10 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
           ? refreshDuendePresente(power)
           : power
       );
+    }
+
+    if (sheet.raca.name === 'Sátiro') {
+      sheet.raca.abilities = sheet.raca.abilities.map(refreshSatiroAbility);
     }
 
     if (sheet.raca.name === 'Centauro') {
@@ -884,6 +979,15 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   if (!Array.isArray(sheet.sheetBonuses)) sheet.sheetBonuses = [];
   if (!Array.isArray(sheet.sheetActionHistory)) sheet.sheetActionHistory = [];
   if (!Array.isArray(sheet.steps)) sheet.steps = [];
+  // Distinções: campo opcional; só descarta entradas sem id (a marca é
+  // resolvida pelo id no registry).
+  if (sheet.distinctions !== undefined) {
+    sheet.distinctions = Array.isArray(sheet.distinctions)
+      ? sheet.distinctions.filter(
+          (d) => !!d && typeof d === 'object' && typeof d.id === 'string'
+        )
+      : [];
+  }
 
   // Todo o pipeline (setup do Arcanista, recalculateSheet, UI) assume esses
   // arrays dentro de classe/raça. O Result acessa proficiencias/powers
@@ -1099,6 +1203,11 @@ export function normalizeSheet(sheet: CharacterSheet): void {
   // É idempotente (derivação absoluta), então rodar aqui e de novo no próximo
   // recálculo dá o mesmo resultado.
   updateUnarmedRolls(sheet);
+
+  // Acuidade com Arma: campo derivado nas armas. Mesmo motivo do dano desarmado
+  // — abrir a ficha não recalcula, e a ficha salva tem que abrir com o ataque
+  // certo. Idempotente.
+  applyAcuidadeComArma(sheet);
 }
 
 export default normalizeSheet;

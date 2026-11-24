@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            30/10/2026 (v4.37).
+            24/11/2026 (v4.39).
           </p>
 
           <p>
@@ -74,6 +74,468 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.39</h3>
+
+              <Typography variant='body1' sx={{ mt: 2 }}>
+                Os destaques desta versão, as <strong>Distinções</strong> e o{' '}
+                <strong>Espólio da mesa</strong>, vieram da{' '}
+                <strong>votação dos apoiadores</strong>. Obrigado a quem votou e
+                a quem sustenta o projeto! 💜
+              </Typography>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  🏅 Distinções
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Chegaram as <strong>59 distinções</strong> de{' '}
+                  <em>Heróis de Arton</em> (36) e <em>Deuses de Arton</em> (23),
+                  do Chapéu-Preto ao Sumo-Sacerdote. A partir do{' '}
+                  <strong>5º nível</strong>, o novo botão{' '}
+                  <strong>Distinções</strong> da ficha mostra cada uma com os
+                  critérios de admissão, a Marca e a lista de poderes. Conquiste
+                  a distinção que seu personagem alcançou na história e ele
+                  recebe a <strong>Marca da Distinção</strong> na hora.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  Os <strong>poderes da distinção</strong> passam a aparecer no
+                  editor de poderes e na subida de nível, num grupo próprio, com
+                  os pré-requisitos do livro, inclusive os que pedem outros
+                  poderes da mesma distinção. Bônus passivos entram na ficha
+                  sozinhos e crescem com a quantidade de poderes, como os +2 em
+                  Iniciativa e +3m de deslocamento do Rápido ou Morto, que sobem
+                  a cada dois outros poderes de Chapéu-Preto. Na ficha, a Marca
+                  e os poderes aparecem agrupados pela distinção, e também saem
+                  no PDF.
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  A admissão acontece no jogo e o mestre tem a palavra final: o
+                  app nunca dá distinção sozinho, nem na ficha aleatória.
+                  Remover uma distinção tira também a Marca e os poderes dela.
+                  As distinções também ganharam uma página na{' '}
+                  <strong>enciclopédia</strong> e entram na busca. Conquistar
+                  distinções é exclusivo para apoiadores, e quem já tem uma
+                  distinção na ficha continua usando e escolhendo os poderes
+                  dela.
+                </Typography>
+              </Alert>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                    color: 'success.dark',
+                  }}
+                >
+                  🎁 Espólio da mesa
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  O <strong>rolador de recompensas</strong> chegou à mesa
+                  virtual. Ao <strong>finalizar o combate</strong>, o mestre
+                  rola o tesouro ali mesmo, como manda o livro:{' '}
+                  <strong>uma rolagem por criatura derrotada</strong>, com o ND
+                  e o tipo de tesouro de cada uma (ou, se preferir, uma só pelo
+                  ND do combate). O <strong>equipamento das ameaças</strong>{' '}
+                  também entra no espólio: o app lê a linha de equipamento da
+                  ficha (&quot;machado de guerra cruel, flechas x20&quot;),
+                  encontra cada item no catálogo e o mestre revisa antes de
+                  mostrar. O resultado aparece no aparelho de cada jogador, que
+                  marca os itens que quer pegar e combina com o grupo como
+                  dividir o dinheiro. Quando o mestre confirma, os itens e as
+                  moedas vão <strong>direto para as fichas</strong>.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  Dá para rolar <strong>ao vivo</strong>: a animação de
+                  caça-níquel do rolador roda ao mesmo tempo nos celulares e na{' '}
+                  <strong>Tela do Jogador</strong>, e o mestre escolhe os
+                  resultados &quot;2D&quot; com a mesa acompanhando. Ou rolar só
+                  na tela do mestre, rolar de novo se quiser e depois mostrar
+                  aos jogadores. Se mais de um jogador quiser o mesmo item, o
+                  mestre decide. A divisão do dinheiro começa igual, qualquer um
+                  ajusta e cada jogador clica em <strong>Concordo</strong>.
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  Itens superiores e mágicos chegam com as melhorias e os
+                  encantos aplicados. Riquezas, poções e acessórios entram na
+                  mochila com o valor da tabela. O mestre pode acrescentar itens
+                  à mão (como os recursos extraídos de uma criatura) e também
+                  rolar uma recompensa avulsa (um baú, uma missão cumprida) pelo
+                  menu da mesa. Rolar a recompensa é exclusivo para mestres
+                  apoiadores; os jogadores participam em qualquer plano.
+                </Typography>
+              </Alert>
+
+              <ul>
+                <li>
+                  <strong>Novo:</strong> poderes, habilidades e itens que mexem
+                  nas suas <strong>magias</strong> agora fazem isso sozinhos.
+                  Reduções de custo em PM (como a do Foco em Magia), bônus na
+                  CD, na cura e no dano, PM extras para aprimoramentos, dados a
+                  mais e troca do tipo de dano passam a valer no lançamento, na
+                  lista de magias, no PDF e na exportação para o Foundry,
+                  inclusive em fichas antigas. Poderes que pedem uma escolha
+                  (Foco em Magia, Mestre em Escola, Especialista em Escola, Tomo
+                  hermético) ganharam um botão no próprio poder e um passo novo
+                  na subida de nível, <strong>Magia do Poder</strong>. Magia
+                  Pungente, Magia Acelerada, Barreira Mística e Celebrar Ritual
+                  viram opções na hora de lançar a magia.
+                </li>
+                <li>
+                  <strong>Novo:</strong> o lançamento de magias respeita o{' '}
+                  <strong>limite de PM</strong> do livro, igual ao seu nível na
+                  classe da magia. Orbe cristalina, Contas de oração, Cajado
+                  arcano, Magia Ilimitada e Celebrar Ritual aumentam o limite
+                  como no livro.
+                </li>
+                <li>
+                  <strong>Novo:</strong>{' '}
+                  <strong>esotéricos superiores e mágicos</strong>. O editor de
+                  item e a tela Itens Superiores passam a oferecer as melhorias
+                  de esotérico (Canalizador, Energético, Harmonizado, Poderoso,
+                  Vigilante e Potencializador), material especial (como Mitral e
+                  Adamante) e os 26 encantos de esotérico de{' '}
+                  <em>Heróis de Arton</em>. Os efeitos só valem com o esotérico
+                  empunhado, e cada magia recebe os benefícios de um esotérico
+                  por vez (dois com Esoterismo), escolhido no lançamento. Para
+                  bardos, o instrumento musical conta como esotérico. Os
+                  encantos <strong>Canônico</strong> e{' '}
+                  <strong>Deslumbrante</strong> de armas e armaduras somam na CD
+                  das magias, e a loja ganhou os Cetros elementais de ácido,
+                  eletricidade, fogo e frio.
+                </li>
+                <li>
+                  <strong>Novo:</strong> a{' '}
+                  <strong>Poção de Curar Ferimentos (2d8+2 PV)</strong> está à
+                  venda nos itens gerais, por T$ 30 e meio espaço, já com a
+                  rolagem de cura.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> na <strong>Tela do Jogador</strong>
+                  , o combate com muitos combatentes ficou mais fácil de
+                  acompanhar em telas pequenas. Quando a lista não cabe inteira,
+                  aparece uma faixa com os avatares de toda a ordem de
+                  iniciativa, com o combatente da vez destacado e os que estão à
+                  vista enquadrados. As bordas da lista ganham um degradê com um
+                  aviso de quantos combatentes estão escondidos acima e abaixo.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o poder{' '}
+                  <strong>Abençoar Arma</strong> (Clérigo) agora pode ser usado
+                  como <strong>efeito ativo</strong>. Você escolhe uma das armas
+                  da mochila, com a arma preferida da sua divindade já
+                  selecionada, e o dano dela aumenta em um passo até você
+                  encerrar o efeito. O custo é de 3 PM, ou 2 PM se a arma tiver
+                  a melhoria Conduíte. Para usar Sabedoria no ataque e no dano,
+                  troque o atributo nos atributos da arma.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> na{' '}
+                  <strong>Rolagem de Iniciativa</strong> da mesa virtual, cada
+                  linha mostra o bônus de quem ainda não rolou e a conta (d20 +
+                  bônus) de quem já rolou, e o mestre pode corrigir qualquer
+                  valor já lançado, inclusive o de jogadores. A rolagem das
+                  ameaças ganhou a opção da <strong>regra do livro</strong>: um
+                  único teste para todos os inimigos, usando o menor bônus entre
+                  eles. Empates agora são decididos pelo maior bônus de
+                  Iniciativa, como no livro, e não mais pela Destreza.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o poder{' '}
+                  <strong>Acuidade com Arma</strong> agora troca Força por
+                  Destreza sozinho no ataque e no dano, quando sua Destreza é
+                  maior. Vale para armas leves, ágeis, naturais e ataque
+                  desarmado; nas armas de arremesso, como a lança, só ao
+                  arremessar. Antes era preciso trocar o atributo à mão em cada
+                  arma. Uma escolha manual diferente de Força continua valendo.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o poder{' '}
+                  <strong>Mago Vermelho</strong> (Bardo,{' '}
+                  <em>Heróis de Arton</em>) soma sozinho o círculo máximo de
+                  magias no ataque e no dano com armas leves ou ágeis.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> a aba de equipamentos ganhou um
+                  botão para <strong>empunhar</strong> itens, e os ataques
+                  mostram quando a mão já está ocupada. O PDF passou a mostrar a
+                  CD de cada magia que pede teste de resistência.
+                </li>
+                <li>
+                  <strong>Correção:</strong> na{' '}
+                  <strong>Rolagem de Iniciativa</strong> da mesa virtual, o
+                  número digitado pelo mestre era tratado como o resultado do
+                  d20 e recebia o bônus por cima: se o jogador dizia que tirou
+                  18, a ficha ficava com 18 + bônus. Por isso os jogadores
+                  pareciam sempre tirar mais que as ameaças. Agora o campo
+                  recebe o <strong>total</strong> por padrão, com a opção{' '}
+                  <strong>Só o d20</strong> para quando o mestre rola o dado
+                  físico, e mostra a conta enquanto você digita. Quem joga pelo{' '}
+                  <strong>celular</strong> voltou a receber o pedido de
+                  iniciativa e pode rolar pelo app ou digitar o número do dado
+                  físico, com o bônus somado uma única vez. Também corrigido: um
+                  clique atrasado do jogador não sobrescreve mais o valor
+                  lançado pelo mestre, rolagens não somem mais depois de
+                  enviadas, e adicionar um combatente no meio do combate não
+                  passa mais a vez para outra pessoa.
+                </li>
+                <li>
+                  <strong>Correção:</strong> ao aplicar uma magia como{' '}
+                  <strong>efeito ativo</strong>, os aprimoramentos que aumentam
+                  um bônus agora valem quantas vezes você pagou por eles, e não
+                  só uma. A <strong>Bênção</strong>, por exemplo, travava em +2;
+                  agora um conjurador de 3º círculo chega a +3 e um de 5º, a +5.
+                  O diálogo abre já no valor pago no lançamento e ganhou a opção{' '}
+                  <strong>Customizado</strong> para escolher valores acima. Nas
+                  magias em que o livro limita o bônus pelo círculo máximo
+                  (Bênção, Arma Mágica, Arma de Jade, Oração, Couraça de
+                  Allihanna, Percepção Rubra e Proteção de Tauron), o limite é
+                  respeitado. Também corrigidas: Proteção Divina, Vestimenta da
+                  Fé, Dispersar as Trevas, Anular a Luz, Caminhos da Natureza,
+                  Imagem Espelhada, Transformação de Guerra, Aura Divina,
+                  Resistência a Energia, Potência Divina e Armamento da
+                  Natureza.
+                </li>
+                <li>
+                  <strong>Correção:</strong> na <strong>ordem de turno</strong>{' '}
+                  da mesa virtual, as condições de cada combatente agora
+                  aparecem escritas, com ícone e nome, em vez de só um ícone de
+                  alerta com contador. No celular dava para ver que alguém tinha
+                  uma condição, mas não qual, porque o nome só aparecia ao
+                  passar o mouse. Condições que vêm de outra (como Desprevenido
+                  e Lento, vindas de Cego) aparecem tracejadas, e tocar em
+                  qualquer uma mostra o efeito completo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o poder{' '}
+                  <strong>Herói dos Sete Instrumentos</strong> agora soma o
+                  bônus sozinho em todas as perícias em que você não é treinado:
+                  +1, +2 a partir do 7º nível e +3 a partir do 15º. O bônus
+                  aparece no detalhamento de &quot;Outros&quot; de cada perícia,
+                  e fichas que já tinham o poder passam a recebê-lo no próximo
+                  recálculo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> no <strong>Moreau</strong>, a magia
+                  escolhida na <strong>Sapiência</strong> (Herança da Coruja)
+                  durante a criação da ficha não era mais trocada por outra
+                  sorteada, e o editor da ficha passou a reconhecer a herança. O
+                  editor também voltou a deixar escolher o atributo da própria
+                  herança no +1 livre, como o livro permite.
+                </li>
+                <li>
+                  <strong>Correção:</strong> os poderes de raça{' '}
+                  <strong>Glamour</strong> e <strong>Glamour Maior</strong>{' '}
+                  (Duende, Eiradaan e Sílfide) e{' '}
+                  <strong>Grande Marca de Wynna</strong> (Qareen) agora abrem a
+                  escolha das magias que concedem — três de 1º círculo no
+                  Glamour, três de 1º ou 2º círculo no Glamour Maior e uma de 1º
+                  círculo na Grande Marca — arcanas ou divinas, incluindo as dos
+                  suplementos ativos, todas com atributo-chave Carisma. Fichas
+                  que já tinham um desses poderes precisam removê-lo e
+                  adicioná-lo de novo para escolher as magias.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o poder{' '}
+                  <strong>Segredos da Natureza</strong> (Druida) agora abre a
+                  escolha das duas magias que concede e pode ser escolhido mais
+                  de uma vez, como no livro. Ele e o{' '}
+                  <strong>Aumentar Repertório</strong> (Bardo) passam a oferecer
+                  só magias das escolas que a sua classe sabe usar, arcanas ou
+                  divinas. Antes, o Aumentar Repertório mostrava magias de
+                  qualquer escola. Fichas que já tinham o Segredos da Natureza
+                  não mudam: as magias continuam sendo adicionadas à mão.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a página de uma{' '}
+                  <strong>coleção de homebrews</strong> voltou a listar todos os
+                  itens. As <strong>Classes Variantes</strong> eram contadas no
+                  total, mas não apareciam na lista. Agora ficam numa seção
+                  própria, sem precisar editar a coleção.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o{' '}
+                  <strong>Ofício (Tatuador)</strong>, usado pelos tatuadores de
+                  Khubar para criar as tatuagens místicas do{' '}
+                  <strong>Atlas de Arton</strong>, agora aparece entre as opções
+                  de Ofício na criação e na edição da ficha. Fichas que já
+                  tinham criado esse Ofício à mão continuam com o treino.
+                </li>
+                <li>
+                  <strong>Correção:</strong> poderes que pedem{' '}
+                  <strong>lançar magias</strong>, como a Barreira Mística e a
+                  Magia Suspensa, agora conferem se o personagem lança magias, e
+                  de qual círculo e tradição. Antes, qualquer personagem podia
+                  escolhê-los. O círculo conta só as magias da sua classe,
+                  inclusive em multiclasse, como manda o livro.
+                </li>
+                <li>
+                  <strong>Correção:</strong> no <strong>Sátiro</strong>, as
+                  Pernas Caprinas agora usam Destreza no Atletismo quando ela é
+                  maior que a Força, e a <strong>Marrada</strong> aparece nos
+                  ataques como arma natural (1d6, x2, impacto). Fichas de Sátiro
+                  já salvas recebem as duas no próximo recálculo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> itens de origem com bônus em
+                  perícia passaram a somar: a tatuagem da gangue do{' '}
+                  <strong>Capanga</strong> (+1 em Intimidação), as bolas
+                  coloridas do <strong>Circense</strong> (+1 em Atuação) e a
+                  tatuagem de tripulação do <strong>Grumete Pirata</strong> (+1
+                  em Intimidação), inclusive em fichas já salvas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> pôr uma melhoria ou um encanto num
+                  item pelo editor da mochila agora desconta do dinheiro o preço
+                  do item superior, com o desconto automático ligado. O editor
+                  mostra o preço e tem a opção de não cobrar, para itens ganhos
+                  (saque, recompensa do mestre).
+                </li>
+                <li>
+                  <strong>Correção:</strong> o PDF não imprime mais &quot;Idade:
+                  undefined&quot; em fichas sem a regra opcional de Idades
+                  Variadas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a descrição do{' '}
+                  <strong>Olhar Atordoante</strong> da <strong>Medusa</strong>{' '}
+                  agora segue o livro: o atordoamento só pode ser usado uma vez
+                  por cena. Antes, o texto dizia que a criatura que passava no
+                  teste ficava imune por um dia.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o <strong>Vassalo</strong> agora
+                  segue o livro ao subir de nível. O{' '}
+                  <strong>Jovem Pajem</strong> e o <strong>Valete</strong>{' '}
+                  deixam você escolher a perícia (Adestramento ou Ofício
+                  (Armeiro); Diplomacia ou Nobreza) em vez de sortear. O{' '}
+                  <strong>Cavaleiro do Reino</strong> dá a arma, armadura ou
+                  escudo superior com duas melhorias à sua escolha. No{' '}
+                  <strong>Lorde</strong>, o caminho é escolhido antes e só
+                  mostra poderes de guerreiro ou de nobre, conforme o caminho. O{' '}
+                  <strong>Marquês</strong> dá RD 5 no Caminho do Soldado e soma
+                  o Carisma nas resistências no Caminho do Governante. O{' '}
+                  <strong>Conselheiro Real</strong> e o{' '}
+                  <strong>Imperador</strong> oferecem magias até o 4º e o 5º
+                  círculo, o <strong>Rei Mercenário</strong> distribui os 3
+                  pontos de atributo como quiser e o Imperador dá +1 em dois
+                  atributos. O <strong>Escudeiro Aprendiz</strong> dá +2 na
+                  Defesa com armadura pesada a quem já tem a proficiência.
+                </li>
+              </ul>
+
+              <h3>4.38</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> agora dá para separar os itens da{' '}
+                  <strong>mochila</strong> por local. Pelo novo botão de bagagem
+                  em cada item, você leva o item para o <strong>Alforje</strong>{' '}
+                  (até 10 espaços, carregados pela montaria), para um{' '}
+                  <strong>veículo</strong> (Carroça, Carruagem, Canoa, Balão
+                  goblin e os veículos de Heróis de Arton, cada um com sua
+                  capacidade) ou deixa <strong>guardado</strong> fora da
+                  aventura. O que não está com você não conta na sua carga, e
+                  cada local mostra quantos espaços estão ocupados. Dá para
+                  mover só parte de uma pilha, como 3 de 10 rações.
+                </li>
+                <li>
+                  <strong>Novo:</strong> a <strong>Tela do Jogador</strong>{' '}
+                  agora tem <strong>playlists</strong>. Na nova aba Trilhas,
+                  monte listas de músicas colando um ou vários links do YouTube
+                  de uma vez (o nome de cada faixa é preenchido sozinho) e
+                  arraste para ordenar. A playlist passa sozinha de uma música
+                  para a outra e toca <strong>em sequência</strong>, em ordem{' '}
+                  <strong>aleatória</strong> ou repetindo{' '}
+                  <strong>só a faixa atual</strong>. No Ao vivo, a trilha ganhou
+                  um mini-player com faixa anterior, próxima e a lista de
+                  faixas, e cada playlist vira um card para tocar com um clique.
+                  Uma cena pode tocar uma faixa única ou uma playlist inteira, e
+                  você é avisado quando um vídeo não pode ser tocado na tela.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> a exportação para o{' '}
+                  <strong>Foundry VTT</strong> (sistema Tormenta20 1.6.6,
+                  importável a partir da 1.6.2) agora traz atributos, perícias,
+                  Defesa e carga batendo com a ficha, sem somar a raça duas
+                  vezes. Ajustes temporários de atributo vão como efeitos
+                  ligados, as magias saem com a CD da ficha (inclusive as do
+                  Usurpar), e armas empunhadas, magias e poderes com rolagem já
+                  aparecem na frente da ficha do Foundry.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o poder{' '}
+                  <strong>Ataque Preciso</strong> agora é aplicado na ficha
+                  automaticamente: empunhando uma arma corpo a corpo em uma mão
+                  e nada na outra, a arma recebe +2 na margem de ameaça e +1 no
+                  multiplicador de crítico, assim como o Estilo de Uma Arma já
+                  fazia com a Defesa e o ataque.
+                </li>
+                <li>
+                  <strong>Correção:</strong> a melhoria{' '}
+                  <strong>Devotado</strong> (Deuses de Arton) agora exige a
+                  melhoria <strong>Inscrito</strong>, como no livro. Ao escolher
+                  Devotado, Inscrito é adicionado junto; ao remover Inscrito,
+                  Devotado sai também.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o poder racial{' '}
+                  <strong>Citadino</strong> (Heróis de Arton) agora soma +2 em
+                  Atuação, Diplomacia, Enganação, Intimidação e Jogatina. Antes
+                  o bônus só aparecia na descrição. Fichas já salvas com o poder
+                  também passam a somar.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o poder{' '}
+                  <strong>Aumento de Atributo</strong> escolhido mais de uma vez
+                  pelo editor de poderes (ou em fichas aleatórias de nível alto)
+                  agora dá o +1 de cada escolha. Antes o poder aparecia
+                  repetido, mas só o primeiro aumentava o atributo. Remover uma
+                  das cópias também desfaz só o aumento dela. Fichas que já
+                  ficaram sem o bônus: remova a cópia a mais e adicione de novo,
+                  escolhendo o atributo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> o poder{' '}
+                  <strong>Conhecimento Mágico</strong> em personagens
+                  multiclasse agora oferece magias de todos os círculos que a
+                  classe conjuradora alcança. Antes, um Lutador 6 / Arcanista 5
+                  só via magias de 1º círculo, e um Arcanista com níveis em
+                  outra classe via círculos acima do que podia lançar.
+                </li>
+              </ul>
+
               <h3>4.37</h3>
 
               <Typography variant='body1' sx={{ mt: 2 }}>

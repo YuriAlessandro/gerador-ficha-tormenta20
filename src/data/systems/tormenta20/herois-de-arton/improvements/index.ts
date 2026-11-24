@@ -1,5 +1,6 @@
 import { ItemMod } from '@/interfaces/Rewards';
 import { SupplementId } from '@/types/supplement.types';
+import { Atributo } from '../../atributos';
 
 /**
  * Novas Melhorias do suplemento Heróis de Arton (cap. 3 - Arsenal dos Heróis,
@@ -8,9 +9,8 @@ import { SupplementId } from '@/types/supplement.types';
  * modificationEffects.ts e a descrição informa o jogador. Exceção: Guarda
  * aplica +1 de Defesa numericamente.
  *
- * Não inclui (por enquanto) melhorias específicas de categorias não
- * suportadas pelo editor: Potencializador (esotéricos), Brasonado e Usado
- * (ferramentas/vestuário).
+ * Não inclui (por enquanto) melhorias de ferramentas e vestuário (Brasonado
+ * e Usado), categorias que o editor ainda não suporta.
  */
 
 // Melhorias para armas
@@ -84,6 +84,13 @@ export const armorImprovements: ItemMod[] = [
     prerequisite: ['Banhada a ouro', 'Cravejada de gemas'],
     appliesTo: 'armor',
     supplementId: SupplementId.TORMENTA20_HEROIS_ARTON,
+    // Nas magias: as que usam Carisma como atributo-chave.
+    spellModifiers: [
+      {
+        filter: { keyAttributes: [Atributo.CARISMA] },
+        effect: { type: 'SpellDC', value: 1 },
+      },
+    ],
   },
   {
     min: 0,
@@ -105,9 +112,26 @@ export const armorImprovements: ItemMod[] = [
   },
 ];
 
+// Melhorias para esotéricos
+export const esotericImprovements: ItemMod[] = [
+  {
+    min: 0,
+    max: 0,
+    mod: 'Potencializador',
+    description: '+2 no limite de PM',
+    // Substitui o +1 do Canalizador (ver SUPERSEDED_MODIFICATIONS).
+    prerequisite: 'Canalizador',
+    double: true,
+    appliesTo: 'esoteric',
+    supplementId: SupplementId.TORMENTA20_HEROIS_ARTON,
+    spellModifiers: [{ effect: { type: 'PmLimit', value: 2 } }],
+  },
+];
+
 const HEROIS_ARTON_IMPROVEMENTS = {
   weapons: weaponImprovements,
   armors: armorImprovements,
+  esoterics: esotericImprovements,
 };
 
 export default HEROIS_ARTON_IMPROVEMENTS;

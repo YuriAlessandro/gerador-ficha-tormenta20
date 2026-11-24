@@ -1,3 +1,4 @@
+import omit from 'lodash/omit';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
@@ -22,6 +23,7 @@ import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 
 import { CompanionSheet } from '@/interfaces/Companion';
 import { getOwnedGeneralPowers, isPowerAvailable } from '@/functions/powers';
+import { resolveGrantClasses } from '@/functions/powers/powerGrantClasses';
 import { SupplementId } from '@/types/supplement.types';
 
 import { getCurrentPlateau } from '@/functions/powers/general';
@@ -48,13 +50,16 @@ import {
   CONQUISTAR_PELOS_NUMEROS,
   findPowerGrant,
   getLevelUpAbilitiesForLevel,
+  getGrantOption,
   getLevelUpEngenhocaInfo,
   getLevelUpMergedAbilities,
   getLevelUpPowerOptions,
+  getLevelUpPowerSpellChoiceInfo,
   getLevelUpSheetWithAbilities,
   LevelUpPowerOptions,
   getLevelUpRacePicks,
   getLevelUpScalingPowers,
+  getLevelUpSheetWithProjectedClassLevel,
   getLevelUpSpellInfo,
   getLevelUpSteps,
   getLevelUpSwappableOriginPowers,
@@ -83,6 +88,7 @@ import {
 } from './companionTrickSelection';
 import CompanionCreationStep from '../CharacterCreationWizard/steps/CompanionCreationStep';
 import RaceLevelUpPickStep from './steps/RaceLevelUpPickStep';
+import PowerSpellChoiceStep from './steps/PowerSpellChoiceStep';
 
 // Movidas para as regras puras; reexportadas para quem já importava daqui.
 export { findPowerGrant, classGrantsPowerAtLevel };
@@ -209,6 +215,11 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   } = levelCtx;
 
   const getSelectedPower = getSelectedLevelUpPower;
+
+  // Ficha do nível com o nível de classe novo já contado (Conhecimento
+  // Mágico numa classe secundária): é a que os passos de efeito enxergam.
+  const sheetWithProjectedClassLevel =
+    getLevelUpSheetWithProjectedClassLevel(levelCtx);
 
   // Fonte única do passo "Efeitos de Habilidades": detecção, render e validação.
   const getMergedClassAbilities = (): ClassAbility[] =>
@@ -464,7 +475,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                 powerEffectSelections: selections,
               })
             }
-            actualSheet={sheetForCurrentLevel}
+            actualSheet={sheetWithProjectedClassLevel}
             skipRaceAbilities
             supplements={supplements}
           />
@@ -512,7 +523,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                     powerEffectSelections: selections,
                   })
                 }
-                actualSheet={sheetForCurrentLevel}
+                actualSheet={sheetWithProjectedClassLevel}
                 skipRaceAbilities
                 supplements={supplements}
               />
@@ -559,6 +570,27 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                   ...currentLevelSelection,
                   abilityEffectSelections: selections,
                 };
+                // Trocar a opção que decide de onde vem o poder (Lorde)
+                // descarta o poder de uma classe que deixou de valer.
+                const grant = findPowerGrant(
+                  selectedClassDesc,
+                  selectedClassLevel
+                );
+                const power = next.selectedClassPower;
+                if (
+                  grant?.classesByOption &&
+                  power?.className &&
+                  !resolveGrantClasses(
+                    grant,
+                    getGrantOption(grant, selections)
+                  ).includes(power.className)
+                ) {
+                  next.selectedClassPower = undefined;
+                  next.powerEffectSelections = omit(
+                    next.powerEffectSelections,
+                    power.name
+                  );
+                }
                 // Treinador 5: o step de truque deste nível só existe com
                 // Treino Intensivo — trocar a escolha invalida o truque bônus
                 // já selecionado (a entry 'power' do Ensinar Truque fica)
@@ -577,7 +609,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                 }
                 setCurrentLevelSelection(next);
               }}
-              actualSheet={sheetForCurrentLevel}
+              actualSheet={sheetWithProjectedClassLevel}
               skipRaceAbilities
               classAbilityLevel={selectedClassLevel}
               supplements={supplements}
@@ -634,6 +666,23 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                 });
               }
             }}
+          />
+        );
+      }
+
+      case 'Magia do Poder': {
+        const info = getLevelUpPowerSpellChoiceInfo(levelCtx);
+        if (!info) return null;
+        return (
+          <PowerSpellChoiceStep
+            choice={info.choice}
+            options={info.options}
+            onChange={(values) =>
+              setCurrentLevelSelection({
+                ...currentLevelSelection,
+                spellModifierChoices: { [info.choice.key]: values },
+              })
+            }
           />
         );
       }

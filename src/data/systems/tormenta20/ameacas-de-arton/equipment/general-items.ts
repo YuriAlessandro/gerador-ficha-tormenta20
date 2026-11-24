@@ -176,6 +176,19 @@ export const AMEACAS_ARTON_ESOTERIC: Equipment[] = [
     spaces: 1,
     descricao:
       'Também serve de arma leve simples corpo a corpo (1d6, crítico 19, corte). Suas magias com teste de resistência ganham o aprimoramento: +2 PM — criaturas que falham não podem recuperar PV por 1 rodada.',
+    spellModifiers: [
+      {
+        filter: {
+          resisted: true,
+        },
+        effect: {
+          type: 'CastOption',
+          id: 'ankh',
+          label: 'quem falhar na resistência não recupera PV por 1 rodada',
+          addPm: 2,
+        },
+      },
+    ],
   },
   {
     nome: 'Tomo de guerra',
@@ -184,6 +197,12 @@ export const AMEACAS_ARTON_ESOTERIC: Equipment[] = [
     spaces: 1,
     descricao:
       'Ao lançar uma magia de evocação, você recebe +1 PM para gastar em aprimoramentos dela.',
+    spellModifiers: [
+      {
+        filter: { schools: ['Evoc'] },
+        effect: { type: 'AprimoramentoPm', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Tomo do rancor',
@@ -192,6 +211,26 @@ export const AMEACAS_ARTON_ESOTERIC: Equipment[] = [
     spaces: 1,
     descricao:
       'Suas magias de dano ganham o aprimoramento: +2 PM — a magia causa +2d8+2 pontos de dano de corte, impacto ou perfuração, a sua escolha.',
+    spellModifiers: [
+      {
+        filter: {
+          damaging: true,
+        },
+        effect: {
+          type: 'CastOption',
+          id: 'rancor',
+          label: '+2d8+2 de dano de corte, impacto ou perfuração',
+          addPm: 2,
+          effects: [
+            {
+              type: 'ExtraRoll',
+              label: 'Dano do Tomo do rancor',
+              dice: '2d8+2',
+            },
+          ],
+        },
+      },
+    ],
   },
 ];
 

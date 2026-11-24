@@ -1,5 +1,6 @@
 import { cloneDeep } from 'lodash';
 import { recalculateSheet } from '../recalculateSheet';
+import { itWithPremium } from '../../__tests__/premiumGate';
 import { getVirtudePaladinescaPMBonus } from '../randomUtils';
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
 import combatPowers from '../../data/systems/tormenta20/powers/combatPowers';
@@ -435,30 +436,34 @@ describe('recalculateSheet', () => {
       b.modifier.type === 'Fixed' &&
       b.modifier.value === 2;
 
-    it('should move the Gato +2 Furtividade bonus from the power to the partner', () => {
-      mockSheet.classPowers = [{ ...familiarPower }];
+    // O parceiro do familiar é criado por código premium.
+    itWithPremium(
+      'should move the Gato +2 Furtividade bonus from the power to the partner',
+      () => {
+        mockSheet.classPowers = [{ ...familiarPower }];
 
-      // Force Gato selection through the manualSelections path
-      const firstRun = recalculateSheet(mockSheet, undefined, {
-        Familiar: { familiars: ['GATO'] },
-      });
+        // Force Gato selection through the manualSelections path
+        const firstRun = recalculateSheet(mockSheet, undefined, {
+          Familiar: { familiars: ['GATO'] },
+        });
 
-      // O poder não aplica mais; o recálculo cria o parceiro.
-      expect(firstRun.sheetBonuses.filter(isFurtividade2)).toHaveLength(0);
-      expect(firstRun.partners?.[0]?.grant).toMatchObject({
-        power: 'Familiar',
-        option: 'Gato',
-      });
+        // O poder não aplica mais; o recálculo cria o parceiro.
+        expect(firstRun.sheetBonuses.filter(isFurtividade2)).toHaveLength(0);
+        expect(firstRun.partners?.[0]?.grant).toMatchObject({
+          power: 'Familiar',
+          option: 'Gato',
+        });
 
-      // After 3 recalculations, the bonus comes once, from the partner
-      let current = withPartnerEffects(firstRun);
-      for (let i = 0; i < 3; i += 1) {
-        current = withPartnerEffects(recalculateSheet(current));
+        // After 3 recalculations, the bonus comes once, from the partner
+        let current = withPartnerEffects(firstRun);
+        for (let i = 0; i < 3; i += 1) {
+          current = withPartnerEffects(recalculateSheet(current));
+        }
+        const bonuses = current.sheetBonuses.filter(isFurtividade2);
+        expect(bonuses).toHaveLength(1);
+        expect(bonuses[0].source.type).toBe('activeEffect');
       }
-      const bonuses = current.sheetBonuses.filter(isFurtividade2);
-      expect(bonuses).toHaveLength(1);
-      expect(bonuses[0].source.type).toBe('activeEffect');
-    });
+    );
 
     it('should keep the familiar bonus on the power for Ex-Familiar (Kobolds)', () => {
       const exFamiliar = {

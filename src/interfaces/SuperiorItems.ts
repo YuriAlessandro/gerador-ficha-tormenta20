@@ -10,7 +10,7 @@ export interface ItemModification {
   prerequisite?: string | string[];
   double?: boolean;
   /** What item types this modification applies to */
-  appliesTo?: 'weapon' | 'armor' | 'shield' | 'all';
+  appliesTo?: 'weapon' | 'armor' | 'shield' | 'esoteric' | 'all';
   /** Optional supplement ID for supplement-specific modifications */
   supplementId?: string;
 }
@@ -24,14 +24,14 @@ export interface EnhancedItemModification extends ItemModification {
 export interface GeneratedSuperiorItem {
   id: string;
   itemName: string;
-  itemType: 'weapon' | 'armor' | 'shield';
+  itemType: 'weapon' | 'armor' | 'shield' | 'esoteric';
   modifications: EnhancedItemModification[];
   timestamp: Date;
 }
 
 export interface SuperiorItemsState {
   generationMode: 'random' | 'manual';
-  selectedItemType: 'weapon' | 'armor' | 'shield' | null;
+  selectedItemType: 'weapon' | 'armor' | 'shield' | 'esoteric' | null;
   selectedItem: string | null;
   selectedModifications: ItemModification[];
   modificationCount: number;

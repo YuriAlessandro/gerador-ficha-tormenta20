@@ -20,6 +20,7 @@ import BrowseGalleryIcon from '@mui/icons-material/BrowseGallery';
 import FilterDramaIcon from '@mui/icons-material/FilterDrama';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import {
   Switch,
   Route,
@@ -28,6 +29,7 @@ import {
   Link,
 } from 'react-router-dom';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { DistinctionsTable } from '@/premium/components/Distinctions';
 import RacesTable from '../DatabaseTables/RacesTable';
 import ClassesTable from '../DatabaseTables/ClassesTable';
 import DivindadesTable from '../DatabaseTables/DivindadesTable';
@@ -82,6 +84,12 @@ const menuItems = [
   },
   {
     id: 5,
+    title: 'Distinções',
+    icon: <WorkspacePremiumIcon />,
+    route: 'distinções',
+  },
+  {
+    id: 6,
     title: 'Magias',
     icon: <AutoFixHighIcon />,
     route: 'magias',
@@ -121,7 +129,8 @@ const Database: React.FC<IProps> = ({ embedded = false }) => {
     else if (pathname.includes('origens')) setSelectedMenu(2);
     else if (pathname.includes('divindades')) setSelectedMenu(3);
     else if (pathname.includes('poderes')) setSelectedMenu(4);
-    else if (pathname.includes('magias')) setSelectedMenu(5);
+    else if (pathname.includes('distin')) setSelectedMenu(5);
+    else if (pathname.includes('magias')) setSelectedMenu(6);
     else setSelectedMenu(-1);
   }, [history.location]);
 
@@ -433,6 +442,11 @@ const Database: React.FC<IProps> = ({ embedded = false }) => {
                   <Route path={`${path}/poderes/:selectedPower?`}>
                     <Box className='table-container'>
                       <PowersTable />
+                    </Box>
+                  </Route>
+                  <Route path={`${path}/distinções/:selectedDistinction?`}>
+                    <Box className='table-container'>
+                      <DistinctionsTable />
                     </Box>
                   </Route>
                   <Route path={`${path}/magias/:selectedSpell?`}>

@@ -4,6 +4,7 @@ import {
   findClassDescription,
   getClassLevelsMap,
 } from '../functions/multiclass';
+import { getEffectiveAttributeModifier } from '../functions/effectiveAttributes';
 import { getSheetProficiencias } from '../functions/proficiencies';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import { FOUNDRY_SYSTEM_VERSION } from './version';
@@ -18,17 +19,27 @@ import {
 import { getArmorField } from './items/equipment';
 import { getSpellKeyAttribute } from './items/spells';
 import { foundryId, normalizeName } from './normalize';
-import { buildSkills } from './skills';
-import { FoundryData, FoundryItem } from './types';
+import { buildSkills, SkillDerivation } from './skills';
+import { FoundryData, FoundryEffect, FoundryItem } from './types';
 
 function getAttribute(sheet: CharacterSheet, attribute: Atributo): number {
   return sheet.atributos?.[attribute]?.value ?? 0;
 }
 
+/**
+ * Atributo como o Foundry o verá: o base mais os efeitos ligados no ator, que
+ * reproduzem a camada efetiva da ficha (`buildAttributeLayerEffects` e os
+ * ativáveis ligados). É o valor que Defesa, carga e perícias usam lá.
+ */
+function getFoundryAttribute(sheet: CharacterSheet, attribute: Atributo) {
+  return getEffectiveAttributeModifier(sheet, attribute);
+}
+
 function buildAttributes(sheet: CharacterSheet): FoundryData {
   const atributos: FoundryData = {};
   (Object.keys(ATTRIBUTE_KEYS) as Atributo[]).forEach((attribute) => {
-    // A ficha guarda o valor final; `value` é derivado (base + racial + bonus).
+    // A ficha guarda o valor final (com a raça); `value` é derivado
+    // (base + racial + bonus). O delta temporário sai como efeito ligado.
     atributos[ATTRIBUTE_KEYS[attribute]] = {
       base: getAttribute(sheet, attribute),
       racial: 0,
@@ -96,7 +107,7 @@ function buildDefense(
     (item) => item !== armor && item !== shield
   );
 
-  const attributeValue = getAttribute(sheet, attribute);
+  const attributeValue = getFoundryAttribute(sheet, attribute);
   const attributePart =
     armor?.system.tipo === 'pesada'
       ? Math.min(Math.max(attributeValue, 0), getArmorField(armor, 'maxAtr'))
@@ -191,20 +202,68 @@ function buildMovement(sheet: CharacterSheet): FoundryData {
 
 function buildLoad(sheet: CharacterSheet): FoundryData {
   const attribute = sheet.maxSpacesAttribute ?? Atributo.FORCA;
-  const value = getAttribute(sheet, attribute);
+  const value = getFoundryAttribute(sheet, attribute);
   // O sistema calcula o limite como `base + atributo × 2` (ou `+ atributo` se
   // negativo); invertemos para o limite bater com o da ficha.
   const fromAttribute = value > 0 ? value * 2 : value;
+  const base =
+    sheet.maxSpaces !== undefined ? sheet.maxSpaces - fromAttribute : 10;
   return {
     atributo: ATTRIBUTE_KEYS[attribute],
-    base: sheet.maxSpaces !== undefined ? sheet.maxSpaces - fromAttribute : 10,
+    // `min: 0` no schema: negativo invalida o ator inteiro. E o sistema lê 0
+    // como 10 (`Number(base) || 10`), então o piso é 1.
+    base: Math.max(1, base),
     bonus: [],
+  };
+}
+
+/** Efeitos que o Foundry aplica ao ator: os dele e os transferidos dos itens. */
+function getAppliedEffects(
+  items: FoundryItem[],
+  effects: FoundryEffect[]
+): FoundryEffect[] {
+  return [
+    ...effects,
+    ...items.flatMap((item) => item.effects).filter((e) => e.transfer),
+  ].filter((effect) => !effect.disabled && !effect.system.onuse);
+}
+
+function buildSkillDerivation(
+  sheet: CharacterSheet,
+  items: FoundryItem[],
+  effects: FoundryEffect[]
+): SkillDerivation {
+  const changes = getAppliedEffects(items, effects).flatMap(
+    (effect) => effect.system.changes
+  );
+  const byKey = Object.fromEntries(
+    Object.entries(ATTRIBUTE_KEYS).map(([name, key]) => [key, name])
+  ) as Record<FoundryAttribute, Atributo>;
+
+  return {
+    level: items
+      .filter((item) => item.type === 'classe')
+      .reduce((sum, item) => sum + Number(item.system.niveis ?? 0), 0),
+    size: toSizeKey((sheet.customSize ?? sheet.size)?.name),
+    armorPenalty: items
+      .filter((item) => item.type === 'equipamento' && item.system.equipado)
+      .reduce((sum, item) => sum + getArmorField(item, 'penalidade'), 0),
+    attribute: (key) => getFoundryAttribute(sheet, byKey[key]),
+    effectBonus: (skillKey) =>
+      changes
+        .filter(
+          (change) =>
+            change.key === `system.pericias.${skillKey}.bonus` ||
+            change.key === 'system.pericias.*.bonus'
+        )
+        .reduce((sum, change) => sum + Number(change.value), 0),
   };
 }
 
 export function buildActorSystem(
   sheet: CharacterSheet,
   items: FoundryItem[],
+  effects: FoundryEffect[],
   automations: SheetAutomations
 ): FoundryData {
   const pv = sheet.pv ?? 0;
@@ -252,6 +311,6 @@ export function buildActorSystem(
       tl: 0,
     },
     tracos: buildTraits(sheet),
-    pericias: buildSkills(sheet, automations.skillOthers),
+    pericias: buildSkills(sheet, buildSkillDerivation(sheet, items, effects)),
   };
 }

@@ -35,11 +35,14 @@ import {
   isPowerAvailable,
   resolveClassPowerCatalog,
 } from '@/functions/powers';
+import { resolveGrantClasses } from '@/functions/powers/powerGrantClasses';
+import { sheetHasDistinction } from '@/premium/functions/distinctions';
 import { getActiveWaivers } from '@/functions/powers/prerequisiteWaivers';
 import { applyPower } from '@/functions/general';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
 import {
+  clampPickToOptions,
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
   countRequirementSelections,
@@ -57,6 +60,8 @@ import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { getEffectiveAttributeModifier } from '@/functions/effectiveAttributes';
 import {
   getClassLevel,
+  initializeClassLevels,
+  reconcileClassLevels,
   findClassDescription,
   buildSpellPathFromSetup,
   serializeSpellPath,
@@ -89,6 +94,10 @@ import {
   hasEngenhoqueiro,
 } from '@/functions/spells/engenhoca';
 import { WizardStepGap } from './types';
+import {
+  getPowerSpellChoiceInfo,
+  PowerSpellChoiceInfo,
+} from './powerSpellChoice';
 
 export interface LevelUpWizardInput {
   /** Ficha ANTES deste nível (o `simulatedSheet` do assistente). */
@@ -178,6 +187,17 @@ export function findPowerGrant(
   return classDesc?.powerGrants?.find((grant) => grant.level === level);
 }
 
+/** Opção, escolhida neste nível, que decide de onde vem o poder (Lorde). */
+export function getGrantOption(
+  grant: ClassPowerGrant,
+  abilitySelections: LevelUpSelections['abilityEffectSelections']
+): string | undefined {
+  const abilityName = grant.classesByOption?.abilityName;
+  return abilityName
+    ? abilitySelections?.[abilityName]?.chosenOption?.[0]
+    : undefined;
+}
+
 /** A classe concede escolha de poder neste nível? */
 export function classGrantsPowerAtLevel(
   classDesc: ClassDescription | undefined,
@@ -240,6 +260,61 @@ export function buildLevelUpWizardContext(
         classNeedsFirstLevelSetup(selectedClassDesc)) ||
       recoveringLinhagemDeus,
   };
+}
+
+/**
+ * A ficha do nível com o nível que está sendo ganho já contado em
+ * `classLevels`. O que depende do nível de CLASSE (círculo de magia do
+ * Conhecimento Mágico numa classe secundária) precisa enxergar o nível novo,
+ * não o anterior. Mono-classe segue com `classLevels` indefinido
+ * (`getClassLevel` cai em `nivel`, já projetado).
+ */
+export function getLevelUpSheetWithProjectedClassLevel(
+  ctx: LevelUpWizardContext
+): CharacterSheet {
+  const {
+    sheet,
+    level,
+    selectedClassName,
+    selectedClassSubname,
+    sheetForCurrentLevel,
+  } = ctx;
+  const isLevelingSecondaryClass = selectedClassName !== sheet.classe.name;
+  if (!sheet.classLevels && !isLevelingSecondaryClass)
+    return sheetForCurrentLevel;
+  return {
+    ...sheetForCurrentLevel,
+    classLevels: [
+      ...reconcileClassLevels(
+        sheet.classLevels ?? initializeClassLevels(sheet),
+        level - 1,
+        sheet.classe.name,
+        sheet.classe.subname
+      ),
+      {
+        level,
+        className: selectedClassName,
+        classSubname: selectedClassSubname,
+      },
+    ],
+  };
+}
+
+/**
+ * "Escolha uma magia" do poder do nível (Foco em Magia), como ficará na
+ * ficha. `null` = o poder do nível não pede escolha.
+ */
+export function getLevelUpPowerSpellChoiceInfo(
+  ctx: LevelUpWizardContext
+): PowerSpellChoiceInfo | null {
+  const { sheetForCurrentLevel, selection } = ctx;
+  return getPowerSpellChoiceInfo(
+    sheetForCurrentLevel,
+    selection.powerChoice,
+    getSelectedLevelUpPower(selection),
+    selection.spellsLearned,
+    selection.spellModifierChoices
+  );
 }
 
 /**
@@ -409,10 +484,17 @@ export function getLevelUpPowerOptions(
   // OUTRA classe, avaliados no nível do personagem. Sem declaração, vale o
   // catálogo da própria classe, como em toda classe padrão.
   const grant = findPowerGrant(selectedClassDesc, selectedClassLevel);
+  // Lorde: a opção escolhida neste nível decide de qual classe vem o poder.
+  const grantClasses = grant
+    ? resolveGrantClasses(
+        grant,
+        getGrantOption(grant, ctx.selection.abilityEffectSelections)
+      )
+    : [];
   const classPowers = grant
     ? getForeignClassPowers(
         sheetForFiltering,
-        grant.fromClasses,
+        grantClasses,
         sheetForPowerSelection.nivel,
         grant.excludePowers
       )
@@ -437,7 +519,7 @@ export function getLevelUpPowerOptions(
       // não só nos disponíveis: sem ele o agrupamento cai no nome da classe
       // da FICHA, e um poder de Cavaleiro que o Vassalo não alcança aparecia
       // sob "Poder de Vassalo".
-      grant.fromClasses.flatMap((className) =>
+      grantClasses.flatMap((className) =>
         (
           findClassDescription(className, undefined, supplements)?.powers ?? []
         ).map((power) => ({ ...power, className }))
@@ -482,6 +564,11 @@ export function getLevelUpPowerOptions(
     ...allPowers.TORMENTA,
     ...allPowers.RACA.filter((power) =>
       isPowerAvailable(sheetForFiltering, power)
+    ),
+    // Poderes de distinção: só das distinções que a ficha já conquistou
+    // (a admissão é feita pela ficha, nunca pelo assistente).
+    ...(allPowers.DISTINCAO ?? []).filter((power) =>
+      sheetHasDistinction(sheetForFiltering, power.distinctionId)
     ),
   ];
 
@@ -903,6 +990,17 @@ export function getLevelUpSteps(ctx: LevelUpWizardContext): string[] {
     steps.push('Melhor Amigo');
   }
 
+  // Quando a escolha de uma habilidade decide de onde vem o poder (Lorde),
+  // ela vem antes.
+  const abilityEffectsFirst = !!findPowerGrant(
+    selectedClassDesc,
+    selectedClassLevel
+  )?.classesByOption;
+  const showAbilityEffects = levelUpNeedsAbilityEffectSelections(ctx);
+  if (showAbilityEffects && abilityEffectsFirst) {
+    steps.push('Efeitos de Habilidades');
+  }
+
   // First level in a new class (multiclass) grants no power.
   // Classes com `powerGrants` (Vassalo) só concedem poder em certos níveis.
   if (
@@ -916,7 +1014,7 @@ export function getLevelUpSteps(ctx: LevelUpWizardContext): string[] {
     }
   }
 
-  if (levelUpNeedsAbilityEffectSelections(ctx)) {
+  if (showAbilityEffects && !abilityEffectsFirst) {
     steps.push('Efeitos de Habilidades');
   }
 
@@ -946,6 +1044,15 @@ export function getLevelUpSteps(ctx: LevelUpWizardContext): string[] {
   const spellInfo = getLevelUpSpellInfo(ctx);
   if (spellInfo && spellInfo.shouldLearnSpells) {
     steps.push('Seleção de Magias');
+  }
+
+  // "Escolha uma magia" do poder deste nível (Foco em Magia): depois das
+  // magias aprendidas, que também podem ser escolhidas.
+  if (
+    steps.includes('Escolha de Poder') &&
+    getLevelUpPowerSpellChoiceInfo(ctx)
+  ) {
+    steps.push('Magia do Poder');
   }
 
   if (getLevelUpEngenhocaInfo(ctx)) {
@@ -1018,7 +1125,8 @@ export function areLevelUpRequirementsSatisfied(
     // `resolveLearnSkillRemainingPick` escala o piso declarado pelo patamar
     // atual e subtrai o que o histórico já concedeu (Biblioteca Divina e
     // similares); para os demais tipos devolve `pick`.
-    const effectivePick = Math.min(
+    const effectivePick = clampPickToOptions(
+      req,
       resolveLearnSkillRemainingPick(
         req,
         getCurrentPlateau(sheetForCurrentLevel),
@@ -1178,6 +1286,15 @@ export function isLevelUpStepComplete(
       return (
         learned.length === spellInfo.spellCount &&
         crossCount >= spellInfo.minCrossTraditionSpells
+      );
+    }
+
+    case 'Magia do Poder': {
+      const info = getLevelUpPowerSpellChoiceInfo(ctx);
+      if (!info) return true;
+      return (
+        info.choice.chosen.length >=
+        Math.min(info.choice.max, info.options.length)
       );
     }
 

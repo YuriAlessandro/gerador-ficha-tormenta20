@@ -39,6 +39,7 @@ const CATEGORY_COLORS: Record<
   origin: 'info',
   deity: 'secondary',
   power: 'primary',
+  distinction: 'warning',
   spell: 'secondary',
 };
 

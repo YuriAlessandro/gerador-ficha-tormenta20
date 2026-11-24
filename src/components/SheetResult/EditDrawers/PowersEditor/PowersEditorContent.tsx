@@ -12,7 +12,15 @@ import {
 } from '@mui/material';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { ClassPower } from '@/interfaces/Class';
-import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
+import {
+  GeneralPower,
+  GeneralPowerType,
+  OriginPower,
+} from '@/interfaces/Poderes';
+import {
+  getSheetDistinctionNames,
+  getSheetDistinctions,
+} from '@/premium/functions/distinctions';
 import { POWER_ORIGINS } from '@/functions/powers/powerOrigins';
 import { PowerAvailability } from '@/functions/powers/requirementEvaluation';
 import CatalogPanel from '@/components/PowerCatalog/CatalogPanel';
@@ -352,19 +360,43 @@ const PowersEditorContent: React.FC<PowersEditorContentProps> = ({
       dedupe(selectedDeityPowers, editor.handleDeityPowerRemove, 'deityPower')
     );
 
+    const isUnmetGeneral = (p: GeneralPower) =>
+      p.name !== linhagemPowerTaken && !getAvailability(p, 'general').available;
+
     push(
       'generalPower',
       'generalCombate',
       'Poderes Gerais',
       dedupe(
-        selectedPowers,
+        selectedPowers.filter((p) => p.type !== GeneralPowerType.DISTINCAO),
         editor.handlePowerRemove,
         'generalPower',
-        (p) =>
-          p.name !== linhagemPowerTaken &&
-          !getAvailability(p, 'general').available
+        isUnmetGeneral
       )
     );
+
+    // Poderes de distinção: um grupo por distinção.
+    const distinctionNames = getSheetDistinctionNames(sheet);
+    const byDistinction = new Map<string, GeneralPower[]>();
+    selectedPowers
+      .filter((p) => p.type === GeneralPowerType.DISTINCAO)
+      .forEach((power) => {
+        const id = power.distinctionId ?? '';
+        byDistinction.set(id, [...(byDistinction.get(id) ?? []), power]);
+      });
+    byDistinction.forEach((powers, id) => {
+      push(
+        `distinction:${id}`,
+        'distinction',
+        POWER_ORIGINS.distinction.label(distinctionNames[id] ?? id),
+        dedupe(
+          powers,
+          editor.handlePowerRemove,
+          `distinction:${id}`,
+          isUnmetGeneral
+        )
+      );
+    });
 
     push(
       'customGranted',
@@ -444,8 +476,30 @@ const PowersEditorContent: React.FC<PowersEditorContentProps> = ({
       });
     }
 
+    // Marcas das distinções: automáticas, como as habilidades de classe.
+    getSheetDistinctions(sheet).forEach((distinction) => {
+      groups.push({
+        key: `distinctionMark:${distinction.id}`,
+        label: POWER_ORIGINS.distinction.label(distinction.name),
+        icon: POWER_ORIGINS.distinction.icon,
+        color: POWER_ORIGINS.distinction.color,
+        items: [
+          {
+            key: `distinctionMark:${distinction.id}`,
+            name: `${distinction.mark.name} (Marca)`,
+            count: 1,
+          },
+        ],
+      });
+    });
+
     return groups;
-  }, [classAbilitySets, sheet.raca.abilities, sheet.raca.name]);
+  }, [
+    classAbilitySets,
+    sheet.raca.abilities,
+    sheet.raca.name,
+    sheet.distinctions,
+  ]);
 
   const selectedCount = selectedGroups.reduce(
     (total, group) => total + group.items.length,
