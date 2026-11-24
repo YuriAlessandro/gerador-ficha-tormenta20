@@ -4,6 +4,7 @@ import { RequirementType } from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
 import { Atributo } from '../../atributos';
 import { standardFaithProbability } from '../../divindades';
+import { MAGIAS_DE_CURA_DE_LUZ } from '../../magias/spellGroups';
 import PROFICIENCIAS from '../../proficiencias';
 
 const FRADE: ClassDescription = {
@@ -132,6 +133,12 @@ const FRADE: ClassDescription = {
       name: 'Bênção Fortalecedora',
       text: 'Quando você lança Bênção, os aliados abençoados recebem uma quantidade de PV temporários igual a 5 vezes o bônus em testes de ataque fornecido pela magia. Esses PV temporários duram enquanto a magia durar.',
       requirements: [[{ type: RequirementType.MAGIA, name: 'Bênção' }]],
+      spellModifiers: [
+        {
+          filter: { spellNames: ['Bênção'] },
+          effect: { type: 'EffectTempPV', kind: 'attack', multiplier: 5 },
+        },
+      ],
     },
     {
       name: 'Canto Monástico',
@@ -141,6 +148,19 @@ const FRADE: ClassDescription = {
     {
       name: 'Comunhão Vital',
       text: 'Quando lança uma magia que cure uma criatura, você pode pagar +2 PM para que outra criatura em alcance curto (incluindo você mesmo) recupere uma quantidade de pontos de vida igual à metade dos PV da cura original.',
+      spellModifiers: [
+        {
+          filter: {
+            healing: true,
+          },
+          effect: {
+            type: 'CastOption',
+            id: 'comunhao',
+            label: 'outra criatura em alcance curto recupera metade da cura',
+            addPm: 2,
+          },
+        },
+      ],
       requirements: [],
     },
     {
@@ -186,6 +206,16 @@ const FRADE: ClassDescription = {
       name: 'Mago Branco',
       text: 'Suas magias de cura de luz custam –1 PM e curam +1 PV por dado de cura.',
       requirements: [[{ type: RequirementType.NIVEL, value: 3 }]],
+      spellModifiers: [
+        {
+          filter: { spellNames: MAGIAS_DE_CURA_DE_LUZ },
+          effect: { type: 'PmReduction', value: 1 },
+        },
+        {
+          filter: { spellNames: MAGIAS_DE_CURA_DE_LUZ },
+          effect: { type: 'RollBonus', rolls: 'healing', perDie: 1 },
+        },
+      ],
     },
     {
       name: 'Memorizar Liturgia',

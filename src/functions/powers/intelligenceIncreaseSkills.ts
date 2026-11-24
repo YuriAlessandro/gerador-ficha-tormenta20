@@ -24,6 +24,20 @@ export function getIntelligenceIncreaseSkillCount(
 }
 
 /**
+ * Quanto a Inteligência sobe com a escolha atual. Com vários pontos para
+ * distribuir (ex.: Rei Mercenário), cada ponto em Inteligência conta.
+ */
+export function getSelectedIntelligenceIncrease(
+  requirement: PowerSelectionRequirement,
+  selections: SelectionOptions | undefined
+): number {
+  const points = (selections?.attributes ?? []).filter(
+    (attr) => attr === Atributo.INTELIGENCIA
+  ).length;
+  return points * (requirement.metadata?.increaseValue ?? 1);
+}
+
+/**
  * Quantas perícias por Inteligência a escolha atual de um requisito
  * `increaseAttribute` concede. Zero para qualquer outro requisito ou quando o
  * atributo escolhido não é Inteligência.
@@ -34,10 +48,9 @@ export function getIntelligenceSkillsPick(
   intelligence: number
 ): number {
   if (requirement.type !== 'increaseAttribute') return 0;
-  if (!selections?.attributes?.includes(Atributo.INTELIGENCIA)) return 0;
   return getIntelligenceIncreaseSkillCount(
     intelligence,
-    requirement.metadata?.increaseValue ?? 1
+    getSelectedIntelligenceIncrease(requirement, selections)
   );
 }
 

@@ -26,6 +26,7 @@ describe('healInheritedArcanistaPath', () => {
     [GeneralPowerType.CONCEDIDOS]: [],
     [GeneralPowerType.TORMENTA]: [],
     [GeneralPowerType.RACA]: [],
+    [GeneralPowerType.DISTINCAO]: [],
   });
 
   const supplements = [

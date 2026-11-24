@@ -6,6 +6,7 @@ import {
 import Skill from '../../../../../interfaces/Skills';
 import { SheetBonus } from '../../../../../interfaces/CharacterSheet';
 import { Atributo } from '../../atributos';
+import { allSpellsUpToCircle, spellsCircle1 } from '../../magias/generalSpells';
 import { ESTILO_CLASSICO_SHEET_BONUSES } from '../../powers/combatStyleSheetBonuses';
 
 /**
@@ -430,31 +431,31 @@ const racePowers: Record<string, GeneralPower> = {
       [
         { type: RequirementType.RACA, name: 'Gnoll' },
         { type: RequirementType.ATRIBUTO, name: 'Destreza', value: 2 },
-        { type: RequirementType.TEXT, text: 'Lançar magias' },
+        { type: RequirementType.LANCAR_MAGIAS },
         { type: RequirementType.PODER, name: 'Dupla Inteligência' },
       ],
       [
         { type: RequirementType.RACA, name: 'Kaijin' },
         { type: RequirementType.ATRIBUTO, name: 'Destreza', value: 2 },
-        { type: RequirementType.TEXT, text: 'Lançar magias' },
+        { type: RequirementType.LANCAR_MAGIAS },
         { type: RequirementType.PODER, name: 'Dupla Inteligência' },
       ],
       [
         { type: RequirementType.RACA, name: 'Lefou' },
         { type: RequirementType.ATRIBUTO, name: 'Destreza', value: 2 },
-        { type: RequirementType.TEXT, text: 'Lançar magias' },
+        { type: RequirementType.LANCAR_MAGIAS },
         { type: RequirementType.PODER, name: 'Dupla Inteligência' },
       ],
       [
         { type: RequirementType.RACA, name: 'Orc' },
         { type: RequirementType.ATRIBUTO, name: 'Destreza', value: 2 },
-        { type: RequirementType.TEXT, text: 'Lançar magias' },
+        { type: RequirementType.LANCAR_MAGIAS },
         { type: RequirementType.PODER, name: 'Dupla Inteligência' },
       ],
       [
         { type: RequirementType.RACA, name: 'Trog' },
         { type: RequirementType.ATRIBUTO, name: 'Destreza', value: 2 },
-        { type: RequirementType.TEXT, text: 'Lançar magias' },
+        { type: RequirementType.LANCAR_MAGIAS },
         { type: RequirementType.PODER, name: 'Dupla Inteligência' },
       ],
     ],
@@ -615,11 +616,11 @@ const racePowers: Record<string, GeneralPower> = {
     requirements: [
       [
         { type: RequirementType.RACA, name: 'Kaijin' },
-        { type: RequirementType.TEXT, text: 'Lançar magias divinas' },
+        { type: RequirementType.LANCAR_MAGIAS, name: 'divine' },
       ],
       [
         { type: RequirementType.RACA, name: 'Lefou' },
-        { type: RequirementType.TEXT, text: 'Lançar magias divinas' },
+        { type: RequirementType.LANCAR_MAGIAS, name: 'divine' },
       ],
     ],
   },
@@ -816,6 +817,17 @@ const racePowers: Record<string, GeneralPower> = {
       [{ type: RequirementType.RACA, name: 'Eiradaan' }],
       [{ type: RequirementType.RACA, name: 'Sílfide' }],
     ],
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Glamour' },
+        action: {
+          type: 'learnSpell',
+          availableSpells: Object.values(spellsCircle1),
+          pick: 3,
+          customAttribute: Atributo.CARISMA,
+        },
+      },
+    ],
   },
   GLAMOUR_MAIOR: {
     name: 'Glamour Maior',
@@ -838,6 +850,17 @@ const racePowers: Record<string, GeneralPower> = {
         { type: RequirementType.PODER, name: 'Glamour' },
         { type: RequirementType.NIVEL, value: 5 },
       ],
+    ],
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Glamour Maior' },
+        action: {
+          type: 'learnSpell',
+          availableSpells: allSpellsUpToCircle(2),
+          pick: 3,
+          customAttribute: Atributo.CARISMA,
+        },
+      },
     ],
   },
   GOLPE_DOS_TITAS: {
@@ -873,6 +896,17 @@ const racePowers: Record<string, GeneralPower> = {
       'Sua tatuagem mística é especialmente grande e chamativa, e contém ainda mais poder mágico que o normal. Você pode lançar uma magia de 1º círculo a sua escolha (atributo-chave Carisma), além daquela fornecida pela habilidade Tatuagem Mística e pode usar os aprimoramentos de ambas como se tivesse acesso aos mesmos círculos de magia que um feiticeiro do seu nível.',
     type: GeneralPowerType.RACA,
     requirements: [[{ type: RequirementType.RACA, name: 'Qareen' }]],
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Grande Marca de Wynna' },
+        action: {
+          type: 'learnSpell',
+          availableSpells: Object.values(spellsCircle1),
+          pick: 1,
+          customAttribute: Atributo.CARISMA,
+        },
+      },
+    ],
   },
   HERANCA_ERUDITA: {
     name: 'Herança Erudita',
@@ -900,16 +934,16 @@ const racePowers: Record<string, GeneralPower> = {
     requirements: [
       [
         { type: RequirementType.RACA, name: 'Medusa' },
-        { type: RequirementType.TEXT, text: 'Lançar magias' },
+        { type: RequirementType.LANCAR_MAGIAS },
       ],
       [
         { type: RequirementType.RACA, name: 'Moreau' },
         { type: RequirementType.HERANCA, name: 'Serpente' },
-        { type: RequirementType.TEXT, text: 'Lançar magias' },
+        { type: RequirementType.LANCAR_MAGIAS },
       ],
       [
         { type: RequirementType.RACA, name: 'Nagah' },
-        { type: RequirementType.TEXT, text: 'Lançar magias' },
+        { type: RequirementType.LANCAR_MAGIAS },
       ],
     ],
   },

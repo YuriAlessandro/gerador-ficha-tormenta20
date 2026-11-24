@@ -3,6 +3,7 @@ import { ClassPower } from '../../interfaces/Class';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import {
   GeneralPower,
+  GeneralPowerType,
   PrerequisiteWaiver,
   Requirement,
   RequirementType,
@@ -26,6 +27,8 @@ import { getClassLevel } from '../multiclass';
 import { sheetHasClassAbility } from '../learnedClassAbility';
 import { deityRequirementMatches, getSheetDeityNames } from './deityNames';
 import { deityAcceptsClass } from './deityClassAcceptance';
+import { sheetHasDistinction } from '../../premium/functions/distinctions';
+import { CastingTradition, sheetCastsSpells } from './spellcasting';
 
 /**
  * Avaliação de pré-requisito **item a item**, para a UI poder dizer *qual*
@@ -205,7 +208,8 @@ function currentValueFor(
 function isRequirementMet(
   req: Requirement,
   ctx: RequirementContext,
-  kind: PowerKind
+  kind: PowerKind,
+  powerName?: string
 ): boolean {
   const { sheet, pendingGeneralPowers = [], pendingClassPowers = [] } = ctx;
 
@@ -293,6 +297,31 @@ function isRequirementMet(
       // Herança do Moreau (ex.: "Moreau da Serpente").
       return sheet.raca.heritage === req.name;
 
+    case RequirementType.DISTINCAO:
+      return sheetHasDistinction(sheet, req.name as string);
+
+    case RequirementType.PODERES_DISTINCAO: {
+      // No editor, `pendingGeneralPowers` é a lista INTEIRA selecionada (já
+      // inclui o que está salvo); fora dele, vale a ficha.
+      const pool = (ctx.pendingGeneralPowers ??
+        sheet.generalPowers ??
+        []) as GeneralPower[];
+      const owned = pool.filter(
+        (p) =>
+          p.type === GeneralPowerType.DISTINCAO && p.distinctionId === req.name
+      );
+      const countsItself = owned.some((p) => p.name === powerName);
+      return owned.length - (countsItself ? 1 : 0) >= (req.value ?? 0);
+    }
+
+    case RequirementType.LANCAR_MAGIAS:
+      // Mesmo avaliador de `isPowerAvailable`: sem isto o tipo caía no
+      // `default` e o editor liberava "Lançar magias" para quem não lança.
+      return sheetCastsSpells(sheet, {
+        circle: req.value,
+        tradition: req.name as CastingTradition | undefined,
+      });
+
     case RequirementType.TIER_LIMIT: {
       const category = req.name as string;
       const matches = (p: PowerLike) => matchesTierLimitCategory(p, category);
@@ -365,7 +394,7 @@ export function evaluatePowerRequirements(
         waived ||
         applyRequirementNot(
           requirement,
-          isRequirementMet(requirement, ctx, kind)
+          isRequirementMet(requirement, ctx, kind, power.name)
         );
       return {
         requirement,

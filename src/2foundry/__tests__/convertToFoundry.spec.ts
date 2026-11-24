@@ -9,6 +9,8 @@ import { collectSheetPowers } from '../../functions/powers/collectSheetPowers';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
 import { spellsCircles } from '../../interfaces/Spells';
+import Equipment from '../../interfaces/Equipment';
+import { spellsCircle2 } from '../../data/systems/tormenta20/magias/generalSpells';
 import { SupplementId } from '../../types/supplement.types';
 import { convertToFoundry } from '..';
 import {
@@ -313,6 +315,17 @@ describe('convertToFoundry', () => {
     const classes = ofType(json, 'classe');
     expect(classes).toHaveLength(1);
     expect(classes[0].system).toMatchObject({ inicial: true, niveis: 3 });
+  });
+
+  it('leva o bônus de CD da própria magia (Varinha arcana)', () => {
+    const sheet = createMockCharacterSheet();
+    sheet.overrideKeyAttribute = Atributo.INTELIGENCIA;
+    sheet.spells = [spellsCircle2.bolaDeFogo];
+    sheet.bag.equipments.Esotérico = [
+      { id: 'v', nome: 'Varinha arcana', group: 'Esotérico' } as Equipment,
+    ];
+    const [spell] = ofType(convertToFoundry(sheet), 'magia');
+    expect(spell.system.resistencia).toMatchObject({ bonus: 1 });
   });
 
   it('converte os campos de uma magia para as chaves do sistema', () => {

@@ -1,14 +1,18 @@
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
-import { manaExpenseByCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import CharacterSheet from '@/interfaces/CharacterSheet';
+import { SheetAge } from '@/interfaces/Age';
+import { getAgeBracket } from '@/premium/data/ageBrackets';
 import Equipment from '@/interfaces/Equipment';
 import Skill, { CompleteSkill } from '@/interfaces/Skills';
 import { Spell } from '@/interfaces/Spells';
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { getSpellDisplayName } from './spells/spellDisplayName';
 import { getEngenhocaAparatos } from './spells/engenhoca';
+import { getSpellDisplayPmCost } from './spells/modifiers';
+import { getSpellResistDC } from './spells/spellDC';
 import { calculateCurrencySpaces } from './general';
+import { getTotalArmorPenalty } from './armorPenalty';
 import { isMulticlass, getMulticlassDisplayName } from './multiclass';
 import {
   getWeaponAttackSkillBonus,
@@ -139,6 +143,24 @@ interface OverflowText {
 }
 
 /**
+ * Corpo da seção "Idade": só os campos preenchidos. A faixa etária só existe com
+ * Idades Variadas (Heróis de Arton) — sem a regra, `bracket` é `undefined` e
+ * saía "undefined, 35 anos"; com ela, saía o id cru ("adulto").
+ */
+export const formatSheetAgeText = (age: SheetAge): string => {
+  const bracketLabel = age.bracket
+    ? getAgeBracket(age.bracket)?.label ?? age.bracket
+    : undefined;
+  const header = [bracketLabel, age.years ? `${age.years} anos` : undefined]
+    .filter(Boolean)
+    .join(', ');
+  const complications = (age.complications ?? [])
+    .map((comp) => `- ${comp.name}: ${comp.description}`)
+    .join('\n');
+  return `${header}\n${complications}`.trim();
+};
+
+/**
  * Monta as seções das páginas de continuação: o que não tem campo no template
  * mais o que transbordou dos campos de tamanho fixo.
  *
@@ -191,13 +213,7 @@ const buildExtraSections = (
   // `push` ignora corpo vazio: ficha não fundamentalista não ganha seção.
   push('Dogma fundamentalista', getFundamentalistaSummary(sheet));
 
-  if (sheet.age) {
-    const years = sheet.age.years ? `, ${sheet.age.years} anos` : '';
-    const complications = sheet.age.complications
-      .map((comp) => `- ${comp.name}: ${comp.description}`)
-      .join('\n');
-    push('Idade', `${sheet.age.bracket}${years}\n${complications}`.trimEnd());
-  }
+  if (sheet.age) push('Idade', formatSheetAgeText(sheet.age));
 
   if (sheet.poderesCapturados?.length) {
     push(
@@ -274,13 +290,7 @@ const getCircleLabel = (circle: string): string => {
   return match ? `${match[1]}º` : '';
 };
 
-const getSpellPmCost = (spell: Spell): number => {
-  const base = spell.manaExpense ?? manaExpenseByCircle[spell.spellCircle] ?? 0;
-  const reduction = spell.manaReduction ?? 0;
-  return Math.max(0, base - reduction);
-};
-
-const generateSpellText = (spell: Spell): string => {
+const generateSpellText = (spell: Spell, sheet: CharacterSheet): string => {
   const meta = [
     getCircleLabel(spell.spellCircle),
     spell.school,
@@ -288,8 +298,17 @@ const generateSpellText = (spell: Spell): string => {
     spell.alcance,
     spell.duracao,
     // Engenhoca não paga o custo base da magia na ativação.
-    spell.engenhoca ? 'ativação por Ofício' : `${getSpellPmCost(spell)}PM`,
-  ].join(', ');
+    spell.engenhoca
+      ? 'ativação por Ofício'
+      : `${getSpellDisplayPmCost(sheet, spell)}PM`,
+    // A CD de cada magia: os bônus por magia (Foco em Magia, Varinha arcana)
+    // fazem uma diferir da outra.
+    spell.resistencia && !spell.engenhoca
+      ? `CD ${getSpellResistDC(sheet, spell)}`
+      : undefined,
+  ]
+    .filter(Boolean)
+    .join(', ');
   if (spell.engenhoca) {
     const aparatos = getEngenhocaAparatos(spell.engenhoca).map((a) => a.nome);
     const details = [
@@ -630,14 +649,7 @@ export const fillSheetPdf: (
 
   // Penalidade de armadura: só o que está VESTIDO/EMPUNHADO conta —
   // `getArmorPenalty()` somaria toda armadura carregada na mochila.
-  const activeArmorPenalty =
-    sheet.bag.getActiveArmorPenalty(
-      sheet.wornArmorId,
-      sheet.mainHandItemId,
-      sheet.offHandItemId,
-      sheet.extraHand1ItemId,
-      sheet.extraHand2ItemId
-    ) + (sheet.extraArmorPenalty ?? 0);
+  const activeArmorPenalty = getTotalArmorPenalty(sheet);
   armorPenaltyField.setText(
     activeArmorPenalty > 0 ? `-${activeArmorPenalty}` : '0'
   );
@@ -730,7 +742,7 @@ export const fillSheetPdf: (
           if (circleCompare !== 0) return circleCompare;
           return a.nome.localeCompare(b.nome);
         })
-        .map(generateSpellText)
+        .map((spell) => generateSpellText(spell, sheet))
         .join('\n');
   const spellsFieldFontSize = (): number => {
     if (spellsText.length > 7000) return 6;

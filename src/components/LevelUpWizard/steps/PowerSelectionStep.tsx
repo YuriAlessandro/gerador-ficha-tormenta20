@@ -14,6 +14,7 @@ import type { PowerAvailability } from '@/functions/powers/requirementEvaluation
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { ClassPower } from '@/interfaces/Class';
 import { GeneralPower, GeneralPowerType } from '@/interfaces/Poderes';
+import { getDistinctionById } from '@/premium/data/distinctions';
 
 interface PowerSelectionStepProps {
   sheet: CharacterSheet;
@@ -102,6 +103,7 @@ const GENERAL_KINDS: Record<string, PowerOriginKind> = {
   [GeneralPowerType.CONCEDIDOS]: 'generalConcedidos',
   [GeneralPowerType.TORMENTA]: 'generalTormenta',
   [GeneralPowerType.RACA]: 'generalRaca',
+  [GeneralPowerType.DISTINCAO]: 'distinction',
 };
 
 const GENERAL_LABELS: Record<string, string> = {
@@ -113,21 +115,40 @@ const GENERAL_LABELS: Record<string, string> = {
   [GeneralPowerType.RACA]: 'Poderes de Raça',
 };
 
+/** Poderes de distinção formam um grupo POR distinção. */
+const groupKeyOf = (power: GeneralPower): string =>
+  power.type === GeneralPowerType.DISTINCAO
+    ? `${power.type}:${power.distinctionId ?? ''}`
+    : power.type;
+
+function groupLabel(type: GeneralPowerType, list: GeneralPower[]): string {
+  if (type === GeneralPowerType.DISTINCAO) {
+    const id = list[0]?.distinctionId ?? '';
+    const name = getDistinctionById(id)?.name ?? id;
+    return `Poderes de Distinção — ${name}`;
+  }
+  return GENERAL_LABELS[type] ?? 'Poderes Gerais';
+}
+
 function groupGeneralPowers(powers: GeneralPower[]): PowerCategory[] {
-  const byType = new Map<GeneralPowerType, GeneralPower[]>();
+  const byKey = new Map<string, GeneralPower[]>();
   powers.forEach((power) => {
-    const list = byType.get(power.type);
+    const key = groupKeyOf(power);
+    const list = byKey.get(key);
     if (list) list.push(power);
-    else byType.set(power.type, [power]);
+    else byKey.set(key, [power]);
   });
 
-  return [...byType.entries()].map(([type, list]) => ({
-    key: type,
-    type,
-    kind: GENERAL_KINDS[type] ?? 'generalCombate',
-    name: GENERAL_LABELS[type] ?? 'Poderes Gerais',
-    powers: list,
-  }));
+  return [...byKey.entries()].map(([key, list]) => {
+    const { type } = list[0];
+    return {
+      key,
+      type,
+      kind: GENERAL_KINDS[type] ?? 'generalCombate',
+      name: groupLabel(type, list),
+      powers: list,
+    };
+  });
 }
 
 /**

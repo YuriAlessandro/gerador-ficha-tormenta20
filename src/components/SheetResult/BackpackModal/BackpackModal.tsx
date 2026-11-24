@@ -68,6 +68,7 @@ import {
   getWieldingSlot,
   getWornArmor,
   isClothingWorn,
+  isWornLikeClothing,
   sheetHasFourArms,
   WieldingDisabledSlots,
 } from './wielding';
@@ -493,11 +494,12 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
 
   const handleEditorSave = (
     next: Equipment,
-    options?: { splitFromStack?: boolean }
+    options?: { splitFromStack?: boolean; skipUpgradeCharge?: boolean }
   ) => {
     if (next.id) {
-      if (options?.splitFromStack) splitEditItem(next.id, next);
-      else updateItem(next.id, next);
+      const charge = { skipUpgradeCharge: options?.skipUpgradeCharge };
+      if (options?.splitFromStack) splitEditItem(next.id, next, charge);
+      else updateItem(next.id, next, charge);
     }
     setEditorOpen(false);
     setEditingItem(null);
@@ -519,7 +521,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         onWornChange: (worn) => setWornArmor(worn ? itemId : null),
       };
     }
-    if (item.group === 'Vestuário') {
+    if (isWornLikeClothing(item)) {
       return {
         isWorn: isClothingWorn(itemId, staged.unwornClothingIds),
         onWornChange: (worn) => setWornClothing(itemId, worn),
@@ -873,8 +875,8 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
               Itens em vermelho excedem o limite na ordem da mochila. Você ainda
               pode carregá-los,{' '}
               {sheetIgnoresEncumbrance
-                ? 'e sua raça ignora a redução de deslocamento por excesso de carga.'
-                : 'mas seu deslocamento sofre penalidade enquanto estiver sobrecarregado.'}{' '}
+                ? 'mas sofre penalidade de armadura −5 (sua raça ignora a redução de deslocamento).'
+                : 'mas sofre −3m de deslocamento e penalidade de armadura −5 enquanto estiver sobrecarregado.'}{' '}
               (Capacidade = 10 + 2×Força, ou 10 − |Força| quando negativa. Cada
               1.000 moedas conta 1 espaço.)
             </Typography>
@@ -1326,6 +1328,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         item={editingItem}
         onSave={handleEditorSave}
         ammoTypeOptions={ammoTypeOptions}
+        chargesUpgradeOnSave={staged.autoDeductMoney}
       />
     </Dialog>
   );

@@ -1,4 +1,8 @@
 import { Requirement, RequirementType } from '../interfaces/Poderes';
+import {
+  CASTING_TRADITION_LABEL,
+  CastingTradition,
+} from './powers/spellcasting';
 
 /**
  * Ponto único de formatação de pré-requisitos de poder.
@@ -52,10 +56,26 @@ function baseText(req: Requirement, options: FormatRequirementOptions): string {
       return `Pelo menos ${req.value} ${
         (req.value || 0) > 1 ? 'poderes' : 'poder'
       } da Tormenta`;
+    case RequirementType.DISTINCAO:
+      return req.text || `Distinção: ${req.name}`;
+    case RequirementType.PODERES_DISTINCAO: {
+      const n = req.value || 0;
+      return `${n} ${n > 1 ? 'outros poderes' : 'outro poder'} da distinção`;
+    }
     case RequirementType.TEXT:
       return req.text || '';
     case RequirementType.TIER_LIMIT:
       return 'Um por patamar (além dos da raça)';
+    case RequirementType.LANCAR_MAGIAS: {
+      const tradition = req.name as CastingTradition | undefined;
+      return [
+        'Lançar magias',
+        tradition ? CASTING_TRADITION_LABEL[tradition] : '',
+        req.value ? `de ${req.value}º círculo` : '',
+      ]
+        .filter(Boolean)
+        .join(' ');
+    }
     default:
       return (req.name as string) || req.text || '';
   }
