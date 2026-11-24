@@ -12,6 +12,7 @@ import DestinoIcon from '@mui/icons-material/Star';
 import type { SvgIconComponent } from '@mui/icons-material';
 import ComplicacaoIcon from '@mui/icons-material/WarningAmber';
 import TormentaIcon from '@mui/icons-material/Whatshot';
+import DistincaoIcon from '@mui/icons-material/WorkspacePremium';
 
 import { ClassAbility, ClassPower } from '../../interfaces/Class';
 import {
@@ -43,6 +44,7 @@ export type PowerOriginKind =
   | 'generalConcedidos'
   | 'generalTormenta'
   | 'generalRaca'
+  | 'distinction'
   | 'customGranted'
   | 'custom'
   | 'complication'
@@ -151,32 +153,42 @@ export const POWER_ORIGINS: Record<PowerOriginKind, PowerOriginDescriptor> = {
     order: 10,
     label: () => 'Poder de Raça',
   },
+  distinction: {
+    // Marca e poderes de uma distinção (Heróis/Deuses de Arton), um grupo por
+    // distinção.
+    kind: 'distinction',
+    icon: DistincaoIcon,
+    color: 'warning.dark',
+    order: 11,
+    label: (source) => (source ? `Distinção: ${source}` : 'Distinção'),
+    subdivided: true,
+  },
   customGranted: {
     kind: 'customGranted',
     icon: ConcedidoIcon,
     color: '#00acc1',
-    order: 11,
+    order: 12,
     label: () => 'Poder Concedido Personalizado',
   },
   custom: {
     kind: 'custom',
     icon: CustomIcon,
     color: 'text.secondary',
-    order: 12,
+    order: 13,
     label: () => 'Poder Personalizado',
   },
   complication: {
     kind: 'complication',
     icon: ComplicacaoIcon,
     color: 'warning.main',
-    order: 13,
+    order: 14,
     label: () => 'Complicação',
   },
   age: {
     kind: 'age',
     icon: IdadeIcon,
     color: 'secondary.main',
-    order: 14,
+    order: 15,
     label: () => 'Idade',
   },
 };
@@ -193,6 +205,7 @@ export const GENERAL_TYPE_TO_KIND: Record<GeneralPowerType, PowerOriginKind> = {
   [GeneralPowerType.CONCEDIDOS]: 'generalConcedidos',
   [GeneralPowerType.TORMENTA]: 'generalTormenta',
   [GeneralPowerType.RACA]: 'generalRaca',
+  [GeneralPowerType.DISTINCAO]: 'distinction',
 };
 
 export interface PowerOrigin {
@@ -216,6 +229,10 @@ export interface PowerSourceArrays {
   generalPowers: GeneralPower[];
   customPowers?: CustomPower[];
   customGrantedPowers?: CustomPower[];
+  /** Marcas das distinções conquistadas (ver `getSheetDistinctionMarks`). */
+  distinctionMarks?: GeneralPower[];
+  /** id → nome das distinções, para rotular o grupo de cada uma. */
+  distinctionNames?: Record<string, string>;
   className: string;
   raceName: string;
 }
@@ -269,10 +286,20 @@ export function classifyPowers(
   (sources.customPowers || []).forEach((power) =>
     claim(power.name, { kind: 'custom' })
   );
+  const distinctionSource = (power: GeneralPower) =>
+    power.distinctionId
+      ? sources.distinctionNames?.[power.distinctionId] ?? power.distinctionId
+      : undefined;
+  (sources.distinctionMarks || []).forEach((mark) =>
+    claim(mark.name, { kind: 'distinction', source: distinctionSource(mark) })
+  );
   sources.generalPowers.forEach((power) =>
-    claim(power.name, {
-      kind: GENERAL_TYPE_TO_KIND[power.type] ?? 'generalCombate',
-    })
+    claim(
+      power.name,
+      power.type === GeneralPowerType.DISTINCAO
+        ? { kind: 'distinction', source: distinctionSource(power) }
+        : { kind: GENERAL_TYPE_TO_KIND[power.type] ?? 'generalCombate' }
+    )
   );
 
   return origins;

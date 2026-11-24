@@ -134,6 +134,17 @@ const OVERRIDES = {
   // false travaria o wizard no passo de complicação
   isComplicationPowerSelectionComplete: { expr: '() => true' },
   getComplicationByName: { expr: '() => undefined' },
+  // Distinções: sem o premium, nenhuma ficha tem distinção. Os valores abaixo
+  // são os neutros de cada call site (contagem somada em fórmula, listas
+  // espalhadas com `...`, mapa id → nome indexado).
+  sheetHasDistinction: { expr: '() => false' },
+  countDistinctionPowers: { expr: '() => 0' },
+  getSheetDistinctions: { expr: '() => []' },
+  getSheetDistinctionMarks: { expr: '() => []' },
+  getSheetDistinctionNames: { expr: '() => ({})' },
+  getDistinctionById: { expr: '() => undefined' },
+  getDistinctionsBySupplements: { expr: '() => []' },
+  getDistinctionPowersBySupplements: { expr: '() => []' },
   // dentro de try/catch no bônus de arma, mas undefined propaga NaN
   evaluateFormula: { expr: '() => 0' },
   validateHomebrew: { expr: '() => ({ valid: true, errors: [] })' },

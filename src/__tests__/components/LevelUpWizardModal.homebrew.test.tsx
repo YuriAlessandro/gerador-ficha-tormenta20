@@ -38,6 +38,7 @@ const emptyPowers = () => ({
   [GeneralPowerType.CONCEDIDOS]: [],
   [GeneralPowerType.TORMENTA]: [],
   [GeneralPowerType.RACA]: [],
+  [GeneralPowerType.DISTINCAO]: [],
 });
 
 const generalPower = (

@@ -157,10 +157,22 @@ const WeaponAttributesDialog: React.FC<WeaponAttributesDialogProps> = (
             <Typography variant='caption' sx={{ color: 'text.secondary' }}>
               A perícia define o treinamento e os outros bônus do teste.
               &quot;Atributo no ataque&quot; troca só o atributo dentro dela —
-              use para Acuidade com Arma, Armeiro ou uma forma selvagem que
-              ataca com outro atributo.
+              use para Armeiro ou uma forma selvagem que ataca com outro
+              atributo.
             </Typography>
           </Grid>
+          {weapon.strengthReplacement && (
+            <Grid size={{ xs: 12 }}>
+              <Typography variant='caption' sx={{ color: 'info.main' }}>
+                Acuidade com Arma: onde estiver Força, a ficha já usa{' '}
+                {weapon.strengthReplacement.attribute}
+                {weapon.strengthReplacement.thrownOnly
+                  ? ' ao arremessar esta arma'
+                  : ''}
+                , sem precisar de ajuste aqui.
+              </Typography>
+            </Grid>
+          )}
         </Grid>
       </DialogContent>
       <DialogActions sx={{ flexWrap: 'wrap', gap: 0.5 }}>

@@ -536,8 +536,10 @@ export const ORIGINS: Record<origins, Origin> = {
         Armas.TACAPE,
       ]),
       {
+        // Texto do livro (JdA p. 88). Fichas antigas gravaram com
+        // "aprimorado" — alias em `originItemBonuses.ts`.
         equipment:
-          'Tatuagem ou outro adereço de sua gangue aprimorado (+1 em Intimidação)',
+          'Tatuagem ou outro adereço de sua gangue (+1 em Intimidação)',
       },
     ],
     pericias: [Skill.LUTA, Skill.INTIMIDACAO],

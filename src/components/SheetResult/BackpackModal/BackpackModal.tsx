@@ -55,11 +55,20 @@ import { getAmmoTypeOptions } from './ammo';
 import AddItemDialog from './AddItemDialog';
 import ItemEditorDialog from './ItemEditorDialog';
 import { useBackpackState } from './useBackpackState';
+import MoveItemDialog from './MoveItemDialog';
+import StorageSection from './StorageSection';
+import {
+  getContainerCapacity,
+  getContainerIds,
+  getLocationLabel,
+  isCarried,
+} from '../../../functions/bagStorage';
 import {
   getDisabledWieldingSlots,
   getWieldingSlot,
   getWornArmor,
   isClothingWorn,
+  isWornLikeClothing,
   sheetHasFourArms,
   WieldingDisabledSlots,
 } from './wielding';
@@ -201,9 +210,29 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     setWielding,
     setWornArmor,
     setWornClothing,
+    moveItem,
     setGroupByCategory,
     revertChanges,
   } = state;
+
+  // Só o que está COM o personagem entra na grade principal (e no arrastar);
+  // Alforje, veículos e guardado viram seções próprias logo abaixo.
+  const containerIds = useMemo(
+    () => getContainerIds(orderedItems),
+    [orderedItems]
+  );
+  const carriedFiltered = useMemo(
+    () => filteredItems.filter((it) => isCarried(it, containerIds)),
+    [filteredItems, containerIds]
+  );
+  const filteredIds = useMemo(
+    () => new Set(filteredItems.map((it) => it.id)),
+    [filteredItems]
+  );
+  const [movingItemId, setMovingItemId] = useState<string | null>(null);
+  const movingItem = movingItemId
+    ? orderedItems.find((it) => it.id === movingItemId) ?? null
+    : null;
 
   const wieldingState = {
     mainHandItemId: staged.mainHandItemId,
@@ -429,10 +458,10 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     if (srcVisibleIdx === destVisibleIdx) return;
 
     // Determine the visible subset that the drag was performed within.
-    let subset: Equipment[] = filteredItems;
+    let subset: Equipment[] = carriedFiltered;
     if (srcDroppable.startsWith(GROUP_DROPPABLE_PREFIX)) {
       const cat = srcDroppable.slice(GROUP_DROPPABLE_PREFIX.length);
-      subset = filteredItems.filter((it) => it.group === cat);
+      subset = carriedFiltered.filter((it) => it.group === cat);
     }
 
     const movedId = subset[srcVisibleIdx]?.id;
@@ -465,11 +494,12 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
 
   const handleEditorSave = (
     next: Equipment,
-    options?: { splitFromStack?: boolean }
+    options?: { splitFromStack?: boolean; skipUpgradeCharge?: boolean }
   ) => {
     if (next.id) {
-      if (options?.splitFromStack) splitEditItem(next.id, next);
-      else updateItem(next.id, next);
+      const charge = { skipUpgradeCharge: options?.skipUpgradeCharge };
+      if (options?.splitFromStack) splitEditItem(next.id, next, charge);
+      else updateItem(next.id, next, charge);
     }
     setEditorOpen(false);
     setEditingItem(null);
@@ -491,7 +521,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         onWornChange: (worn) => setWornArmor(worn ? itemId : null),
       };
     }
-    if (item.group === 'Vestuário') {
+    if (isWornLikeClothing(item)) {
       return {
         isWorn: isClothingWorn(itemId, staged.unwornClothingIds),
         onWornChange: (worn) => setWornClothing(itemId, worn),
@@ -505,6 +535,9 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     return (
       <BackpackItemCard
         item={item}
+        locationLabel={getLocationLabel(item, orderedItems)}
+        onMove={item.id ? () => setMovingItemId(item.id as string) : undefined}
+        containerCapacity={getContainerCapacity(item)}
         isOverflowing={item.id ? totals.overflowItemIds.has(item.id) : false}
         reorderMode={reorderMode}
         onEdit={() => handleEdit(item)}
@@ -571,7 +604,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     staged.groupByCategory
       ? CATEGORY_ORDER.map((cat) => ({
           group: cat,
-          items: filteredItems.filter((it) => it.group === cat),
+          items: carriedFiltered.filter((it) => it.group === cat),
         })).filter((g) => g.items.length > 0)
       : [];
 
@@ -842,8 +875,8 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
               Itens em vermelho excedem o limite na ordem da mochila. Você ainda
               pode carregá-los,{' '}
               {sheetIgnoresEncumbrance
-                ? 'e sua raça ignora a redução de deslocamento por excesso de carga.'
-                : 'mas seu deslocamento sofre penalidade enquanto estiver sobrecarregado.'}{' '}
+                ? 'mas sofre penalidade de armadura −5 (sua raça ignora a redução de deslocamento).'
+                : 'mas sofre −3m de deslocamento e penalidade de armadura −5 enquanto estiver sobrecarregado.'}{' '}
               (Capacidade = 10 + 2×Força, ou 10 − |Força| quando negativa. Cada
               1.000 moedas conta 1 espaço.)
             </Typography>
@@ -866,35 +899,37 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
           </Box>
         )}
 
-        {filteredItems.length > 0 && !staged.groupByCategory && reorderMode && (
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId='backpack-items'>
-              {(provided) => (
-                <Box
-                  ref={provided.innerRef}
-                  // eslint-disable-next-line react/jsx-props-no-spreading
-                  {...provided.droppableProps}
-                  sx={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 1.5,
-                  }}
-                >
-                  {filteredItems.map((item, idx) =>
-                    renderDraggableCard(item, idx)
-                  )}
-                  {provided.placeholder}
-                </Box>
-              )}
-            </Droppable>
-          </DragDropContext>
-        )}
+        {carriedFiltered.length > 0 &&
+          !staged.groupByCategory &&
+          reorderMode && (
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable droppableId='backpack-items'>
+                {(provided) => (
+                  <Box
+                    ref={provided.innerRef}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...provided.droppableProps}
+                    sx={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: 1.5,
+                    }}
+                  >
+                    {carriedFiltered.map((item, idx) =>
+                      renderDraggableCard(item, idx)
+                    )}
+                    {provided.placeholder}
+                  </Box>
+                )}
+              </Droppable>
+            </DragDropContext>
+          )}
 
-        {filteredItems.length > 0 &&
+        {carriedFiltered.length > 0 &&
           !staged.groupByCategory &&
           !reorderMode && (
             <Grid container spacing={1.5}>
-              {filteredItems.map((item) => (
+              {carriedFiltered.map((item) => (
                 <Grid
                   key={item.id ?? item.nome}
                   size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
@@ -905,7 +940,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
             </Grid>
           )}
 
-        {filteredItems.length > 0 && staged.groupByCategory && (
+        {carriedFiltered.length > 0 && staged.groupByCategory && (
           <DragDropContext onDragEnd={handleDragEnd}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {groupsForRender.map(({ group, items }) => {
@@ -989,6 +1024,25 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
             </Box>
           </DragDropContext>
         )}
+
+        {totals.storage.map((loc) => {
+          const visible = loc.items.filter((it) => filteredIds.has(it.id));
+          // Com busca/filtro ativo, recipiente sem nada que case some.
+          if (
+            visible.length === 0 &&
+            (filters.searchQuery !== '' || filters.selectedCategories.size > 0)
+          ) {
+            return null;
+          }
+          return (
+            <StorageSection
+              key={loc.location}
+              usage={loc}
+              visibleItems={visible}
+              renderItemCard={renderItemCard}
+            />
+          );
+        })}
       </Box>
       <Divider />
       <Box
@@ -1239,6 +1293,19 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
           </Stack>
         </Stack>
       </Box>
+      <MoveItemDialog
+        open={movingItem !== null}
+        item={movingItem}
+        items={orderedItems}
+        storage={totals.storage}
+        carriedSpaces={totals.itemSpaces}
+        maxSpaces={totals.maxSpaces - totals.currencySpaces}
+        onClose={() => setMovingItemId(null)}
+        onMove={(location, units) => {
+          if (movingItemId) moveItem(movingItemId, location, units);
+          setMovingItemId(null);
+        }}
+      />
       <AddItemDialog
         open={addDialogOpen}
         onClose={() => setAddDialogOpen(false)}
@@ -1261,6 +1328,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
         item={editingItem}
         onSave={handleEditorSave}
         ammoTypeOptions={ammoTypeOptions}
+        chargesUpgradeOnSave={staged.autoDeductMoney}
       />
     </Dialog>
   );

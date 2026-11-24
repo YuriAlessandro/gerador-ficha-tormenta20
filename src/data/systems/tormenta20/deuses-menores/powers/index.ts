@@ -519,6 +519,7 @@ const DEUSES_MENORES_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
   ],
   [GeneralPowerType.TORMENTA]: [],
   [GeneralPowerType.RACA]: [],
+  [GeneralPowerType.DISTINCAO]: [],
 };
 
 export default DEUSES_MENORES_POWERS;

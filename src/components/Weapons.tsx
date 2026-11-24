@@ -1,5 +1,6 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Chip, Tooltip, Typography } from '@mui/material';
+import HandIcon from '@mui/icons-material/BackHand';
 import Equipment, {
   AmmoType,
   BagEquipments,
@@ -12,6 +13,7 @@ import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
 import type { ManeuverId, SheetBonus } from '../interfaces/CharacterSheet';
 import ManeuverRow, { ManeuverRowData } from './ManeuverRow';
 import {
+  getWieldedItemIds,
   getWieldingSlot,
   pickDefaultWieldSlot,
   WieldingSlot,
@@ -81,6 +83,15 @@ interface WeaponsProps {
   onManeuverWeaponChange?: (id: ManeuverId, weaponId: string) => void;
 }
 
+const HELD_SLOT_LABELS: Record<Exclude<WieldingSlot, null>, string> = {
+  main: 'Mão principal',
+  off: 'Mão secundária',
+  both: 'Duas mãos',
+  extra1: 'Mão extra 1',
+  extra2: 'Mão extra 2',
+  bothExtra: 'Mãos extras',
+};
+
 const Weapons: React.FC<WeaponsProps> = (props) => {
   const {
     weapons,
@@ -110,20 +121,56 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
     onManeuverWeaponChange,
   } = props;
 
-  if ((!weapons || weapons.length === 0) && maneuvers.length === 0) {
-    return (
-      <Box>
-        <Typography>Nenhuma arma equipada.</Typography>
-      </Box>
-    );
-  }
-
   const wieldingState = {
     mainHandItemId,
     offHandItemId,
     extraHand1ItemId,
     extraHand2ItemId,
   };
+
+  // Mãos ocupadas por algo que não é linha de ataque (esotérico, varinha,
+  // escudo, tocha): o jogador precisa ver que a mão não está livre.
+  const weaponIds = new Set((weapons ?? []).map((w) => w.id));
+  const bagItems = bagEquipments
+    ? (Object.values(bagEquipments) as (Equipment[] | undefined)[]).flatMap(
+        (list) => list ?? []
+      )
+    : [];
+  const heldItems = getWieldedItemIds(wieldingState)
+    .filter((id) => !weaponIds.has(id))
+    .map((id) => bagItems.find((item) => item.id === id))
+    .filter((item): item is Equipment => !!item);
+  const heldChips =
+    heldItems.length > 0 ? (
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+        {heldItems.map((item) => {
+          const slot = getWieldingSlot(item.id, wieldingState);
+          const hand = slot ? HELD_SLOT_LABELS[slot] : '';
+          return (
+            <Tooltip
+              key={item.id}
+              title={`Empunhado (${hand.toLowerCase()}). Para soltar ou trocar, use o ícone de mão em Equipamentos ou na mochila.`}
+            >
+              <Chip
+                size='small'
+                variant='outlined'
+                icon={<HandIcon />}
+                label={`${item.customDisplayName || item.nome} · ${hand}`}
+              />
+            </Tooltip>
+          );
+        })}
+      </Box>
+    ) : null;
+
+  if ((!weapons || weapons.length === 0) && maneuvers.length === 0) {
+    return (
+      <Box>
+        {heldChips}
+        <Typography>Nenhuma arma equipada.</Typography>
+      </Box>
+    );
+  }
 
   // Resolve o item de qualquer mão para o desempate de escudo do
   // `pickDefaultWieldSlot` (o que ocupa a mão pode não ser uma arma).
@@ -134,6 +181,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
       ...bagEquipments.Escudo,
       ...bagEquipments.Alquimía,
       ...bagEquipments['Item Geral'],
+      ...(bagEquipments['Esotérico'] ?? []),
     ].find((it) => it.id === id);
   };
 
@@ -200,6 +248,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
 
   return (
     <Box>
+      {heldChips}
       {weaponsDiv}
       {hasNonProficientWeapon && (
         <Typography

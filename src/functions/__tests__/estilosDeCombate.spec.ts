@@ -268,6 +268,68 @@ describe('Estilo de Uma Arma', () => {
   });
 });
 
+describe('Ataque Preciso', () => {
+  const power = [combatPowers.ESTILO_DE_UMA_ARMA, combatPowers.ATAQUE_PRECISO];
+  const critOf = (sheet: CharacterSheet, id: string): string =>
+    sheet.bag.equipments.Arma.find((w) => w.id === id)?.critico ?? '';
+
+  it('dá +2 na margem e +1 no multiplicador com uma arma corpo a corpo e a outra mão livre', () => {
+    const items = () => [
+      fromCatalog('Espada Longa', 'esp'),
+      fromCatalog('Machado de Batalha', 'mac'),
+    ];
+    const result = recalculateSheet(buildSheet(power, items(), 'esp'));
+    expect(critOf(result, 'esp')).toBe('17/x3');
+    // "com essa arma": a arma guardada não recebe o bônus.
+    expect(critOf(result, 'mac')).toBe('x3');
+  });
+
+  it('não se aplica com arma de duas mãos', () => {
+    const items = () => [fromCatalog('Montante', 'mon')];
+    const result = recalculateSheet(buildSheet(power, items(), 'mon', 'mon'));
+    expect(critOf(result, 'mon')).toBe('19');
+  });
+
+  it('não se aplica com algo na outra mão', () => {
+    const items = () => [
+      fromCatalog('Espada Longa', 'esp'),
+      fromCatalog('Escudo Pesado', 'esc'),
+    ];
+    const result = recalculateSheet(buildSheet(power, items(), 'esp', 'esc'));
+    expect(critOf(result, 'esp')).toBe('19');
+  });
+
+  it('não se aplica a armas à distância nem a ataques desarmados', () => {
+    const arco = recalculateSheet(
+      buildSheet(power, [fromCatalog('Arco Curto', 'arc')], 'arc')
+    );
+    expect(critOf(arco, 'arc')).toBe('x3');
+
+    const desarmadoBase = recalculateSheet(
+      buildSheet([], [fromCatalog('Ataque Desarmado', 'des')], 'des')
+    );
+    const desarmado = recalculateSheet(
+      buildSheet(power, [fromCatalog('Ataque Desarmado', 'des')], 'des')
+    );
+    expect(critOf(desarmado, 'des')).toBe(critOf(desarmadoBase, 'des'));
+  });
+
+  it('vale para fichas salvas com o nome antigo "Ataque preciso"', () => {
+    const legacy = buildSheet(
+      [
+        combatPowers.ESTILO_DE_UMA_ARMA,
+        { ...combatPowers.ATAQUE_PRECISO, name: 'Ataque preciso' },
+      ],
+      [fromCatalog('Espada Longa', 'esp')],
+      'esp'
+    );
+    normalizeSheet(legacy);
+    expect(legacy.generalPowers.map((p) => p.name)).toContain('Ataque Preciso');
+    const result = recalculateSheet(legacy);
+    expect(critOf(result, 'esp')).toBe('17/x3');
+  });
+});
+
 describe('Lança Montada empunhada com uma mão (montado)', () => {
   const items = () => [
     fromCatalog('Lança Montada', 'lan'),

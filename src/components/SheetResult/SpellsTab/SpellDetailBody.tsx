@@ -2,6 +2,10 @@ import React from 'react';
 import CasinoIcon from '@mui/icons-material/Casino';
 import { Box, Button, Chip, Stack, Tooltip, Typography } from '@mui/material';
 import { Spell } from '@/interfaces/Spells';
+import {
+  computeSpellPmCost,
+  SpellCastProfile,
+} from '@/functions/spells/modifiers';
 import { getEngenhocaAparatos } from '@/functions/spells/engenhoca';
 import {
   SpellTradition,
@@ -27,9 +31,15 @@ export interface EngenhocaRowInfo {
 export interface SpellDetailBodyProps {
   spell: Spell;
   onCast?: () => void;
+  /** Marca/desmarca a magia para uma fonte de "escolha N magias". */
+  onSpellChoiceToggle?: (key: string) => void;
   engenhocaInfo?: EngenhocaRowInfo;
   /** Tipo resolvido pelo pai (não é campo da magia). */
   tradition?: SpellTradition;
+  /** O que os poderes/itens da ficha fazem com a magia (custo, cura...). */
+  castProfile?: SpellCastProfile;
+  /** CD própria da magia, quando poderes/itens a alteram. */
+  spellDC?: number;
 }
 
 /**
@@ -45,8 +55,11 @@ export interface SpellDetailBodyProps {
 const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
   spell,
   onCast,
+  onSpellChoiceToggle,
   engenhocaInfo,
   tradition,
+  castProfile,
+  spellDC,
 }) => {
   const { engenhoca } = spell;
   const aparatos = getEngenhocaAparatos(engenhoca);
@@ -55,8 +68,20 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
   // viraria NaN na tela.
   const circleCost = manaExpenseByCircle[spell.spellCircle] ?? 0;
   const baseCost = spell.manaExpense ?? circleCost;
-  const reduction = spell.manaReduction ?? 0;
-  const cost = Math.max(0, baseCost - reduction);
+  // Sem perfil (ex.: detalhe fora da ficha), só a redução gravada na magia.
+  const profile = castProfile ?? {
+    pmReduction: spell.manaReduction ?? 0,
+    pmReductionSources: [],
+    pmHalve: false,
+    notes: [],
+  };
+  const reduction = profile.pmReduction;
+  // Os da magia + os acrescentados por poderes e itens (Proeminência Solar).
+  const allAprimoramentos = [
+    ...(spell.aprimoramentos ?? []),
+    ...(castProfile?.extraAprimoramentos ?? []),
+  ];
+  const cost = computeSpellPmCost(baseCost, profile);
 
   return (
     <Box>
@@ -77,7 +102,13 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
         {reduction > 0 && (
           <Tooltip title={`Custo base ${baseCost} PM`} arrow>
             <Chip
-              label={`−${reduction} PM de redução`}
+              label={
+                profile.pmReductionSources.length > 0
+                  ? `−${reduction} PM (${profile.pmReductionSources.join(
+                      ', '
+                    )})`
+                  : `−${reduction} PM de redução`
+              }
               size='small'
               color='success'
               variant='outlined'
@@ -85,6 +116,66 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
             />
           </Tooltip>
         )}
+        {spellDC !== undefined && spell.resistencia && (
+          <Chip
+            label={`CD ${spellDC}`}
+            size='small'
+            color='primary'
+            variant='outlined'
+            sx={MICRO_CHIP_SX}
+          />
+        )}
+        {(castProfile?.spellChoices ?? []).map((slot) => {
+          const full = !slot.chosen && slot.used >= slot.max;
+          // Escola (Tomo hermético) e tipo de dano (Cetro elemental) são
+          // marcados a partir de uma magia.
+          let what = 'esta magia';
+          let label = `${slot.source} · ${slot.used}/${slot.max}`;
+          if (slot.of === 'school') {
+            what = `a escola ${getSchoolLabel(spell.school)}`;
+            label = `${slot.source} · ${getSchoolLabel(spell.school)}`;
+          } else if (slot.of === 'damageType') {
+            what = `dano de ${slot.value}`;
+            label = `${slot.source} · ${slot.value}`;
+          }
+          return (
+            <Tooltip
+              key={slot.key}
+              arrow
+              title={
+                full
+                  ? `Todas as ${slot.max} escolhas de ${slot.source} estão em uso.`
+                  : `Escolher ${what} para ${slot.source}.`
+              }
+            >
+              <span>
+                <Chip
+                  label={label}
+                  size='small'
+                  color='secondary'
+                  variant={slot.chosen ? 'filled' : 'outlined'}
+                  disabled={!onSpellChoiceToggle || full}
+                  onClick={
+                    onSpellChoiceToggle
+                      ? () => onSpellChoiceToggle(slot.key)
+                      : undefined
+                  }
+                  sx={MICRO_CHIP_SX}
+                />
+              </span>
+            </Tooltip>
+          );
+        })}
+        {profile.notes.map((note) => (
+          <Chip
+            key={note}
+            label={note}
+            size='small'
+            color='success'
+            variant='outlined'
+            sx={MICRO_CHIP_SX}
+          />
+        ))}
         {spell.equipmentSource && (
           // O campo guarda o id do item, não o nome — mostrar o id cru não
           // ajudaria ninguém. O que importa é avisar que a magia veio do
@@ -134,12 +225,12 @@ const SpellDetailBody: React.FC<SpellDetailBodyProps> = ({
         {spell.description}
       </Typography>
 
-      {spell.aprimoramentos && spell.aprimoramentos.length > 0 && (
+      {allAprimoramentos.length > 0 && (
         <Box sx={DETAIL_SECTION_SX}>
           <Typography variant='caption' sx={DETAIL_LABEL_SX}>
             Aprimoramentos
           </Typography>
-          {spell.aprimoramentos.map((aprimoramento) => (
+          {allAprimoramentos.map((aprimoramento) => (
             <Typography
               key={`${aprimoramento.addPm}-${aprimoramento.text.substring(
                 0,

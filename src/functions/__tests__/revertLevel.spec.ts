@@ -346,7 +346,15 @@ describe('revertLastLevel — fichas aleatórias', () => {
 
         expect(sheet.nivel).toBe(level - 1);
         expect(sheet.classLevels).toHaveLength(level - 1);
-        expect(sheet.pv).toBeLessThan(before.pv);
+        // Desfazer um poder da Tormenta pode DEVOLVER Constituição (a Linhagem
+        // Rubra deixa escolher o atributo perdido no lugar de Carisma), e esse
+        // ponto vale em todos os níveis que ficam: aí os PV podem não cair.
+        const conGain =
+          (sheet.atributos[Atributo.CONSTITUICAO]?.value ?? 0) -
+          (before.atributos[Atributo.CONSTITUICAO]?.value ?? 0);
+        if (conGain <= 0) {
+          expect(sheet.pv).toBeLessThan(before.pv);
+        }
         expect(
           sheet.sheetActionHistory.some(
             (entry) =>

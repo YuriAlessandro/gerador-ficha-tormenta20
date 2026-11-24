@@ -1,3 +1,4 @@
+import type { SpellModifier, SpellModifierChoiceSpec } from './SpellModifiers';
 import { SheetBonus } from './CharacterSheet';
 import { DiceRoll } from './DiceRoll';
 import Skill from './Skills';
@@ -48,6 +49,8 @@ export interface EquipmentSelectableBonus {
 export interface AppliedModification {
   mod: string;
   specialMaterial?: string;
+  /** Divindade da melhoria Canônico (Deuses de Arton). */
+  deity?: string;
   /**
    * Snapshot do efeito numérico, tirado no momento em que a melhoria foi
    * aplicada. Presente apenas para conteúdo NÃO-core (suplemento/homebrew),
@@ -212,6 +215,21 @@ export type AttackAttribute = WeaponAttribute;
  * não estão na mochila, como as da Forma Selvagem) não têm onde gravar a
  * escolha e precisam de um mapa à parte na ficha. Ver `functions/weaponOverrides.ts`.
  */
+/**
+ * Atributo que SUBSTITUI a Força no ataque e no dano desta arma por efeito de
+ * poder (Acuidade com Arma). Campo DERIVADO: não é escolha do jogador, é
+ * recalculado a cada recálculo e na carga (`functions/powers/acuidadeComArma.ts`)
+ * e ausente quando não se aplica. Escolha manual (`attackAttribute`/
+ * `damageAttribute` diferente de Força) continua vencendo.
+ *
+ * `thrownOnly`: vale só no modo arremesso (arma de arremesso que não é leve nem
+ * ágil, como a Lança — corpo a corpo ela segue com Força).
+ */
+export interface WeaponStrengthReplacement {
+  attribute: WeaponAttribute;
+  thrownOnly?: boolean;
+}
+
 export interface WeaponOverride {
   customSkill?: Skill;
   attackAttribute?: AttackAttribute;
@@ -343,8 +361,15 @@ export default interface Equipment {
   // When undefined, falls back to the default rule (alcance/arremesso → Luta or Pontaria).
   customSkill?: Skill;
 
+  /** Derivado — ver `WeaponStrengthReplacement` (Acuidade com Arma). */
+  strengthReplacement?: WeaponStrengthReplacement;
+
   // Equipment bonuses (automatic bonuses to skills, stats, etc.)
   sheetBonuses?: SheetBonus[];
+  /** Efeitos sobre magias (ver `interfaces/SpellModifiers.ts`). */
+  spellModifiers?: SpellModifier[];
+  /** "Escolha N magias" dos `spellModifiers` com `filter.chosen`. */
+  spellChoice?: SpellModifierChoiceSpec;
 
   // Conditional bonuses (only apply if condition is met)
   conditionalBonuses?: {
@@ -370,6 +395,18 @@ export default interface Equipment {
   // category is not normally wieldable (e.g. a custom Esotérico wand).
   canBeWielded?: boolean;
 
+  /**
+   * Instrumento musical (JdA): empunhado com as duas mãos e usado como
+   * esotérico por bardos. Ver `isMusicalInstrument`.
+   */
+  musicalInstrument?: boolean;
+  /**
+   * Item fora do Vestuário que também pode ser vestido (Estola, "pode ser
+   * vestida em vez de empunhada"). Usa o mesmo vestido/guardado do vestuário
+   * (`unwornClothingIds`) e, vestido, conta como em uso. Ver
+   * `isWornLikeClothing`.
+   */
+  canBeWorn?: boolean;
   // Weapon requires both hands to be wielded. When true, equipping the item
   // occupies both `mainHandItemId` and `offHandItemId` slots.
   twoHanded?: boolean;
@@ -447,6 +484,20 @@ export default interface Equipment {
    * `CharacterSheet.weaponOverrides[overrideKey]`. Ver `functions/weaponOverrides.ts`.
    */
   overrideKey?: string;
+
+  /**
+   * Onde o item está, quando NÃO está com o personagem: id de um recipiente da
+   * mochila (Alforje, Carroça…) ou `'stash'` (guardado fora da aventura).
+   * `undefined` = com você. Só o que está com você conta na carga — ver
+   * `functions/bagStorage.ts`.
+   */
+  storedIn?: string;
+
+  /**
+   * Capacidade, em espaços, de um recipiente criado pelo usuário/homebrew. Os
+   * do catálogo (Alforje, veículos) saem de `CONTAINER_CAPACITY_BY_NAME`.
+   */
+  containerCapacity?: number;
 
   // Supplement information (for items from supplements)
   supplementId?: string;

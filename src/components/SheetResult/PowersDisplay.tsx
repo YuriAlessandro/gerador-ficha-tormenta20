@@ -29,6 +29,7 @@ import CharacterSheet, {
 import { CustomPower } from '@/interfaces/CustomPower';
 import { collectPowers } from '@/functions/powers/collectSheetPowers';
 import { getChosenSpellSchoolsByClass } from '@/functions/spells/spellSchoolEditing';
+import { getSheetSpellChoices } from '@/functions/spells/modifiers';
 import {
   classifyPowers,
   groupPowersByOrigin,
@@ -61,9 +62,14 @@ import type {
 import type { CustomEffect } from '@/premium/interfaces/CustomEffect';
 import RollButton from '../RollButton';
 import PowerWeaponSelectionAction from './PowerWeaponSelectionAction';
+import PowerSpellChoiceAction from './PowerSpellChoiceAction';
 import PowerActiveEffectAction from './PowerActiveEffectAction';
 import PowerCustomEffectsAction from './PowerCustomEffectsAction';
 import PowerRow from './PowersTab/PowerRow';
+import {
+  getSheetDistinctionMarks,
+  getSheetDistinctionNames,
+} from '../../premium/functions/distinctions';
 import PowerDetailSheet from './PowersTab/PowerDetailSheet';
 import PowersToolbar, { OriginFilterOption } from './PowersTab/PowersToolbar';
 import {
@@ -161,6 +167,16 @@ const PowersDisplay: React.FC<{
     () => (sheet?.classe ? getChosenSpellSchoolsByClass(sheet) : undefined),
     [sheet]
   );
+  // Marcas das distinções conquistadas (resolvidas pelo registry a partir de
+  // `sheet.distinctions`).
+  const distinctionMarks = useMemo(
+    () => (sheet ? getSheetDistinctionMarks(sheet) : []),
+    [sheet]
+  );
+  const distinctionNames = useMemo(
+    () => (sheet ? getSheetDistinctionNames(sheet) : {}),
+    [sheet]
+  );
   const collected = useMemo(
     () =>
       collectPowers(
@@ -173,6 +189,8 @@ const PowersDisplay: React.FC<{
           generalPowers,
           customPowers,
           customGrantedPowers,
+          distinctionMarks,
+          distinctionNames,
           className,
           raceName,
         },
@@ -189,6 +207,8 @@ const PowersDisplay: React.FC<{
       generalPowers,
       customPowers,
       customGrantedPowers,
+      distinctionMarks,
+      distinctionNames,
       className,
       raceName,
       sheet?.powersOrder,
@@ -381,6 +401,14 @@ const PowersDisplay: React.FC<{
     );
   };
 
+  const spellChoiceSources = useMemo(
+    () =>
+      new Set(
+        sheet ? getSheetSpellChoices(sheet).map((choice) => choice.key) : []
+      ),
+    [sheet]
+  );
+
   const buildBaseHeaderActionSlot = (pw: SheetPower): React.ReactNode => {
     const namedSlot = powerActionSlots?.[pw.name];
     if (namedSlot) return namedSlot;
@@ -428,6 +456,18 @@ const PowersDisplay: React.FC<{
 
   const buildHeaderActionSlot = (pw: SheetPower): React.ReactNode => {
     const base = buildBaseHeaderActionSlot(pw);
+
+    // "Escolha uma magia" (Foco em Magia, Aspecto da Primavera…): escolher e
+    // trocar as magias pelo próprio poder, não só pela aba de magias.
+    const spellChoiceSlot =
+      sheet && onSheetUpdate && spellChoiceSources.has(pw.name) ? (
+        <PowerSpellChoiceAction
+          choiceKey={pw.name}
+          instances={powerCount[pw.name] || 1}
+          sheet={sheet}
+          onSheetUpdate={onSheetUpdate}
+        />
+      ) : null;
 
     // Poder concedido por complicação de classe (Heróis de Arton): marca como
     // indisponível quando menos da metade dos níveis são da classe exigida.
@@ -486,7 +526,8 @@ const PowersDisplay: React.FC<{
         />
       ) : null;
 
-    if (!complicationWarning && !companionSlot && !rollSlot) return base;
+    if (!complicationWarning && !companionSlot && !rollSlot && !spellChoiceSlot)
+      return base;
 
     // No mobile o chip com texto compete por largura com dados e efeitos;
     // o rótulo completo continua no bottom sheet.
@@ -509,6 +550,7 @@ const PowersDisplay: React.FC<{
       <Stack direction='row' spacing={0.5} sx={{ alignItems: 'center' }}>
         {warningChip}
         {rollSlot}
+        {spellChoiceSlot}
         {companionSlot}
         {base}
       </Stack>

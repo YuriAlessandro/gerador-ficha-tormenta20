@@ -3,9 +3,8 @@ import { SelectionOptions } from '@/interfaces/PowerSelections';
 import { isRepeatablePower, mergeSelections } from '../powerSelectionMerge';
 
 /**
- * Este merge estava copiado cinco vezes dentro do editor antigo. A assimetria
- * entre listas que acumulam e `attributes`, que sobrescreve, é a regra fácil
- * de perder numa das cópias — é o que estes testes travam.
+ * Este merge estava copiado cinco vezes dentro do editor antigo — estes
+ * testes travam a regra de acumular para não divergir de novo.
  */
 describe('mergeSelections', () => {
   it('poder não repetível descarta o histórico e fica com a escolha nova', () => {
@@ -43,13 +42,23 @@ describe('mergeSelections', () => {
     expect(result.weapons).toEqual(['Espada Longa', 'Machado']);
   });
 
-  it('attributes SOBRESCREVE mesmo em poder repetível', () => {
-    // Cada aplicação de um poder de aumento de atributo só pode mexer no
-    // atributo recém-escolhido; acumular aplicaria todos de novo no recálculo.
+  it('attributes acumulam em poder repetível — Aumento de Atributo 2× na mesma edição', () => {
+    // Uma escolha por instância nova; o `applyPower` não reaplica as já
+    // aplicadas (elas têm entrada no histórico).
     const result = mergeSelections(
       { attributes: ['Força'] },
       { attributes: ['Destreza'] },
       true
+    );
+
+    expect(result.attributes).toEqual(['Força', 'Destreza']);
+  });
+
+  it('attributes de poder não repetível ficam com a escolha nova', () => {
+    const result = mergeSelections(
+      { attributes: ['Força'] },
+      { attributes: ['Destreza'] },
+      false
     );
 
     expect(result.attributes).toEqual(['Destreza']);
