@@ -4,6 +4,7 @@ import CharacterSheet, {
   SheetAction,
   SheetBonus,
 } from '../interfaces/CharacterSheet';
+import { ClassAbility } from '../interfaces/Class';
 import { RaceAbility } from '../interfaces/Race';
 import { DUENDE_PRESENTES } from '../data/systems/tormenta20/herois-de-arton/races/duende-config';
 import { CharacterAttributes } from '../interfaces/Character';
@@ -71,6 +72,11 @@ import {
 } from '../data/systems/tormenta20/powers/tormentaPowerSheetBonuses';
 import { CITADINO_SHEET_BONUSES } from '../data/systems/tormenta20/herois-de-arton/powers/racePowers';
 import { HEROI_DOS_SETE_INSTRUMENTOS_SHEET_BONUSES } from '../data/systems/tormenta20/herois-de-arton/powers/destinyPowers';
+import {
+  CAVALEIRO_DO_REINO_ACTIONS,
+  ESCUDEIRO_APRENDIZ_BONUSES,
+  MARQUES_SHEET_BONUSES,
+} from '../data/systems/tormenta20/herois-de-arton/variantClasses/vassaloSheetBonuses';
 import { updateUnarmedRolls } from './unarmedDamage';
 import {
   refreshFeiticeiroLinhagemAbility,
@@ -152,6 +158,48 @@ function refreshPowerBonuses<
   const bonuses = REFRESHED_POWER_BONUSES_BY_NAME.get(power.name);
   if (!bonuses) return power;
   return { ...power, sheetBonuses: _.cloneDeep(bonuses) };
+}
+
+// Mesmo princípio, para habilidades de classe (`classe.abilities` e
+// `classe.originalAbilities` são cópias embutidas). Por classe, para o nome da
+// habilidade não alcançar outra classe ou homebrew.
+const REFRESHED_ABILITIES: Record<
+  string,
+  Record<string, (ability: ClassAbility) => ClassAbility>
+> = {
+  Vassalo: {
+    Marquês: (ability) => ({
+      ...ability,
+      sheetBonuses: _.cloneDeep(MARQUES_SHEET_BONUSES),
+    }),
+    'Cavaleiro do Reino': (ability) => ({
+      ...ability,
+      sheetActions: _.cloneDeep(CAVALEIRO_DO_REINO_ACTIONS),
+    }),
+    'Escudeiro Aprendiz': (ability) => ({
+      ...ability,
+      sheetActions: ability.sheetActions?.map((entry) =>
+        entry.action.type === 'addProficiency'
+          ? {
+              ...entry,
+              action: {
+                ...entry.action,
+                bonusesIfOwned: _.cloneDeep(ESCUDEIRO_APRENDIZ_BONUSES),
+              },
+            }
+          : entry
+      ),
+    }),
+  },
+};
+
+function refreshClassAbility(
+  ability: ClassAbility,
+  className: string
+): ClassAbility {
+  const refresh =
+    REFRESHED_ABILITIES[ability.sourceClassName ?? className]?.[ability.name];
+  return refresh ? refresh(ability) : ability;
 }
 
 // Habilidades de RAÇA (e o poder falso que uma delas concede) cujo texto
@@ -627,6 +675,14 @@ function sanitizeSheetElements(sheet: CharacterSheet): void {
       );
     }
     syncFeiticeiroHerancas(sheet);
+
+    const className = sheet.classe.name;
+    const refreshBonuses = (ability: ClassAbility) =>
+      refreshClassAbility(ability, className);
+    sheet.classe.abilities = sheet.classe.abilities.map(refreshBonuses);
+    sheet.classe.originalAbilities =
+      sheet.classe.originalAbilities?.map(refreshBonuses);
+
     // Proficiência inválida (`null`/`undefined`) quebra tudo que compara nomes:
     // o aviso de não proficiência no Result, o PDF e o editor de proficiências.
     // Fichas antigas têm essas entradas porque o sorteio completava com

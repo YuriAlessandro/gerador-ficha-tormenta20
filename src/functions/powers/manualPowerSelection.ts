@@ -51,6 +51,7 @@ import {
   spellSchoolFromLabel,
 } from '../spells/spellSchoolEditing';
 import { getIntelligenceSkillsPick } from './intelligenceIncreaseSkills';
+import { isSuperiorItemComplete } from '../superiorItemGrant';
 import { evaluateBonusCondition } from '../bonusConditions';
 
 /** Força, Destreza e Constituição — os atributos "físicos" de T20. */
@@ -61,13 +62,10 @@ const PHYSICAL_ATTRIBUTES: Atributo[] = [
 ];
 
 /**
- * Helper to determine if a spell list represents "all arcane spells of circle X"
- * by comparing with core spell arrays.
+ * Círculos cujas magias arcanas estão (quase) todas na lista, comparando com o
+ * livro básico. Uma lista pode cobrir vários (ex.: "até 4º círculo").
  */
-function isAllArcaneSpellsOfCircle(spells: Spell[]): {
-  isMatch: boolean;
-  circle: number;
-} {
+function getFullArcaneCircles(spells: Spell[]): number[] {
   const coreArcaneArrays = [
     { array: allArcaneSpellsCircle1, circle: 1 },
     { array: allArcaneSpellsCircle2, circle: 2 },
@@ -76,30 +74,22 @@ function isAllArcaneSpellsOfCircle(spells: Spell[]): {
     { array: allArcaneSpellsCircle5, circle: 5 },
   ];
 
-  // Use find instead of for...of to satisfy ESLint
-  const match = coreArcaneArrays.find(({ array }) => {
-    // Check if spells contain at least 80% of the core arcane spells for this circle
-    // This accounts for possible custom attribute variations (like De Outro Mundo power)
-    const coreNames = new Set(array.map((s) => s.nome));
-    const matchCount = spells.filter((s) => coreNames.has(s.nome)).length;
-    return matchCount >= array.length * 0.8 && spells.length >= array.length;
-  });
-
-  if (match) {
-    return { isMatch: true, circle: match.circle };
-  }
-
-  return { isMatch: false, circle: 0 };
+  return coreArcaneArrays
+    .filter(({ array }) => {
+      // Check if spells contain at least 80% of the core arcane spells for this circle
+      // This accounts for possible custom attribute variations (like De Outro Mundo power)
+      const coreNames = new Set(array.map((s) => s.nome));
+      const matchCount = spells.filter((s) => coreNames.has(s.nome)).length;
+      return matchCount >= array.length * 0.8 && spells.length >= array.length;
+    })
+    .map(({ circle }) => circle);
 }
 
 /**
- * Helper to determine if a spell list represents "all divine spells of circle X"
- * by comparing with core spell arrays.
+ * Círculos cujas magias divinas estão (quase) todas na lista, comparando com o
+ * livro básico. Uma lista pode cobrir vários (ex.: "até 4º círculo").
  */
-function isAllDivineSpellsOfCircle(spells: Spell[]): {
-  isMatch: boolean;
-  circle: number;
-} {
+function getFullDivineCircles(spells: Spell[]): number[] {
   const coreDivineArrays = [
     { array: allDivineSpellsCircle1, circle: 1 },
     { array: allDivineSpellsCircle2, circle: 2 },
@@ -108,17 +98,13 @@ function isAllDivineSpellsOfCircle(spells: Spell[]): {
     { array: allDivineSpellsCircle5, circle: 5 },
   ];
 
-  const match = coreDivineArrays.find(({ array }) => {
-    const coreNames = new Set(array.map((s) => s.nome));
-    const matchCount = spells.filter((s) => coreNames.has(s.nome)).length;
-    return matchCount >= array.length * 0.8 && spells.length >= array.length;
-  });
-
-  if (match) {
-    return { isMatch: true, circle: match.circle };
-  }
-
-  return { isMatch: false, circle: 0 };
+  return coreDivineArrays
+    .filter(({ array }) => {
+      const coreNames = new Set(array.map((s) => s.nome));
+      const matchCount = spells.filter((s) => coreNames.has(s.nome)).length;
+      return matchCount >= array.length * 0.8 && spells.length >= array.length;
+    })
+    .map(({ circle }) => circle);
 }
 
 /**
@@ -186,6 +172,19 @@ export function resolveLearnSkillPick(
 }
 
 /**
+ * Limita a quantidade exigida ao número de opções — menos quando a opção pode
+ * se repetir (Rei Mercenário: 3 pontos cabem num atributo só).
+ */
+export function clampPickToOptions(
+  requirement: PowerSelectionRequirement,
+  pick: number,
+  optionCount: number
+): number {
+  if (requirement.metadata?.allowRepeats && optionCount > 0) return pick;
+  return Math.min(pick, optionCount);
+}
+
+/**
  * Quantidade de perícias AINDA por escolher de um requisito `learnSkill`
  * escalado por patamar (ex.: Biblioteca Divina): o total cumulativo do
  * patamar atual, menos as que o histórico da ficha já concedeu.
@@ -237,6 +236,17 @@ export function getPowerSelectionRequirements(
           metadata: action.perTierAboveIniciante
             ? { perTierAboveIniciante: action.perTierAboveIniciante }
             : undefined,
+        });
+      }
+
+      // Com uma perícia só não há o que escolher (ex.: Guarda do Castelo)
+      if (action.type === 'trainSkillOrBonus' && action.skills.length > 1) {
+        requirements.push({
+          type: 'learnSkill',
+          availableOptions: action.skills,
+          pick: 1,
+          label: 'Selecione 1 perícia (se já for treinado, recebe +2)',
+          metadata: { trainOrBonus: true },
         });
       }
 
@@ -296,17 +306,35 @@ export function getPowerSelectionRequirements(
         });
       }
 
+      if (action.type === 'grantSuperiorItem') {
+        requirements.push({
+          type: 'grantSuperiorItem',
+          availableOptions: action.groups,
+          pick: 1,
+          label: `Escolha um item superior com ${action.pick} melhorias`,
+          metadata: { modificationCount: action.pick },
+        });
+      }
+
       if (action.type === 'increaseAttribute') {
+        const attributePicks = action.pick ?? 1;
+        let attributeLabel = 'Selecione 1 atributo para aumentar';
+        if (attributePicks > 1) {
+          attributeLabel = action.allowRepeats
+            ? `Distribua ${attributePicks} pontos de atributo`
+            : `Selecione ${attributePicks} atributos diferentes para aumentar`;
+        }
         requirements.push({
           type: 'increaseAttribute',
           availableOptions: [], // Will be populated dynamically in getFilteredAvailableOptions
-          pick: 1, // Always pick 1 attribute
-          label: 'Selecione 1 atributo para aumentar',
+          pick: attributePicks,
+          label: attributeLabel,
           metadata: {
             // Fontes sem a restrição de 1×/patamar (ex.: Aspirante a Herói)
             // podem repetir um atributo já aumentado no patamar.
             oncePerTier: action.oncePerTier !== false,
             increaseValue: action.value,
+            allowRepeats: action.allowRepeats,
             allowedAttributes: action.allowedAttributes,
             condition: sheetAction.condition,
           },
@@ -600,6 +628,7 @@ const REQUIREMENT_SELECTION_KEY: Record<string, keyof SelectionOptions> = {
   learnSpell: 'spells',
   learnAnySpellFromHighestCircle: 'spells',
   increaseAttribute: 'attributes',
+  grantSuperiorItem: 'superiorItem',
   selectWeaponSpecialization: 'weapons',
   selectFamiliar: 'familiars',
   selectAnimalTotem: 'animalTotems',
@@ -753,12 +782,14 @@ export function resolvePowerRequirements(
  * ainda não é treinado. Bônus (`skillBonusOnly`, vindo de `PickSkill`) aceita
  * perícia treinada, mas não Ofício sem treino: Ofício só é usado treinado e a
  * ficha nem tem linha para ele, então o bônus sumiria no recálculo.
+ * Treino ou bônus (`trainOrBonus`, vindo de `trainSkillOrBonus`) aceita tudo.
  */
 export function isLearnSkillOptionAvailable(
   requirement: PowerSelectionRequirement,
   skill: Skill,
   isTrained: boolean
 ): boolean {
+  if (requirement.metadata?.trainOrBonus) return true;
   if (requirement.metadata?.skillBonusOnly) {
     return isTrained || !isOficioSkill(skill);
   }
@@ -893,14 +924,15 @@ export function getFilteredAvailableOptions(
           .sort((a, b) => a.nome.localeCompare(b.nome));
       }
 
-      // Check if this is "all arcane spells of circle X" - if so, expand with supplements
-      const arcaneCheck = isAllArcaneSpellsOfCircle(spells);
-      if (arcaneCheck.isMatch) {
-        const arcaneSpellsWithSupplements =
+      // Check if this is "all arcane spells of circle(s) X" - if so, expand with supplements
+      const arcaneCircles = getFullArcaneCircles(spells);
+      if (arcaneCircles.length > 0) {
+        const arcaneSpellsWithSupplements = arcaneCircles.flatMap((circle) =>
           dataRegistry.getArcaneSpellsByCircleAndSupplements(
-            arcaneCheck.circle,
+            circle,
             supplements
-          );
+          )
+        );
 
         // Preserve custom attributes from original spells if present
         const originalCustomAttr2 = spells.find(
@@ -921,14 +953,15 @@ export function getFilteredAvailableOptions(
           .sort((a, b) => a.nome.localeCompare(b.nome));
       }
 
-      // Check if this is "all divine spells of circle X" - if so, expand with supplements
-      const divineCheck = isAllDivineSpellsOfCircle(spells);
-      if (divineCheck.isMatch) {
-        const allSpellsWithSupplements2 =
+      // Check if this is "all divine spells of circle(s) X" - if so, expand with supplements
+      const divineCircles = getFullDivineCircles(spells);
+      if (divineCircles.length > 0) {
+        const allSpellsWithSupplements2 = divineCircles.flatMap((circle) =>
           dataRegistry.getDivineSpellsByCircleAndSupplements(
-            divineCheck.circle,
+            circle,
             supplements
-          );
+          )
+        );
 
         return allSpellsWithSupplements2
           .filter(
@@ -1020,6 +1053,9 @@ export function getFilteredAvailableOptions(
         )
         .sort((a, b) => a.nome.localeCompare(b.nome));
     }
+
+    case 'grantSuperiorItem':
+      return availableOptions;
 
     case 'increaseAttribute': {
       // Get attributes that haven't been increased in the current plateau.
@@ -1355,6 +1391,13 @@ export function countRequirementSelections(
     case 'learnSpell':
     case 'learnAnySpellFromHighestCircle':
       return selections?.spells?.length ?? 0;
+    case 'grantSuperiorItem':
+      return isSuperiorItemComplete(
+        selections?.superiorItem,
+        requirement.metadata?.modificationCount ?? 1
+      )
+        ? 1
+        : 0;
     case 'increaseAttribute':
       return selections?.attributes?.length ?? 0;
     case 'selectWeaponSpecialization':

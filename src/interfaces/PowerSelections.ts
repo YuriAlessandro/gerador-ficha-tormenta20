@@ -3,13 +3,30 @@ import { BonusCondition } from './CharacterSheet';
 import { ClassPower } from './Class';
 import Equipment from './Equipment';
 import { GeneralPower, GeneralPowerType, OriginPower } from './Poderes';
+import { ItemMod } from './Rewards';
 import { Spell } from './Spells';
 import { GolpePessoalBuild } from '../data/systems/tormenta20/golpePessoal';
+
+export type SuperiorItemGroup = 'Arma' | 'Armadura' | 'Escudo';
+
+/** Item superior escolhido (grantSuperiorItem); parcial enquanto se escolhe. */
+export interface SuperiorItemSelection {
+  group: SuperiorItemGroup;
+  itemName: string;
+  /**
+   * Cópia do item do catálogo. Os suplementos ativos na tela podem não ser os
+   * da ficha, e buscar só pelo nome ao aplicar perderia o item.
+   */
+  baseItem?: Equipment;
+  modifications: ItemMod[];
+  material?: string; // Para a melhoria "Material especial"
+}
 
 /**
  * Represents the different types of selections a user can make
  */
 export interface SelectionOptions {
+  superiorItem?: SuperiorItemSelection; // Item superior de grantSuperiorItem
   skills?: string[];
   proficiencies?: string[];
   powers?: GeneralPower[];
@@ -72,6 +89,7 @@ export interface PowerSelectionRequirement {
     | 'learnSpell'
     | 'learnAnySpellFromHighestCircle'
     | 'increaseAttribute'
+    | 'grantSuperiorItem'
     | 'selectWeaponSpecialization'
     | 'selectFamiliar'
     | 'selectAnimalTotem'
@@ -136,12 +154,20 @@ export interface PowerSelectionRequirement {
     // For learnSkill vindo de um bônus `PickSkill`: a escolha dá bônus, não
     // treina a perícia — perícias já treinadas continuam elegíveis.
     skillBonusOnly?: boolean;
+    // For learnSkill vindo de `trainSkillOrBonus` (ex.: Valete, do Vassalo):
+    // treina a perícia ou, se já treinada, dá +2 — toda opção é elegível.
+    trainOrBonus?: boolean;
     // For increaseAttribute: `false` quando a fonte não tem a restrição de
     // 1×/patamar do poder Aumento de Atributo (ex.: Aspirante a Herói).
     oncePerTier?: boolean;
     // For increaseAttribute: quanto o atributo sobe (padrão 1). Define quantas
     // perícias por Inteligência o aumento concede.
     increaseValue?: number;
+    // For grantSuperiorItem: quantas melhorias o item tem.
+    modificationCount?: number;
+    // For increaseAttribute: os `pick` pontos podem cair no mesmo atributo
+    // (ex.: Rei Mercenário).
+    allowRepeats?: boolean;
     // For increaseAttribute: atributos permitidos (ex.: Visconde só em
     // Inteligência). Ausente = todos.
     allowedAttributes?: Atributo[];

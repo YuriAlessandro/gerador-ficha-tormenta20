@@ -1,4 +1,5 @@
 import type { SpellModifier } from './SpellModifiers';
+import { SuperiorItemGroup } from './PowerSelections';
 import { ClassDescription, ClassPower, CrossTraditionRules } from './Class';
 import { GeneralPower, GeneralPowerType, OriginPower } from './Poderes';
 import Race, { AttributeVariant, RaceSize, raceSize } from './Race';
@@ -156,6 +157,21 @@ export type SheetActionStep =
       type: 'addProficiency';
       availableProficiencies: string[]; // List of available proficiencies
       pick: number; // Number of proficiencies to learn
+      /**
+       * Em vez da proficiência, para quem já tem TODAS as listadas. Ex.:
+       * Escudeiro Aprendiz (+2 na Defesa com armadura pesada).
+       */
+      bonusesIfOwned?: SheetBonus[];
+    }
+  | {
+      /**
+       * Item superior à escolha do jogador (ex.: Cavaleiro do Reino). Sem
+       * escolha não concede nada: o recálculo de uma ficha antiga não pode
+       * inventar um item.
+       */
+      type: 'grantSuperiorItem';
+      groups: SuperiorItemGroup[];
+      pick: number; // Quantas melhorias
     }
   | {
       type: 'addEquipment';
@@ -364,7 +380,7 @@ export type SheetActionStep =
     }
   | {
       type: 'trainSkillOrBonus';
-      skills: Skill[]; // Skills to choose from (if > 1, pick one randomly)
+      skills: Skill[]; // Havendo mais de uma, o jogador escolhe (sorteio na ficha aleatória)
     };
 
 export type SheetActionReceipt =
@@ -409,6 +425,15 @@ export type SheetActionReceipt =
   | {
       type: 'ProficiencyAdded';
       proficiency: string;
+    }
+  | {
+      // Já tinha a proficiência: valem os `bonusesIfOwned` da ação.
+      type: 'ProficiencyAlreadyOwned';
+    }
+  | {
+      type: 'SuperiorItemGranted';
+      group: SuperiorItemGroup;
+      itemId: string;
     }
   | {
       type: 'EquipmentAdded';
