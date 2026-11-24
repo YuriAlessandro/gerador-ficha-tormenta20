@@ -1,4 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import {
   Box,
   Button,
@@ -10,13 +15,8 @@ import {
   FormControlLabel,
   IconButton,
   InputAdornment,
-  List,
-  ListItem,
-  ListItemText,
   Stack,
   Switch,
-  Tab,
-  Tabs,
   TextField,
   Tooltip,
   Typography,
@@ -34,7 +34,7 @@ import { SupplementId } from '../../../types/supplement.types';
 import { dataRegistry } from '../../../data/registry';
 import { useContentSupplements } from '../../../hooks/useContentSupplements';
 import { useIsMobile } from '../../../hooks/useIsMobile';
-import { CATEGORY_ORDER, itemTypeStyles } from './itemTypeStyles';
+import { CATEGORY_ORDER } from './itemTypeStyles';
 import {
   CatalogCategory,
   CatalogSubgroup,
@@ -42,8 +42,59 @@ import {
 } from './equipmentCatalog';
 import CustomItemForm from './CustomItemForm';
 import { AmmoTypeOption } from './ammo';
+import ItemCategoryChips from './ItemCategoryChips';
+import ItemSubfilterChips from './ItemSubfilterChips';
+import ItemCatalogCard from './ItemCatalogCard';
 
-const LIST_SX = { minHeight: 280, maxHeight: 480, overflowY: 'auto' } as const;
+// ─── Keys que pertencem à dimensão "empunhadura" (calculados por campos do item) ──
+const HAND_FILTER_KEYS = new Set(['1m', '2m', 'distância', 'arremesso']);
+
+/** Tags de empunhadura derivadas dos campos do equipamento. */
+function getWeaponHandTags(item: Equipment): string[] {
+  if (item.isAmmo) return [];
+  const tags: string[] = [];
+  if (item.twoHanded) tags.push('2m');
+  else tags.push('1m');
+  if (item.alcance && item.alcance !== '-') tags.push('distância');
+  if (item.arremesso) tags.push('arremesso');
+  return tags;
+}
+
+/**
+ * Verifica se um item satisfaz os subfiltros ativos.
+ * Subfiltros de categoria (simples/marcial/…) filtram pelo `ontologyTag` do
+ * subgrupo; subfiltros de empunhadura (1m/2m/distância/arremesso) filtram
+ * pelos campos do item.
+ */
+function itemMatchesSubfilters(
+  item: Equipment,
+  subgroup: CatalogSubgroup,
+  subfilters: string[]
+): boolean {
+  if (subfilters.length === 0) return true;
+
+  const catFilters = subfilters.filter((sf) => !HAND_FILTER_KEYS.has(sf));
+  const handFilters = subfilters.filter((sf) => HAND_FILTER_KEYS.has(sf));
+
+  const catMatch =
+    catFilters.length === 0 ||
+    (subgroup.ontologyTag !== '' && catFilters.includes(subgroup.ontologyTag));
+
+  const handMatch =
+    handFilters.length === 0 ||
+    (item.group === 'Arma' &&
+      handFilters.some((hf) => getWeaponHandTags(item).includes(hf)));
+
+  return catMatch && handMatch;
+}
+
+// ─── SX constants ──────────────────────────────────────────────────────────
+
+const GRID_AREA_SX = {
+  minHeight: 280,
+  maxHeight: 500,
+  overflowY: 'auto',
+} as const;
 
 const PINNED_CONTENT_SX = {
   p: 0,
@@ -60,6 +111,26 @@ const PINNED_COLUMN_SX = {
 } as const;
 
 const PINNED_LIST_SX = { flex: 1, minHeight: 0, overflowY: 'auto' } as const;
+
+/** Grid responsivo: 1 col no mobile, 2 col no sm+. */
+const GRID_SX = {
+  display: 'grid',
+  gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
+  gap: 1,
+  px: 2,
+  py: 1,
+} as const;
+
+const SECTION_HEADER_SX = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  px: 2,
+  py: 0.75,
+  bgcolor: 'action.hover',
+} as const;
+
+// ─── Props ─────────────────────────────────────────────────────────────────
 
 export interface AddItemDialogProps {
   open: boolean;
@@ -84,6 +155,8 @@ export interface AddItemDialogProps {
   onAddMany?: (items: Equipment[]) => void;
 }
 
+// ─── Helpers ───────────────────────────────────────────────────────────────
+
 /** "Ataque Desarmado" primeiro (unidade base da categoria), depois A-Z. */
 function sortCatalogItems(items: Equipment[]): Equipment[] {
   return [...items].sort((a, b) => {
@@ -94,7 +167,11 @@ function sortCatalogItems(items: Equipment[]): Equipment[] {
 }
 
 function normalize(text: string): string {
-  return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
 }
 
 function matches(item: Equipment, query: string): boolean {
@@ -105,6 +182,8 @@ function matches(item: Equipment, query: string): boolean {
     (item.descricao ? normalize(item.descricao).includes(q) : false)
   );
 }
+
+// ─── Component ─────────────────────────────────────────────────────────────
 
 const AddItemDialog: React.FC<AddItemDialogProps> = ({
   open,
@@ -124,180 +203,103 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
     [userSupplements]
   );
 
-  const initialIdx = useMemo(() => {
-    if (!defaultCategory) return 0;
-    const i = CATEGORY_ORDER.indexOf(defaultCategory);
-    return i >= 0 ? i : 0;
+  const resolvedInitialGroup = useMemo((): equipGroup => {
+    if (defaultCategory && CATEGORY_ORDER.includes(defaultCategory))
+      return defaultCategory;
+    return CATEGORY_ORDER[0];
   }, [defaultCategory]);
 
-  const [tabIndex, setTabIndex] = useState(initialIdx);
+  const [activeGroup, setActiveGroup] =
+    useState<equipGroup>(resolvedInitialGroup);
+  const [subfilters, setSubfilters] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [showCustomForm, setShowCustomForm] = useState(false);
   const isMobile = useIsMobile();
 
+  // Sincroniza categoria inicial quando defaultCategory ou open mudam
   useEffect(() => {
-    setTabIndex(initialIdx);
-  }, [initialIdx, open]);
+    setActiveGroup(resolvedInitialGroup);
+  }, [resolvedInitialGroup, open]);
 
+  // Reseta subfiltros ao mudar de categoria
   useEffect(() => {
-    const update = debounce((value: string) => setDebouncedSearch(value), 300);
+    setSubfilters([]);
+  }, [activeGroup]);
+
+  // Debounce da busca
+  useEffect(() => {
+    const update = debounce(
+      (value: string) => setDebouncedSearch(value),
+      300
+    );
     update(search);
     return () => update.cancel();
   }, [search]);
 
+  // Reseta estado ao fechar
   useEffect(() => {
     if (!open) {
       setSearch('');
       setDebouncedSearch('');
       setShowCustomForm(false);
+      setSubfilters([]);
     }
   }, [open]);
 
+  const handleCategoryChange = useCallback((group: equipGroup) => {
+    setActiveGroup(group);
+    setSubfilters([]);
+  }, []);
+
+  const toggleSubfilter = useCallback((key: string) => {
+    setSubfilters((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  }, []);
+
+  const clearSubfilters = useCallback(() => setSubfilters([]), []);
+
   const activeCategory: CatalogCategory =
-    equipmentCatalog.find((c) => c.group === CATEGORY_ORDER[tabIndex]) ??
+    equipmentCatalog.find((c) => c.group === activeGroup) ??
     equipmentCatalog[0];
 
-  const renderItemRow = (item: Equipment) => {
-    const supplementMeta = item.supplementId
-      ? dataRegistry.getSupplementLabel(item.supplementId)
-      : null;
-    const cantAfford =
-      autoDeductMoney &&
-      item.preco !== undefined &&
-      availableTibares !== undefined &&
-      item.preco > availableTibares;
-    return (
-      <ListItem
-        key={`${item.group}-${item.nome}`}
-        secondaryAction={
-          <Tooltip
-            title={
-              cantAfford
-                ? 'Saldo insuficiente — desative "Auto-descontar T$" para adicionar mesmo assim.'
-                : title
-            }
-          >
-            <span>
-              <IconButton
-                edge='end'
-                onClick={() => onAddItem(item)}
-                color='primary'
-                aria-label={`Adicionar ${item.nome}`}
-                disabled={cantAfford}
-              >
-                <AddIcon />
-              </IconButton>
-            </span>
-          </Tooltip>
-        }
-      >
-        <ListItemText
-          primary={
-            <Stack
-              direction='row'
-              spacing={0.75}
-              sx={{
-                alignItems: 'center',
-                flexWrap: 'wrap',
-              }}
-            >
-              <Typography variant='body2' sx={{ fontWeight: 500 }}>
-                {item.nome}
-              </Typography>
-              {supplementMeta && (
-                <Chip
-                  size='small'
-                  label={supplementMeta.abbreviation}
-                  color='primary'
-                  variant='outlined'
-                  sx={{ height: 18, fontSize: '0.65rem' }}
-                />
-              )}
-              {cantAfford && (
-                <Chip
-                  size='small'
-                  label='Saldo insuficiente'
-                  color='warning'
-                  sx={{ height: 18, fontSize: '0.65rem' }}
-                />
-              )}
-            </Stack>
-          }
-          secondary={
-            <Stack
-              direction='row'
-              spacing={1.5}
-              sx={{ flexWrap: 'wrap', mt: 0.25 }}
-            >
-              {item.preco !== undefined && (
-                <Typography
-                  variant='caption'
-                  sx={{
-                    color: 'text.secondary',
-                  }}
-                >
-                  T$ {item.preco}
-                </Typography>
-              )}
-              {item.spaces !== undefined && (
-                <Typography
-                  variant='caption'
-                  sx={{
-                    color: 'text.secondary',
-                  }}
-                >
-                  {item.spaces} esp.
-                </Typography>
-              )}
-              {item.descricao && (
-                <Typography
-                  variant='caption'
-                  sx={{
-                    color: 'text.secondary',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 1,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                    flex: 1,
-                  }}
-                >
-                  {item.descricao}
-                </Typography>
-              )}
-            </Stack>
-          }
-        />
-      </ListItem>
-    );
-  };
+  // Items visíveis de um subgrupo, aplicando subfiltros e busca
+  const visibleItems = useCallback(
+    (sub: CatalogSubgroup): Equipment[] => {
+      let items = sub.items;
+      if (subfilters.length > 0) {
+        items = items.filter((item) =>
+          itemMatchesSubfilters(item, sub, subfilters)
+        );
+      }
+      return sortCatalogItems(items.filter((it) => matches(it, debouncedSearch)));
+    },
+    [subfilters, debouncedSearch]
+  );
 
-  const visibleItems = (sub: CatalogSubgroup): Equipment[] =>
-    sortCatalogItems(sub.items.filter((it) => matches(it, debouncedSearch)));
+  const visibleSubgroups = useMemo(
+    () => activeCategory.subgroups.filter((sub) => visibleItems(sub).length > 0),
+    [activeCategory, visibleItems]
+  );
 
-  const visibleSubgroups = activeCategory.subgroups.filter(
-    (sub) => visibleItems(sub).length > 0
+  const totalMatches = useMemo(
+    () =>
+      visibleSubgroups.reduce((acc, sub) => acc + visibleItems(sub).length, 0),
+    [visibleSubgroups, visibleItems]
   );
 
   const renderSubgroup = (sub: CatalogSubgroup) => {
     const sorted = visibleItems(sub);
     if (sorted.length === 0) return null;
-    // Com uma subcategoria só, o botão da categoria já faz o mesmo.
+    // Com apenas uma subcategoria visível o botão da categoria já faz o mesmo.
     const showAddAll = !!onAddMany && visibleSubgroups.length > 1;
     return (
-      <Box key={sub.key} sx={{ mb: 1.5 }}>
-        <Stack
-          direction='row'
-          spacing={1}
-          sx={{ alignItems: 'center', justifyContent: 'space-between', pr: 1 }}
-        >
+      <Box key={sub.key} sx={{ mb: 1 }}>
+        <Box sx={SECTION_HEADER_SX}>
           <Typography
             variant='overline'
-            sx={{
-              color: 'text.secondary',
-              pl: 2,
-              display: 'block',
-            }}
+            sx={{ color: 'text.secondary', lineHeight: 1 }}
           >
             {sub.label}
           </Typography>
@@ -311,24 +313,178 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
               Adicionar todos ({sorted.length})
             </Button>
           )}
-        </Stack>
-        <List dense disablePadding>
-          {sorted.map(renderItemRow)}
-        </List>
+        </Box>
+        <Box sx={GRID_SX}>
+          {sorted.map((item) => {
+            const supplementMeta = item.supplementId
+              ? dataRegistry.getSupplementLabel(item.supplementId)
+              : null;
+            const cantAfford =
+              autoDeductMoney &&
+              item.preco !== undefined &&
+              availableTibares !== undefined &&
+              item.preco > availableTibares;
+            return (
+              <ItemCatalogCard
+                key={`${item.group}-${item.nome}`}
+                item={item}
+                onAdd={(it, qty) => onAddItem(it, { quantity: qty })}
+                cantAfford={cantAfford}
+                supplementLabel={supplementMeta?.abbreviation}
+                addLabel={title}
+              />
+            );
+          })}
+        </Box>
       </Box>
     );
   };
 
-  const totalMatches = visibleSubgroups.reduce(
-    (acc, sub) => acc + visibleItems(sub).length,
-    0
+  // ── Layout helpers ──────────────────────────────────────────────────────
+  // No mobile o dialog é tela cheia e só a área de itens rola: busca e chips
+  // ficam fixos no topo; o rodapé fixo embaixo.
+  const pinnedLayout = isMobile && !showCustomForm;
+
+  const toolbar = (
+    <>
+      <Box sx={{ px: 2, pt: 1 }}>
+        <TextField
+          fullWidth
+          size='small'
+          placeholder='Buscar item no catálogo...'
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <SearchIcon fontSize='small' />
+                </InputAdornment>
+              ),
+              endAdornment: search ? (
+                <InputAdornment position='end'>
+                  <IconButton
+                    size='small'
+                    onClick={() => setSearch('')}
+                    aria-label='Limpar busca'
+                  >
+                    <ClearIcon fontSize='small' />
+                  </IconButton>
+                </InputAdornment>
+              ) : null,
+            },
+          }}
+        />
+      </Box>
+      <ItemCategoryChips
+        catalog={equipmentCatalog}
+        activeGroup={activeGroup}
+        onChange={handleCategoryChange}
+      />
+      <ItemSubfilterChips
+        activeGroup={activeGroup}
+        activeCategory={activeCategory}
+        selected={subfilters}
+        onToggle={toggleSubfilter}
+        onClear={clearSubfilters}
+      />
+    </>
   );
 
-  // No mobile o dialog é tela cheia e só a lista rola: busca e abas ficam
-  // fixas no topo e o rodapé (saldo, item personalizado) fixo embaixo. Antes
-  // a lista tinha rolagem própria dentro de um dialog que também rolava, e o
-  // rodapé ficava cortado. O formulário de item personalizado rola inteiro.
-  const pinnedLayout = isMobile && !showCustomForm;
+  const itemsArea = (() => {
+    if (activeCategory.subgroups.length === 0) {
+      return (
+        <Box sx={{ p: 3, textAlign: 'center' }}>
+          <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+            Sem itens de catálogo para esta categoria. Crie um item
+            personalizado.
+          </Typography>
+        </Box>
+      );
+    }
+    if (totalMatches === 0) {
+      return (
+        <Box sx={{ p: 3, textAlign: 'center' }}>
+          <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+            {subfilters.length > 0
+              ? 'Nenhum item corresponde aos filtros ativos.'
+              : 'Nenhum item corresponde à busca.'}
+          </Typography>
+        </Box>
+      );
+    }
+    return (
+      <Box sx={{ pb: 2 }}>
+        {onAddMany && (
+          <Box sx={{ px: 2, pt: 1.5, pb: 0.5 }}>
+            <Button
+              variant='outlined'
+              size='small'
+              startIcon={<AddAllIcon />}
+              onClick={() =>
+                onAddMany(visibleSubgroups.flatMap(visibleItems))
+              }
+            >
+              {debouncedSearch || subfilters.length > 0
+                ? `Adicionar os ${totalMatches} encontrados`
+                : `Adicionar todos de ${activeCategory.label} (${totalMatches})`}
+            </Button>
+          </Box>
+        )}
+        {activeCategory.subgroups.map(renderSubgroup)}
+      </Box>
+    );
+  })();
+
+  const footer = (
+    <>
+      <Divider />
+      <Box
+        sx={{
+          p: 2,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: 1,
+          flexWrap: 'wrap',
+        }}
+      >
+        <Stack
+          direction='row'
+          spacing={2}
+          sx={{ alignItems: 'center', flexWrap: 'wrap' }}
+        >
+          <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+            {availableTibares !== undefined && (
+              <>Saldo: T$ {availableTibares.toFixed(2)}</>
+            )}
+          </Typography>
+          {onToggleAutoDeductMoney && (
+            <Tooltip title='Quando ativo, adicionar um item desconta o preço do saldo. Remover devolve apenas o que foi comprado agora.'>
+              <FormControlLabel
+                control={
+                  <Switch
+                    size='small'
+                    checked={autoDeductMoney}
+                    onChange={(_, v) => onToggleAutoDeductMoney(v)}
+                  />
+                }
+                label='Auto-descontar T$'
+                sx={{ ml: 0 }}
+              />
+            </Tooltip>
+          )}
+        </Stack>
+        <Button
+          startIcon={<CustomIcon />}
+          variant='outlined'
+          onClick={() => setShowCustomForm(true)}
+        >
+          Criar item personalizado
+        </Button>
+      </Box>
+    </>
+  );
 
   return (
     <Dialog
@@ -348,11 +504,12 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
           <CloseIcon />
         </IconButton>
       </DialogTitle>
+
       <DialogContent sx={pinnedLayout ? PINNED_CONTENT_SX : { p: 0 }}>
         {showCustomForm ? (
           <Box sx={{ p: 2 }}>
             <CustomItemForm
-              defaultGroup={CATEGORY_ORDER[tabIndex]}
+              defaultGroup={activeGroup}
               ammoTypeOptions={ammoTypeOptions}
               onCancel={() => setShowCustomForm(false)}
               onSubmit={(item) => {
@@ -363,171 +520,11 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
           </Box>
         ) : (
           <Box sx={pinnedLayout ? PINNED_COLUMN_SX : undefined}>
-            <Box sx={{ px: 2, pt: 1 }}>
-              <TextField
-                fullWidth
-                size='small'
-                placeholder='Buscar item no catálogo...'
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <SearchIcon fontSize='small' />
-                      </InputAdornment>
-                    ),
-                    endAdornment: search ? (
-                      <InputAdornment position='end'>
-                        <IconButton
-                          size='small'
-                          onClick={() => setSearch('')}
-                          aria-label='Limpar busca'
-                        >
-                          <ClearIcon fontSize='small' />
-                        </IconButton>
-                      </InputAdornment>
-                    ) : null,
-                  },
-                }}
-              />
+            {toolbar}
+            <Box sx={pinnedLayout ? PINNED_LIST_SX : GRID_AREA_SX}>
+              {itemsArea}
             </Box>
-            <Tabs
-              value={tabIndex}
-              onChange={(_, v) => setTabIndex(v)}
-              variant='scrollable'
-              scrollButtons='auto'
-              sx={{ borderBottom: 1, borderColor: 'divider', mt: 1 }}
-            >
-              {CATEGORY_ORDER.map((g) => {
-                const style = itemTypeStyles[g];
-                const Icon = style.icon;
-                return (
-                  <Tab
-                    key={g}
-                    label={style.label}
-                    icon={
-                      <Icon
-                        style={{ fontSize: 16, color: style.color }}
-                        aria-hidden
-                      />
-                    }
-                    iconPosition='start'
-                    sx={{ minHeight: 40, py: 0.5 }}
-                  />
-                );
-              })}
-            </Tabs>
-
-            <Box sx={pinnedLayout ? PINNED_LIST_SX : LIST_SX}>
-              {(() => {
-                if (activeCategory.subgroups.length === 0) {
-                  return (
-                    <Box sx={{ p: 3, textAlign: 'center' }}>
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          color: 'text.secondary',
-                        }}
-                      >
-                        Sem itens de catálogo para esta categoria. Crie um item
-                        personalizado.
-                      </Typography>
-                    </Box>
-                  );
-                }
-                if (totalMatches === 0) {
-                  return (
-                    <Box sx={{ p: 3, textAlign: 'center' }}>
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          color: 'text.secondary',
-                        }}
-                      >
-                        Nenhum item corresponde à busca.
-                      </Typography>
-                    </Box>
-                  );
-                }
-                return (
-                  <Box sx={{ pb: 2 }}>
-                    {onAddMany && (
-                      <Box sx={{ px: 2, pt: 1.5, pb: 0.5 }}>
-                        <Button
-                          variant='outlined'
-                          size='small'
-                          startIcon={<AddAllIcon />}
-                          onClick={() =>
-                            onAddMany(visibleSubgroups.flatMap(visibleItems))
-                          }
-                        >
-                          {debouncedSearch
-                            ? `Adicionar os ${totalMatches} encontrados`
-                            : `Adicionar todos de ${activeCategory.label} (${totalMatches})`}
-                        </Button>
-                      </Box>
-                    )}
-                    {activeCategory.subgroups.map(renderSubgroup)}
-                  </Box>
-                );
-              })()}
-            </Box>
-
-            <Divider />
-
-            <Box
-              sx={{
-                p: 2,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: 1,
-                flexWrap: 'wrap',
-              }}
-            >
-              <Stack
-                direction='row'
-                spacing={2}
-                sx={{
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <Typography
-                  variant='caption'
-                  sx={{
-                    color: 'text.secondary',
-                  }}
-                >
-                  {availableTibares !== undefined && (
-                    <>Saldo: T$ {availableTibares.toFixed(2)}</>
-                  )}
-                </Typography>
-                {onToggleAutoDeductMoney && (
-                  <Tooltip title='Quando ativo, adicionar um item desconta o preço do saldo. Remover devolve apenas o que foi comprado agora.'>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          size='small'
-                          checked={autoDeductMoney}
-                          onChange={(_, v) => onToggleAutoDeductMoney(v)}
-                        />
-                      }
-                      label='Auto-descontar T$'
-                      sx={{ ml: 0 }}
-                    />
-                  </Tooltip>
-                )}
-              </Stack>
-              <Button
-                startIcon={<CustomIcon />}
-                variant='outlined'
-                onClick={() => setShowCustomForm(true)}
-              >
-                Criar item personalizado
-              </Button>
-            </Box>
+            {footer}
           </Box>
         )}
       </DialogContent>
