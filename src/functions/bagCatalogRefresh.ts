@@ -2,6 +2,7 @@ import CharacterSheet from '../interfaces/CharacterSheet';
 import Equipment from '../interfaces/Equipment';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
+import { ORIGIN_ITEMS_WITH_BONUS } from '../data/systems/tormenta20/originItemBonuses';
 import {
   canWieldOneHanded,
   isTwoHanded,
@@ -55,6 +56,13 @@ export function buildCatalogIndex(): Map<string, Equipment> {
       // Primeiro cadastro vence: nomes repetidos entre suplementos mantêm a
       // definição do livro básico, que é a canônica.
       if (!index.has(item.nome)) index.set(item.nome, item);
+    });
+  });
+
+  // Itens de origem com bônus (não vendidos): só existem neste índice.
+  ORIGIN_ITEMS_WITH_BONUS.forEach(({ item, aliases }) => {
+    [item.nome, ...aliases].forEach((nome) => {
+      if (!index.has(nome)) index.set(nome, item);
     });
   });
 
@@ -129,6 +137,14 @@ export function stampCatalogData(
     item.twoHanded = true;
   } else if (item.twoHanded !== undefined) {
     delete item.twoHanded;
+  }
+
+  // Vestível (Estola): espelha o catálogo, como `twoHanded` — o editor não
+  // expõe o campo.
+  if (catalogItem.canBeWorn) {
+    item.canBeWorn = true;
+  } else if (item.canBeWorn !== undefined) {
+    delete item.canBeWorn;
   }
 
   if (hasEnhancementOwnership(item)) return;

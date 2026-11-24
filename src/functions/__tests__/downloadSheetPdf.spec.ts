@@ -22,6 +22,10 @@ import Skill from '../../interfaces/Skills';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { fillSheetPdf } from '../downloadSheetPdf';
 import { DivindadeEnum } from '../../data/systems/tormenta20/divindades';
+import {
+  spellsCircle1,
+  spellsCircle2,
+} from '../../data/systems/tormenta20/magias/generalSpells';
 
 const BASE_OPTIONS: SelectOptions = {
   nivel: 3,
@@ -225,6 +229,31 @@ describe('fillSheetPdf', () => {
     // ordenação é alfabética: Furtividade cai na primeira linha.
     expect(getText(form, 'total1')).toBe(`${1 + attr + 2}`);
     expect(getText(form, 'tFurtividade')).toBe('+2');
+  });
+
+  it('mostra a CD de cada magia, com os bônus por magia', async () => {
+    const sheet = makeSheet();
+    sheet.spells = [spellsCircle2.bolaDeFogo, spellsCircle1.sono];
+    sheet.customPowers = [
+      {
+        id: 'foco-evocador',
+        name: 'Foco Evocador',
+        description: '+2 na CD das magias de evocação.',
+        spellModifiers: [
+          {
+            filter: { schools: ['Evoc'] },
+            effect: { type: 'SpellDC', value: 2 },
+          },
+        ],
+      },
+    ];
+
+    const { form } = await renderPdf(sheet);
+    const spells = getText(form, 'Atualização');
+    const dcOf = (name: string): number =>
+      Number(new RegExp(`${name} \\([^)]*CD (\\d+)\\)`).exec(spells)?.[1]);
+    expect(dcOf('Sono')).toBeGreaterThanOrEqual(10);
+    expect(dcOf('Bola de Fogo')).toBe(dcOf('Sono') + 2);
   });
 
   it('não anexa página extra quando nada ficou de fora', async () => {

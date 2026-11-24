@@ -187,7 +187,7 @@ export function reverseLearnedAbilityEffects(
  * presentes em `sheet.sheetActionHistory` (quem chama remove depois).
  *
  * Sem reversão, de propósito: `TrainedSkillsMarked` (só registro),
- * `FamiliarSelected` e `WeaponSpecializationSelected` (só vivem no histórico e
+ * `ProficiencyAlreadyOwned`, `FamiliarSelected` e `WeaponSpecializationSelected` (só vivem no histórico e
  * em `sheetBonuses`, que o recálculo refaz), `MoneySpent` e
  * `CompanionTrickLearned` (o `revertLastLevel` trata à parte) e
  * `MaxSpacesAttributeSet`.
@@ -238,6 +238,22 @@ export function reverseSheetActionChange(
     case 'EquipmentAdded':
       reverseEquipmentAdded(sheet, change.equipment, reverting);
       break;
+
+    // Pelo id, e não pelo nome: o personagem pode ter outro item igual.
+    case 'SuperiorItemGranted': {
+      const equipments = {
+        ...sheet.bag.equipments,
+        [change.group]: sheet.bag.equipments[change.group].filter(
+          (item) => item.id !== change.itemId
+        ),
+      } as BagEquipments;
+      if (typeof sheet.bag.setEquipments === 'function') {
+        sheet.bag.setEquipments(equipments);
+      } else {
+        sheet.bag.equipments = equipments;
+      }
+      break;
+    }
 
     case 'PowerAdded':
       removeFirst(sheet.generalPowers, (p) => p.name === change.powerName);

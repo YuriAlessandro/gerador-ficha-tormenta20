@@ -18,6 +18,8 @@ import CheckIcon from '@mui/icons-material/Check';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import StarIcon from '@mui/icons-material/Star';
 import DiamondIcon from '@mui/icons-material/Diamond';
+import BlackFridaySupportNotice from '@/premium/components/BlackFriday/BlackFridaySupportNotice';
+import BlackFridayPlanPrice from '@/premium/components/BlackFriday/BlackFridayPlanPrice';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useAuth } from '../../hooks/useAuth';
 import { useAuthContext } from '../../contexts/AuthContext';
@@ -415,6 +417,10 @@ const SupportPage: React.FC = () => {
                     >
                       {levelInfo.billingPeriod === 'yearly' ? '/ano' : '/mês'}
                     </Typography>
+                    <BlackFridayPlanPrice
+                      price={levelInfo.price}
+                      billingPeriod={levelInfo.billingPeriod}
+                    />
                   </Box>
 
                   {/* Description */}
@@ -537,6 +543,7 @@ const SupportPage: React.FC = () => {
 
   return (
     <Container maxWidth='lg' sx={{ py: 4 }}>
+      <BlackFridaySupportNotice />
       {isMobile ? (
         // Mobile: Stack vertically
         <Box>

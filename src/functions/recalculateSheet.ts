@@ -58,6 +58,7 @@ import {
   getClassLevel,
   getMulticlassAvailableAbilities,
   findClassDescription,
+  getHighestSpellCircle,
 } from './multiclass';
 import {
   LEARNED_CLASS_ABILITY_LEVEL,
@@ -77,7 +78,12 @@ import { getEffectiveAttributeModifier } from './effectiveAttributes';
 import { isWeaponMelee } from './weaponSkill';
 import { isBonusActive } from './bonusConditions';
 import { getSheetWornArmor } from './wornArmor';
-import { ignoresEncumbrance } from './encumbrance';
+import {
+  hasOverloadedCondition,
+  ignoresEncumbrance,
+  isOverloaded as isSheetOverloaded,
+} from './encumbrance';
+import { applyExtraArmorPenaltyToSkills } from './armorPenalty';
 import {
   getHeavyArmorPowerBonuses,
   hasFanatico,
@@ -130,7 +136,6 @@ import {
   applyPower,
   applyOptionChosenTexts,
   calculateMaxSpaces,
-  calculateCurrencySpaces,
   GRANTED_POWERS_STEP_LABEL,
 } from './general';
 import {
@@ -138,11 +143,18 @@ import {
   getVirtudePaladinescaPMBonus,
 } from './randomUtils';
 import {
+  countDistinctionPowers,
+  getSheetDistinctionMarks,
+} from '../premium/functions/distinctions';
+import {
   getRemovedPowers,
   reverseSheetActionChange,
 } from './reverseSheetActions';
 import { syncFeiticeiroHerancas } from './powers/feiticeiroHeranca';
 import { applyTormentaAttributePenalty } from './tormentaCharismaPenalty';
+import { getInUseImprovementBonuses } from './itemEnhancements/inUseImprovements';
+import { actsAsEsoteric, isItemInUse } from './spells/modifiers/collect';
+import { applyAcuidadeComArma } from './powers/acuidadeComArma';
 
 /**
  * Finds a class definition by name and optional subname.
@@ -295,7 +307,7 @@ const resolveClassLevel = (
  * conjurador). Considera a classe principal e multiclasse.
  */
 const maxSpellCircleOf = (sheet: CharacterSheet): number =>
-  sheet.classe?.spellPath?.spellCircleAvailableAtLevel?.(sheet.nivel) ?? 0;
+  getHighestSpellCircle(sheet);
 
 export const calculateBonusValue = (
   sheet: CharacterSheet,
@@ -304,6 +316,8 @@ export const calculateBonusValue = (
     value?: number;
     attribute?: string;
     formula?: string;
+    /** `DistinctionPowersCalc`: distinção cujos poderes são contados. */
+    distinctionId?: string;
     capBy?: 'level' | 'classLevel';
     breakpoints?: { fromLevel: number; value: number }[];
     by?: 'level' | 'classLevel';
@@ -361,6 +375,18 @@ export const calculateBonusValue = (
         resolveClassLevel(sheet, source).toString()
       );
     }
+    try {
+      // eslint-disable-next-line no-eval
+      return eval(formula);
+    } catch {
+      return 0;
+    }
+  }
+  if (bonus.type === 'DistinctionPowersCalc' && bonus.formula) {
+    const formula = bonus.formula.replace(
+      /\{distPowQtd\}/g,
+      countDistinctionPowers(sheet, bonus.distinctionId ?? '').toString()
+    );
     try {
       // eslint-disable-next-line no-eval
       return eval(formula);
@@ -697,7 +723,11 @@ export function reapplyEnhancementsAndWeaponBonuses(
     };
   }
 
-  return applyWeaponBonuses(updatedSheet, manualSelections);
+  const withBonuses = applyWeaponBonuses(updatedSheet, manualSelections);
+  // Acuidade com Arma: carimbo derivado nas armas (a mochila acima é cópia
+  // nova). Aqui porque esta função é comum aos dois motores de ficha.
+  applyAcuidadeComArma(withBonuses);
+  return withBonuses;
 }
 
 // Helper function to add bonus to skill
@@ -767,6 +797,32 @@ const injectDeusMenorPmBonus = (sheet: CharacterSheet): CharacterSheet => {
   return updatedSheet;
 };
 
+/**
+ * Arma do "empunhando uma arma corpo a corpo em uma das mãos e nada na outra"
+ * (Estilo de Uma Arma, Ataque Preciso). `undefined` se a condição não vale.
+ */
+const getOneHandedMeleeWeapon = (
+  sheet: CharacterSheet
+): Equipment | undefined => {
+  // Exatamente uma mão ocupada e as demais vazias: arma de duas mãos ocupa duas
+  // (mesmo id nos dois slots) e um item em mão extra também tira o "nada na
+  // outra" de quem tem Quatro Braços.
+  if (countOccupiedHands(sheet) !== 1) return undefined;
+  const [occupiedId] = getWieldedItemIds(sheet);
+
+  // O item empunhado precisa ser uma arma corpo a corpo (escudos ficam em
+  // `Escudo`, então não casam aqui).
+  const weapon = (sheet.bag.equipments.Arma || []).find(
+    (w) => w.id === occupiedId
+  );
+  if (!weapon || !isWeaponMelee(weapon)) return undefined;
+  // "(exceto ataques desarmados)" — o Ataque Desarmado e as armas naturais
+  // desarmadas também moram em `Arma`.
+  if (weapon.weaponTags?.includes('desarmado')) return undefined;
+
+  return weapon;
+};
+
 const injectEstiloDeUmaArmaBonuses = (
   sheet: CharacterSheet
 ): CharacterSheet => {
@@ -775,21 +831,8 @@ const injectEstiloDeUmaArmaBonuses = (
   );
   if (!hasPower) return sheet;
 
-  // Exatamente uma mão ocupada e as demais vazias: arma de duas mãos ocupa duas
-  // (mesmo id nos dois slots) e um item em mão extra também tira o "nada na
-  // outra" de quem tem Quatro Braços.
-  if (countOccupiedHands(sheet) !== 1) return sheet;
-  const [occupiedId] = getWieldedItemIds(sheet);
-
-  // O item empunhado precisa ser uma arma corpo a corpo (escudos ficam em
-  // `Escudo`, então não casam aqui).
-  const weapon = (sheet.bag.equipments.Arma || []).find(
-    (w) => w.id === occupiedId
-  );
-  if (!weapon || !isWeaponMelee(weapon)) return sheet;
-  // "(exceto ataques desarmados)" — o Ataque Desarmado e as armas naturais
-  // desarmadas também moram em `Arma`.
-  if (weapon.weaponTags?.includes('desarmado')) return sheet;
+  const weapon = getOneHandedMeleeWeapon(sheet);
+  if (!weapon) return sheet;
 
   const updatedSheet = _.cloneDeep(sheet);
   updatedSheet.sheetBonuses.push(
@@ -806,6 +849,44 @@ const injectEstiloDeUmaArmaBonuses = (
         meleeOnly: true,
       },
       modifier: { type: 'Fixed', value: 2 },
+    }
+  );
+
+  return updatedSheet;
+};
+
+/**
+ * Ataque Preciso: mesma condição de empunhadura do Estilo de Uma Arma, com +2
+ * na margem de ameaça e +1 no multiplicador de crítico da arma.
+ */
+const injectAtaquePrecisoBonuses = (sheet: CharacterSheet): CharacterSheet => {
+  const hasPower = (sheet.generalPowers || []).some(
+    (p) => p.name === 'Ataque Preciso'
+  );
+  if (!hasPower) return sheet;
+
+  const weapon = getOneHandedMeleeWeapon(sheet);
+  if (!weapon) return sheet;
+
+  const updatedSheet = _.cloneDeep(sheet);
+  updatedSheet.sheetBonuses.push(
+    {
+      source: { type: 'power', name: 'Ataque Preciso' },
+      target: {
+        type: 'WeaponThreatMargin',
+        weaponName: weapon.nome,
+        meleeOnly: true,
+      },
+      modifier: { type: 'Fixed', value: 2 },
+    },
+    {
+      source: { type: 'power', name: 'Ataque Preciso' },
+      target: {
+        type: 'WeaponCriticalMultiplier',
+        weaponName: weapon.nome,
+        meleeOnly: true,
+      },
+      modifier: { type: 'Fixed', value: 1 },
     }
   );
 
@@ -880,24 +961,14 @@ const injectCarapacaKappaBonuses = (sheet: CharacterSheet): CharacterSheet => {
   return updatedSheet;
 };
 
-// Copy of calcDisplacement function from general.ts
 const calcDisplacement = (
-  bag: Bag,
   raceDisplacement: number,
-  maxSpaces: number,
   baseDisplacement: number,
-  dinheiro = 0,
-  dinheiroTC = 0,
-  dinheiroTO = 0,
+  isOverloaded: boolean,
   ignoreEncumbrance = false,
   hasHeavyArmor = false
 ): number => {
   if (!ignoreEncumbrance) {
-    const totalUsedSpaces =
-      bag.getSpaces() +
-      calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO);
-    const isOverloaded = totalUsedSpaces > maxSpaces;
-
     if (isOverloaded || hasHeavyArmor) {
       // Penalidade de armadura pesada/sobrecarga, mas bônus (poderes,
       // condições, efeitos ativos como Ímpeto) ainda somam por cima.
@@ -1367,6 +1438,22 @@ function applyComplication(
 }
 
 /**
+ * Aplica as marcas das distinções conquistadas (Heróis/Deuses de Arton). A marca
+ * vem do registry (a ficha só guarda a referência), e os `sheetBonuses` dela
+ * precisam voltar a cada recálculo porque o Step 1 zera a lista; sheetActions
+ * são idempotentes via sheetActionHistory.
+ */
+function applyDistinctionMarks(
+  sheet: CharacterSheet,
+  manualSelections?: ManualPowerSelections
+): CharacterSheet {
+  return getSheetDistinctionMarks(sheet).reduce((acc, mark) => {
+    const [newSheet] = applyPower(acc, mark, manualSelections?.[mark.name]);
+    return newSheet;
+  }, sheet);
+}
+
+/**
  * Reaplica os `sheetBonuses` da idade (Idades Variadas, Heróis de Arton): os da
  * faixa etária mais os das complicações de idade escolhidas. Precisam voltar a
  * cada recálculo porque o Step 1 zera a lista.
@@ -1478,6 +1565,15 @@ function applyEquipmentBonuses(sheet: CharacterSheet): CharacterSheet {
           (bonus) => bonus.target.type !== 'DamageReduction'
         )
       );
+    }
+
+    // Melhorias de esotérico com bônus "em uso" (Vigilante: +2 na Defesa):
+    // só com o item empunhado, como os efeitos dele nas magias.
+    if (
+      actsAsEsoteric(updatedSheet, equip) &&
+      isItemInUse(updatedSheet, equip)
+    ) {
+      updatedSheet.sheetBonuses.push(...getInUseImprovementBonuses(equip));
     }
 
     // Process conditional bonuses
@@ -1694,6 +1790,50 @@ export function reverseHistoryEntries(
   [...entries].reverse().forEach((historyEntry) => {
     historyEntry.changes.forEach((change) =>
       reverseSheetActionChange(sheet, change, powerName, entries)
+    );
+  });
+}
+
+/**
+ * Desfaz os aumentos de atributo das instâncias removidas de um poder
+ * repetível que continua na ficha (tirou 1 de 2 Aumentos de Atributo). Cada
+ * instância grava uma entrada `AttributeIncreasedByAumentoDeAtributo`; saem as
+ * últimas, uma por instância a menos. A remoção total segue pelo
+ * `reverseSheetActionsForPower`.
+ */
+function reverseRemovedAttributeIncreaseInstances(
+  sheet: CharacterSheet,
+  originalPowers: { name: string; canRepeat?: boolean }[],
+  newPowers: { name: string }[]
+): void {
+  const countOf = (powers: { name: string }[], name: string) =>
+    powers.filter((p) => p.name === name).length;
+
+  const repeatableNames = new Set(
+    originalPowers.filter((p) => p.canRepeat).map((p) => p.name)
+  );
+
+  repeatableNames.forEach((powerName) => {
+    const remaining = countOf(newPowers, powerName);
+    const removed = countOf(originalPowers, powerName) - remaining;
+    if (remaining === 0 || removed <= 0) return;
+
+    const increaseEntries = sheet.sheetActionHistory.filter(
+      (entry) =>
+        entry.powerName === powerName &&
+        entry.changes.some(
+          (change) => change.type === 'AttributeIncreasedByAumentoDeAtributo'
+        )
+    );
+    // Só o excedente: ficha antiga com instância sem entrada não perde a
+    // entrada de uma instância que ficou.
+    const excess = Math.min(removed, increaseEntries.length - remaining);
+    if (excess <= 0) return;
+
+    const toRevert = increaseEntries.slice(-excess);
+    reverseHistoryEntries(sheet, toRevert, powerName);
+    sheet.sheetActionHistory = sheet.sheetActionHistory.filter(
+      (entry) => !toRevert.includes(entry)
     );
   });
 }
@@ -1990,6 +2130,17 @@ export function recalculateSheet(
       removedPowerNames.push(originalSheet.complication.name);
     }
 
+    // Distinção removida: a marca dela é revertida como um poder removido. Os
+    // poderes da distinção já saem por `generalPowers` (acima).
+    const keptDistinctionIds = new Set(
+      (updatedSheet.distinctions ?? []).map((d) => d.id)
+    );
+    getSheetDistinctionMarks(originalSheet).forEach((mark) => {
+      if (!keptDistinctionIds.has(mark.distinctionId ?? '')) {
+        removedPowerNames.push(mark.name);
+      }
+    });
+
     // A faixa etária NÃO entra aqui: os modificadores de atributo dela são
     // permanentes (como os raciais) e vivem em `atributos`, não em
     // `sheetActionHistory`. Quem troca a faixa aplica o delta na hora — ver
@@ -1999,6 +2150,14 @@ export function recalculateSheet(
     removedPowerNames.forEach((powerName) => {
       reverseSheetActionsForPower(updatedSheet, powerName);
     });
+
+    // Poder repetível com MENOS instâncias, mas não zerado (tirou 1 de 2
+    // Aumentos de Atributo): a comparação por nome acima não vê nada.
+    reverseRemovedAttributeIncreaseInstances(
+      updatedSheet,
+      [...(originalSheet.classPowers || []), ...originalGeneralPowers],
+      [...newClassPowers, ...newGeneralPowers]
+    );
 
     // If the user removed a general power that a race ability deterministically
     // replays from a stored choice (Osteon "Memória Póstuma", Yidishan
@@ -2108,6 +2267,9 @@ export function recalculateSheet(
 
   // Step 7.2: Apply complication (Heróis de Arton)
   updatedSheet = applyComplication(updatedSheet, manualSelections);
+
+  // Step 7.22: Marcas das distinções (Heróis/Deuses de Arton)
+  updatedSheet = applyDistinctionMarks(updatedSheet, manualSelections);
 
   // Step 7.25: Apply age bracket + age complications (Heróis de Arton)
   updatedSheet = applyAge(updatedSheet);
@@ -2363,6 +2525,16 @@ export function recalculateSheet(
       } else if (bonus.target.type === 'Skill') {
         const skillName = bonus.target.name;
         addOtherBonusToSkill(updatedSheet, skillName, bonusValue);
+      } else if (bonus.target.type === 'UntrainedSkills') {
+        // Herói dos Sete Instrumentos. O Step 7.7 já resolveu o `training` de
+        // cada linha. Nomes lidos antes do laço: `addOtherBonusToSkill`
+        // reatribui `completeSkills`.
+        const untrainedSkillNames = (updatedSheet.completeSkills || [])
+          .filter((skill) => !skill.training)
+          .map((skill) => skill.name);
+        untrainedSkillNames.forEach((skillName) => {
+          addOtherBonusToSkill(updatedSheet, skillName, bonusValue);
+        });
       } else if (bonus.target.type === 'PickSkill') {
         // Re-apply PickSkill. Prioridade: seleção manual → escolha persistida
         // em optionChoices (homebrew com optionKey, sobrevive ao recálculo sem
@@ -2439,10 +2611,16 @@ export function recalculateSheet(
     }
   });
 
-  // Step 8.5: Inject Estilo de Uma Arma bonuses (condicional à empunhadura).
+  // Step 8.2: penalidade de armadura que não vem de armadura/escudo. Precisa do
+  // Step 8, que fecha `extraArmorPenalty` e `maxSpaces`.
+  updatedSheet = applyExtraArmorPenaltyToSkills(updatedSheet);
+
+  // Step 8.5: Inject Estilo de Uma Arma / Ataque Preciso bonuses (condicional
+  // à empunhadura).
   // Precisa rodar APÓS sheetBonuses estarem populados e ANTES dos Steps 9-10
   // (Defesa), 13 (armas) e 14 (RD), que consomem os bônus injetados.
   updatedSheet = injectEstiloDeUmaArmaBonuses(updatedSheet);
+  updatedSheet = injectAtaquePrecisoBonuses(updatedSheet);
   updatedSheet = injectEstiloDeArmaEEscudoBonuses(updatedSheet);
   updatedSheet = injectHeavyArmorPowerBonuses(updatedSheet);
   // Depois dos demais: a Carapaça Kappa inspeciona se algo mais já soma
@@ -2534,13 +2712,10 @@ export function recalculateSheet(
       updatedSheet.customDisplacement + baseDisplacementBonuses;
   } else {
     updatedSheet.displacement = calcDisplacement(
-      updatedSheet.bag,
       getRaceDisplacement(updatedSheet.raca),
-      updatedSheet.customMaxSpaces ?? updatedSheet.maxSpaces,
       baseDisplacementBonuses,
-      updatedSheet.dinheiro,
-      updatedSheet.dinheiroTC,
-      updatedSheet.dinheiroTO,
+      // Com a condição ligada, o −3m já vem do bônus dela.
+      isSheetOverloaded(updatedSheet) && !hasOverloadedCondition(updatedSheet),
       ignoresEncumbrance(updatedSheet),
       // Fanático: "seu deslocamento não é reduzido por usar armaduras pesadas".
       heavyArmor && !hasFanatico(updatedSheet)

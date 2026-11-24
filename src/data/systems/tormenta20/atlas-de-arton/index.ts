@@ -18,6 +18,7 @@ export const TORMENTA20_ATLAS_ARTON_SUPPLEMENT: SupplementData = {
     [GeneralPowerType.CONCEDIDOS]: [],
     [GeneralPowerType.TORMENTA]: [],
     [GeneralPowerType.RACA]: [],
+    [GeneralPowerType.DISTINCAO]: [],
   },
   origins: ATLAS_ARTON_ORIGINS,
 };

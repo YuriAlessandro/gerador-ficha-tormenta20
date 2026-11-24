@@ -1,3 +1,4 @@
+import type { SpellModifier, SpellModifierChoiceSpec } from './SpellModifiers';
 import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 // eslint-disable-next-line
@@ -15,6 +16,13 @@ export enum GeneralPowerType {
   CONCEDIDOS = 'CONCEDIDOS',
   TORMENTA = 'TORMENTA',
   RACA = 'RACA',
+  /**
+   * Poder de distinção (Heróis de Arton / Deuses de Arton). Escolhido numa vaga
+   * de poder geral, mas só por quem conquistou a distinção (`distinctionId`).
+   * Fica FORA do sorteio (`PICKABLE_GENERAL_POWER_TYPES`): a admissão é
+   * narrativa e nunca automática.
+   */
+  DISTINCAO = 'DISTINCAO',
 }
 
 export enum RequirementType {
@@ -41,6 +49,20 @@ export enum RequirementType {
   CHASSIS = 'CHASSIS',
   HERANCA = 'HERANCA',
   TIER_LIMIT = 'TIER_LIMIT',
+  /** A ficha conquistou a distinção de id `name` (`sheet.distinctions`). */
+  DISTINCAO = 'DISTINCAO',
+  /**
+   * A ficha tem ao menos `value` poderes da distinção de id `name` ("dois
+   * outros poderes da distinção"). Como em PODER_TORMENTA, o próprio poder não
+   * conta para si.
+   */
+  PODERES_DISTINCAO = 'PODERES_DISTINCAO',
+  /**
+   * "Lançar magias" avaliado pela ficha. `value` = círculo mínimo (omitido =
+   * qualquer); `name` = tradição ('arcane' | 'divine', omitido = qualquer).
+   * Ver `sheetCastsSpells`.
+   */
+  LANCAR_MAGIAS = 'LANCAR_MAGIAS',
 }
 
 export interface Requirement {
@@ -130,8 +152,14 @@ export interface GeneralPower extends CountsAsTormentaPower, PowerTaggable {
   waivesPrerequisites?: PrerequisiteWaiver[];
   allowSeveralPicks?: boolean;
   canRepeat?: boolean;
+  /** Id da distinção dona do poder (só em `type: DISTINCAO`). */
+  distinctionId?: string;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
+  /** Efeitos sobre magias (ver `interfaces/SpellModifiers.ts`). */
+  spellModifiers?: SpellModifier[];
+  /** "Escolha N magias" dos `spellModifiers` com `filter.chosen`. */
+  spellChoice?: SpellModifierChoiceSpec;
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
   customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário
   // Nome definido pelo usuário. Quando presente, tem precedência sobre `name`
@@ -169,6 +197,10 @@ export type OriginPower = CountsAsTormentaPower & {
   swappableAtLevelUp?: boolean;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
+  /** Efeitos sobre magias (ver `interfaces/SpellModifiers.ts`). */
+  spellModifiers?: SpellModifier[];
+  /** "Escolha N magias" dos `spellModifiers` com `filter.chosen`. */
+  spellChoice?: SpellModifierChoiceSpec;
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
   customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário
   // Nome definido pelo usuário. Quando presente, tem precedência sobre `name`

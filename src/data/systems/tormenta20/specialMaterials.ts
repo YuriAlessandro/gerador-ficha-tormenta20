@@ -4,6 +4,12 @@ import { AMEACAS_ARTON_SPECIAL_MATERIALS } from './ameacas-de-arton/specialMater
 export const specialMaterials: SpecialMaterial[] = [
   {
     name: 'aço rubi',
+    esotericEffect: {
+      material: 'Aço-rubi',
+      type: 'Esotérico',
+      effect:
+        'Quando lança uma magia que causa dano, ela ignora 10 pontos de redução de dano, além de ignorar as imunidades a dano de lefeu',
+    },
     weaponEffect: {
       material: 'Aço-rubi',
       type: 'Arma',
@@ -19,6 +25,24 @@ export const specialMaterials: SpecialMaterial[] = [
   },
   {
     name: 'adamante',
+    esotericEffect: {
+      material: 'Adamante',
+      type: 'Esotérico',
+      effect:
+        'Quando lança uma magia que causa dano, você pode pagar +1 PM para rolar novamente qualquer resultado 1 na rolagem de dano dela',
+    },
+    esotericSpellModifiers: [
+      {
+        filter: { damaging: true },
+        effect: {
+          type: 'CastOption',
+          id: 'adamante',
+          label: 'rola de novo os resultados 1 no dano',
+          addPm: 1,
+          effects: [{ type: 'RerollOnes' }],
+        },
+      },
+    ],
     weaponEffect: {
       material: 'Adamante',
       type: 'Arma',
@@ -33,6 +57,18 @@ export const specialMaterials: SpecialMaterial[] = [
   },
   {
     name: 'gelo eterno',
+    esotericEffect: {
+      material: 'Gelo Eterno',
+      type: 'Esotérico',
+      effect:
+        'Quando lança uma magia de frio que causa dano, você pode rolar novamente qualquer resultado 1 na rolagem de dano dela',
+    },
+    esotericSpellModifiers: [
+      {
+        filter: { damageTypes: ['frio'] },
+        effect: { type: 'RerollOnes', damageTypes: ['frio'] },
+      },
+    ],
     weaponEffect: {
       material: 'Gelo Eterno',
       type: 'Arma',
@@ -47,6 +83,11 @@ export const specialMaterials: SpecialMaterial[] = [
   },
   {
     name: 'madeira Tollon',
+    esotericEffect: {
+      material: 'Madeira Tollon',
+      type: 'Esotérico',
+      effect: 'Fornece resistência a magia +2',
+    },
     weaponEffect: {
       material: 'Madeira Tollon',
       type: 'Arma',
@@ -61,6 +102,12 @@ export const specialMaterials: SpecialMaterial[] = [
   },
   {
     name: 'matéria vermelha',
+    esotericEffect: {
+      material: 'Matéria Vermelha',
+      type: 'Esotérico',
+      effect:
+        'Você e todos os seus inimigos em alcance curto sofrem –2 em testes de resistência contra efeitos mágicos',
+    },
     weaponEffect: {
       material: 'Matéria Vermelha',
       type: 'Arma',
@@ -76,6 +123,24 @@ export const specialMaterials: SpecialMaterial[] = [
   },
   {
     name: 'mitral',
+    esotericEffect: {
+      material: 'Mitral',
+      type: 'Esotérico',
+      effect:
+        'Permite que você pague +2 PM ao lançar uma magia para aumentar a CD dela em +2',
+    },
+    esotericSpellModifiers: [
+      {
+        filter: { resisted: true },
+        effect: {
+          type: 'CastOption',
+          id: 'mitral',
+          label: '+2 na CD da magia',
+          addPm: 2,
+          effects: [{ type: 'SpellDC', value: 2 }],
+        },
+      },
+    ],
     weaponEffect: {
       material: 'Mitral',
       type: 'Arma',

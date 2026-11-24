@@ -5,13 +5,18 @@ import { getPowerSelectionRequirements } from '../powers/manualPowerSelection';
 import {
   buildLevelUpWizardContext,
   getLevelUpGaps,
+  getLevelUpPowerSpellChoiceInfo,
+  getLevelUpSheetWithProjectedClassLevel,
   getLevelUpSteps,
+  isLevelUpStepComplete,
 } from '../wizardRules/levelUpWizardRules';
 import SelectedOptions from '../../interfaces/SelectedOptions';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import { LevelUpSelections } from '../../interfaces/WizardSelections';
 import { SupplementId } from '../../types/supplement.types';
 import GUERREIRO from '../../data/systems/tormenta20/classes/guerreiro';
+import spellPowers from '../../data/systems/tormenta20/powers/spellPowers';
+import { arcaneSpellsCircle1 } from '../../data/systems/tormenta20/magias/arcane';
 
 /**
  * Regras do assistente de subir de nível em funções puras (Builds v2, bloco
@@ -119,5 +124,125 @@ describe('getLevelUpSteps', () => {
     expect(gapSteps(selection, { multiclassEnabled: true })).not.toContain(
       'Escolha de Classe'
     );
+  });
+});
+
+/**
+ * Mudanças da `main` levadas para as regras na sincronização com a pilha
+ * (Builds v2, bloco S): escolha de magia nos poderes (#571), ordem do Lorde
+ * do Vassalo e ficha projetada do Conhecimento Mágico em multiclasse.
+ */
+describe('sincronização com a main', () => {
+  const ARCANISTA_OPTIONS: SelectedOptions = {
+    ...OPTIONS,
+    raca: 'Humano',
+    classe: 'Arcanista',
+  };
+  const sono = arcaneSpellsCircle1.Encan.find((spell) => spell.nome === 'Sono');
+
+  const arcanistaCtx = (selection: LevelUpSelections) => {
+    const base = generateEmptySheet(ARCANISTA_OPTIONS, {
+      characterName: 'Teste',
+      arcanistaSubtype: 'Mago',
+    });
+    const sheet: CharacterSheet = {
+      ...base,
+      classLevels: initializeClassLevels(base),
+      spells: sono ? [sono] : [],
+    };
+    return buildLevelUpWizardContext({
+      sheet,
+      initialSheet: sheet,
+      level: selection.level,
+      selection,
+      supplements: SUPPLEMENTS,
+      multiclassEnabled: false,
+    });
+  };
+
+  const focoEmMagia: LevelUpSelections = {
+    level: 2,
+    powerChoice: 'general',
+    selectedGeneralPower: spellPowers.FOCO_EM_MAGIA,
+  };
+
+  it('"Magia do Poder" entra depois de "Seleção de Magias" com Foco em Magia', () => {
+    const steps = getLevelUpSteps(arcanistaCtx(focoEmMagia));
+    expect(steps).toContain('Magia do Poder');
+    expect(steps.indexOf('Magia do Poder')).toBeGreaterThan(
+      steps.indexOf('Seleção de Magias')
+    );
+    expect(steps.indexOf('Magia do Poder')).toBeGreaterThan(
+      steps.indexOf('Escolha de Poder')
+    );
+  });
+
+  it('"Magia do Poder" só fica completo com a magia escolhida', () => {
+    expect(
+      isLevelUpStepComplete(arcanistaCtx(focoEmMagia), 'Magia do Poder')
+    ).toBe(false);
+    const chosen = arcanistaCtx({
+      ...focoEmMagia,
+      spellModifierChoices: { 'Foco em Magia': ['Sono'] },
+    });
+    expect(isLevelUpStepComplete(chosen, 'Magia do Poder')).toBe(true);
+    expect(getLevelUpPowerSpellChoiceInfo(chosen)?.choice.chosen).toEqual([
+      'Sono',
+    ]);
+  });
+
+  it('poder sem escolha de magia não tem o passo', () => {
+    const steps = getLevelUpSteps(
+      ctxFor({
+        level: 2,
+        powerChoice: 'class',
+        selectedClassPower: simpleGuerreiroPower(),
+      })
+    );
+    expect(steps).not.toContain('Magia do Poder');
+  });
+
+  it('Lorde: "Efeitos de Habilidades" vem antes de "Escolha de Poder"', () => {
+    const supplements = [
+      SupplementId.TORMENTA20_CORE,
+      SupplementId.TORMENTA20_HEROIS_ARTON,
+    ];
+    const base = generateEmptySheet(
+      { ...OPTIONS, raca: 'Humano', classe: 'Vassalo', supplements },
+      { characterName: 'Teste' }
+    );
+    const sheet: CharacterSheet = { ...base, nivel: 8 };
+    const ctx = buildLevelUpWizardContext({
+      sheet,
+      initialSheet: sheet,
+      level: 9,
+      selection: { level: 9, powerChoice: 'class' },
+      supplements,
+      multiclassEnabled: false,
+    });
+    const steps = getLevelUpSteps(ctx);
+    expect(steps).toContain('Efeitos de Habilidades');
+    expect(steps.indexOf('Efeitos de Habilidades')).toBeLessThan(
+      steps.indexOf('Escolha de Poder')
+    );
+  });
+
+  it('Conhecimento Mágico: a ficha projetada conta o nível novo da classe secundária', () => {
+    const sheet = level1Sheet();
+    const ctx = buildLevelUpWizardContext({
+      sheet,
+      initialSheet: sheet,
+      level: 2,
+      selection: { level: 2, selectedClassName: 'Arcanista' },
+      supplements: SUPPLEMENTS,
+      multiclassEnabled: true,
+    });
+    const projected = getLevelUpSheetWithProjectedClassLevel(ctx);
+    expect(projected.classLevels?.at(-1)).toEqual({
+      level: 2,
+      className: 'Arcanista',
+      classSubname: undefined,
+    });
+    expect(projected.classLevels?.[0]?.className).toBe('Guerreiro');
   });
 });
