@@ -428,6 +428,13 @@ const Changelog: React.FC = () => {
                   undefined&quot; em fichas sem a regra opcional de Idades
                   Variadas.
                 </li>
+                <li>
+                  <strong>Correção:</strong> a descrição do{' '}
+                  <strong>Olhar Atordoante</strong> da <strong>Medusa</strong>{' '}
+                  agora segue o livro: o atordoamento só pode ser usado uma vez
+                  por cena. Antes, o texto dizia que a criatura que passava no
+                  teste ficava imune por um dia.
+                </li>
               </ul>
 
               <h3>4.38</h3>
