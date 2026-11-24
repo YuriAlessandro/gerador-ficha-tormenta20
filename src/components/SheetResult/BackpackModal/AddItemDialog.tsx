@@ -45,9 +45,12 @@ import { AmmoTypeOption } from './ammo';
 import ItemCategoryChips from './ItemCategoryChips';
 import ItemSubfilterChips from './ItemSubfilterChips';
 import ItemCatalogCard from './ItemCatalogCard';
+import { resolveItemPresentation } from './itemEffects';
 
-// ─── Keys que pertencem à dimensão "empunhadura" (calculados por campos do item) ──
-const HAND_FILTER_KEYS = new Set(['1m', '2m', 'distância', 'arremesso']);
+// ─── Keys das dimensões de empunhadura e alcance ────────────────────────────────
+const WIELD_FILTER_KEYS = new Set(['1m', '2m']);
+const RANGE_FILTER_KEYS = new Set(['distância', 'arremesso']);
+const HAND_FILTER_KEYS = new Set([...WIELD_FILTER_KEYS, ...RANGE_FILTER_KEYS]);
 
 /** Tags de empunhadura derivadas dos campos do equipamento. */
 function getWeaponHandTags(item: Equipment): string[] {
@@ -63,8 +66,8 @@ function getWeaponHandTags(item: Equipment): string[] {
 /**
  * Verifica se um item satisfaz os subfiltros ativos.
  * Subfiltros de categoria (simples/marcial/…) filtram pelo `ontologyTag` do
- * subgrupo; subfiltros de empunhadura (1m/2m/distância/arremesso) filtram
- * pelos campos do item.
+ * subgrupo; empunhadura (1m/2m) e alcance (distância/arremesso) combinam em E
+ * entre si (ex.: `1m` + `distância` exibe apenas armas de 1 mão à distância).
  */
 function itemMatchesSubfilters(
   item: Equipment,
@@ -74,32 +77,36 @@ function itemMatchesSubfilters(
   if (subfilters.length === 0) return true;
 
   const catFilters = subfilters.filter((sf) => !HAND_FILTER_KEYS.has(sf));
-  const handFilters = subfilters.filter((sf) => HAND_FILTER_KEYS.has(sf));
+  const wieldFilters = subfilters.filter((sf) => WIELD_FILTER_KEYS.has(sf));
+  const rangeFilters = subfilters.filter((sf) => RANGE_FILTER_KEYS.has(sf));
 
   const catMatch =
     catFilters.length === 0 ||
     (subgroup.ontologyTag !== '' && catFilters.includes(subgroup.ontologyTag));
 
-  const handMatch =
-    handFilters.length === 0 ||
-    (item.group === 'Arma' &&
-      handFilters.some((hf) => getWeaponHandTags(item).includes(hf)));
+  if (wieldFilters.length === 0 && rangeFilters.length === 0) {
+    return catMatch;
+  }
 
-  return catMatch && handMatch;
+  if (item.group !== 'Arma') return false;
+  const tags = getWeaponHandTags(item);
+
+  const wieldMatch =
+    wieldFilters.length === 0 || wieldFilters.some((wf) => tags.includes(wf));
+  const rangeMatch =
+    rangeFilters.length === 0 || rangeFilters.some((rf) => tags.includes(rf));
+
+  return catMatch && wieldMatch && rangeMatch;
 }
 
 // ─── SX constants ──────────────────────────────────────────────────────────
-
-const GRID_AREA_SX = {
-  minHeight: 280,
-  maxHeight: 500,
-  overflowY: 'auto',
-} as const;
 
 const PINNED_CONTENT_SX = {
   p: 0,
   display: 'flex',
   flexDirection: 'column',
+  flex: 1,
+  minHeight: 0,
   overflow: 'hidden',
 } as const;
 
@@ -110,15 +117,21 @@ const PINNED_COLUMN_SX = {
   minHeight: 0,
 } as const;
 
-const PINNED_LIST_SX = { flex: 1, minHeight: 0, overflowY: 'auto' } as const;
+const PINNED_LIST_SX = {
+  flex: 1,
+  minHeight: 0,
+  overflowY: 'auto',
+  scrollbarGutter: 'stable',
+  overscrollBehavior: 'contain',
+} as const;
 
 /** Grid responsivo: 1 col no mobile, 2 col no sm+. */
 const GRID_SX = {
   display: 'grid',
   gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
-  gap: 1,
+  gap: 1.25,
   px: 2,
-  py: 1,
+  py: 1.25,
 } as const;
 
 const SECTION_HEADER_SX = {
@@ -126,8 +139,10 @@ const SECTION_HEADER_SX = {
   alignItems: 'center',
   justifyContent: 'space-between',
   px: 2,
-  py: 0.75,
+  py: 1,
   bgcolor: 'action.hover',
+  borderBottom: '1px solid',
+  borderColor: 'divider',
 } as const;
 
 // ─── Props ─────────────────────────────────────────────────────────────────
@@ -177,10 +192,9 @@ function normalize(text: string): string {
 function matches(item: Equipment, query: string): boolean {
   if (!query) return true;
   const q = normalize(query);
-  return (
-    normalize(item.nome).includes(q) ||
-    (item.descricao ? normalize(item.descricao).includes(q) : false)
-  );
+  if (normalize(item.nome).includes(q)) return true;
+  const { searchableText } = resolveItemPresentation(item);
+  return searchableText ? normalize(searchableText).includes(q) : false;
 }
 
 // ─── Component ─────────────────────────────────────────────────────────────
@@ -298,8 +312,8 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
       <Box key={sub.key} sx={{ mb: 1 }}>
         <Box sx={SECTION_HEADER_SX}>
           <Typography
-            variant='overline'
-            sx={{ color: 'text.secondary', lineHeight: 1 }}
+            variant='subtitle2'
+            sx={{ color: 'text.primary', fontWeight: 700, lineHeight: 1.2 }}
           >
             {sub.label}
           </Typography>
@@ -341,9 +355,9 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
   };
 
   // ── Layout helpers ──────────────────────────────────────────────────────
-  // No mobile o dialog é tela cheia e só a área de itens rola: busca e chips
-  // ficam fixos no topo; o rodapé fixo embaixo.
-  const pinnedLayout = isMobile && !showCustomForm;
+  // Mantém busca, chips e rodapé fixos tanto no mobile quanto no desktop,
+  // evitando duas barras de rolagem paralelas e mantendo o saldo sempre visível.
+  const pinnedLayout = !showCustomForm;
 
   const toolbar = (
     <>
@@ -454,7 +468,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
           spacing={2}
           sx={{ alignItems: 'center', flexWrap: 'wrap' }}
         >
-          <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+          <Typography variant='body2' sx={{ color: 'text.secondary', fontWeight: 500 }}>
             {availableTibares !== undefined && (
               <>Saldo: T$ {availableTibares.toFixed(2)}</>
             )}
@@ -493,6 +507,15 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
       fullWidth
       maxWidth='md'
       fullScreen={isMobile}
+      slotProps={{
+        paper: {
+          sx: {
+            height: isMobile ? '100dvh' : 'min(88dvh, 780px)',
+            display: 'flex',
+            flexDirection: 'column',
+          },
+        },
+      }}
     >
       <DialogTitle sx={{ pr: 6 }}>
         {title}
@@ -519,11 +542,9 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
             />
           </Box>
         ) : (
-          <Box sx={pinnedLayout ? PINNED_COLUMN_SX : undefined}>
+          <Box sx={PINNED_COLUMN_SX}>
             {toolbar}
-            <Box sx={pinnedLayout ? PINNED_LIST_SX : GRID_AREA_SX}>
-              {itemsArea}
-            </Box>
+            <Box sx={PINNED_LIST_SX}>{itemsArea}</Box>
             {footer}
           </Box>
         )}
