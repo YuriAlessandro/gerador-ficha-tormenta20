@@ -78,7 +78,12 @@ import { getEffectiveAttributeModifier } from './effectiveAttributes';
 import { isWeaponMelee } from './weaponSkill';
 import { isBonusActive } from './bonusConditions';
 import { getSheetWornArmor } from './wornArmor';
-import { ignoresEncumbrance } from './encumbrance';
+import {
+  hasOverloadedCondition,
+  ignoresEncumbrance,
+  isOverloaded as isSheetOverloaded,
+} from './encumbrance';
+import { applyExtraArmorPenaltyToSkills } from './armorPenalty';
 import {
   getHeavyArmorPowerBonuses,
   hasFanatico,
@@ -131,7 +136,6 @@ import {
   applyPower,
   applyOptionChosenTexts,
   calculateMaxSpaces,
-  calculateCurrencySpaces,
   GRANTED_POWERS_STEP_LABEL,
 } from './general';
 import {
@@ -950,24 +954,14 @@ const injectCarapacaKappaBonuses = (sheet: CharacterSheet): CharacterSheet => {
   return updatedSheet;
 };
 
-// Copy of calcDisplacement function from general.ts
 const calcDisplacement = (
-  bag: Bag,
   raceDisplacement: number,
-  maxSpaces: number,
   baseDisplacement: number,
-  dinheiro = 0,
-  dinheiroTC = 0,
-  dinheiroTO = 0,
+  isOverloaded: boolean,
   ignoreEncumbrance = false,
   hasHeavyArmor = false
 ): number => {
   if (!ignoreEncumbrance) {
-    const totalUsedSpaces =
-      bag.getSpaces() +
-      calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO);
-    const isOverloaded = totalUsedSpaces > maxSpaces;
-
     if (isOverloaded || hasHeavyArmor) {
       // Penalidade de armadura pesada/sobrecarga, mas bônus (poderes,
       // condições, efeitos ativos como Ímpeto) ainda somam por cima.
@@ -2601,6 +2595,10 @@ export function recalculateSheet(
     }
   });
 
+  // Step 8.2: penalidade de armadura que não vem de armadura/escudo. Precisa do
+  // Step 8, que fecha `extraArmorPenalty` e `maxSpaces`.
+  updatedSheet = applyExtraArmorPenaltyToSkills(updatedSheet);
+
   // Step 8.5: Inject Estilo de Uma Arma / Ataque Preciso bonuses (condicional
   // à empunhadura).
   // Precisa rodar APÓS sheetBonuses estarem populados e ANTES dos Steps 9-10
@@ -2698,13 +2696,10 @@ export function recalculateSheet(
       updatedSheet.customDisplacement + baseDisplacementBonuses;
   } else {
     updatedSheet.displacement = calcDisplacement(
-      updatedSheet.bag,
       getRaceDisplacement(updatedSheet.raca),
-      updatedSheet.customMaxSpaces ?? updatedSheet.maxSpaces,
       baseDisplacementBonuses,
-      updatedSheet.dinheiro,
-      updatedSheet.dinheiroTC,
-      updatedSheet.dinheiroTO,
+      // Com a condição ligada, o −3m já vem do bônus dela.
+      isSheetOverloaded(updatedSheet) && !hasOverloadedCondition(updatedSheet),
       ignoresEncumbrance(updatedSheet),
       // Fanático: "seu deslocamento não é reduzido por usar armaduras pesadas".
       heavyArmor && !hasFanatico(updatedSheet)

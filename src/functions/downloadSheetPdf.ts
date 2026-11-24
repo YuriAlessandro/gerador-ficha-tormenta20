@@ -9,6 +9,7 @@ import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { getSpellDisplayName } from './spells/spellDisplayName';
 import { getEngenhocaAparatos } from './spells/engenhoca';
 import { calculateCurrencySpaces } from './general';
+import { getTotalArmorPenalty } from './armorPenalty';
 import { isMulticlass, getMulticlassDisplayName } from './multiclass';
 import {
   getWeaponAttackSkillBonus,
@@ -630,14 +631,7 @@ export const fillSheetPdf: (
 
   // Penalidade de armadura: só o que está VESTIDO/EMPUNHADO conta —
   // `getArmorPenalty()` somaria toda armadura carregada na mochila.
-  const activeArmorPenalty =
-    sheet.bag.getActiveArmorPenalty(
-      sheet.wornArmorId,
-      sheet.mainHandItemId,
-      sheet.offHandItemId,
-      sheet.extraHand1ItemId,
-      sheet.extraHand2ItemId
-    ) + (sheet.extraArmorPenalty ?? 0);
+  const activeArmorPenalty = getTotalArmorPenalty(sheet);
   armorPenaltyField.setText(
     activeArmorPenalty > 0 ? `-${activeArmorPenalty}` : '0'
   );

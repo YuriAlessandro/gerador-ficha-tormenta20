@@ -32,7 +32,8 @@ import {
 import { refreshBagItemsFromCatalog } from './bagCatalogRefresh';
 import { isBonusActive, evaluateBonusCondition } from './bonusConditions';
 import { getSheetWornArmor, isWearingHeavyArmor } from './wornArmor';
-import { ignoresEncumbrance } from './encumbrance';
+import { calculateCurrencySpaces, ignoresEncumbrance } from './encumbrance';
+import { applyExtraArmorPenaltyToSkills } from './armorPenalty';
 import {
   getHeavyArmorPowerBonuses,
   hasFanatico,
@@ -1583,17 +1584,7 @@ export function getEquipmentMaxSpacesBonus(equipments: Equipment[]): number {
   }, 0);
 }
 
-export function calculateCurrencySpaces(
-  dinheiro = 0,
-  dinheiroTC = 0,
-  dinheiroTO = 0
-): number {
-  return (
-    Math.floor(dinheiro / 1000) +
-    Math.floor(dinheiroTC / 1000) +
-    Math.floor(dinheiroTO / 1000)
-  );
-}
+export { calculateCurrencySpaces };
 
 function calcDisplacement(
   bag: Bag,
@@ -6628,6 +6619,11 @@ export default function generateRandomSheet(
 
   // Passo 14: Aplicar modificadores de atributos
   charSheet = applyStatModifiers(charSheet);
+
+  // Passo 14.2: penalidade de armadura que não vem de armadura/escudo (Chassi,
+  // sobrecarga). Depende do Passo 14, que fecha `extraArmorPenalty` e
+  // `maxSpaces`. Espelha o Step 8.2 do `recalculateSheet`.
+  charSheet = applyExtraArmorPenaltyToSkills(charSheet);
 
   // Passo 14.5: dano-base das armas `weaponTags: ['desarmado']` (Ataque
   // Desarmado, Manopla). Espelha o Step 11.9 do `recalculateSheet` — precisa

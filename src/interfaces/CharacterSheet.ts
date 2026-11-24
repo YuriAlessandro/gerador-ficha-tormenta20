@@ -1115,6 +1115,7 @@ export default interface CharacterSheet {
   customDefenseAttribute?: Atributo; // Custom attribute for defense (overrides DES/CAR)
   useDefenseAttribute?: boolean; // Whether to use attribute mod (false = ignore even without heavy armor)
   bonusDefense?: number; // Manual defense bonus
+  bonusArmorPenalty?: number; // Ajuste manual da penalidade de armadura (positivo aumenta a penalidade)
   bonusSpellDC?: number; // Manual bonus to spell DC (Teste de Resistência)
   /**
    * Modificador temporário por atributo registrado À MÃO pelo jogador (magia

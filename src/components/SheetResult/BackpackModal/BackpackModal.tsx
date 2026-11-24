@@ -873,8 +873,8 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
               Itens em vermelho excedem o limite na ordem da mochila. Você ainda
               pode carregá-los,{' '}
               {sheetIgnoresEncumbrance
-                ? 'e sua raça ignora a redução de deslocamento por excesso de carga.'
-                : 'mas seu deslocamento sofre penalidade enquanto estiver sobrecarregado.'}{' '}
+                ? 'mas sofre penalidade de armadura −5 (sua raça ignora a redução de deslocamento).'
+                : 'mas sofre −3m de deslocamento e penalidade de armadura −5 enquanto estiver sobrecarregado.'}{' '}
               (Capacidade = 10 + 2×Força, ou 10 − |Força| quando negativa. Cada
               1.000 moedas conta 1 espaço.)
             </Typography>
