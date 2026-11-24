@@ -18,6 +18,7 @@ import { LevelUpSelections } from '../../interfaces/WizardSelections';
 import { SupplementId } from '../../types/supplement.types';
 import GUERREIRO from '../../data/systems/tormenta20/classes/guerreiro';
 import { dataRegistry } from '../../data/registry';
+import { itWithPremium } from '../../__tests__/premiumGate';
 import {
   CAMINHO_GOVERNANTE,
   CAMINHO_SOLDADO,
@@ -326,36 +327,40 @@ describe('sincronização com a main', () => {
       expect([...classesOf(CAMINHO_GOVERNANTE)]).toEqual(['Nobre']);
     });
 
-    it('poder de distinção só aparece com a distinção na ficha', () => {
-      const all = [...Object.values(SupplementId)];
-      const distinctionPower = (dataRegistry.getPowersBySupplements(all)
-        .DISTINCAO ?? [])[0];
-      expect(distinctionPower?.distinctionId).toBeTruthy();
-      const names = (distinctions: CharacterSheet['distinctions']) => {
-        const sheet: CharacterSheet = { ...level1Sheet(), distinctions };
-        const ctx = buildLevelUpWizardContext({
-          sheet,
-          initialSheet: sheet,
-          level: 2,
-          selection: { level: 2, powerChoice: 'general' },
-          supplements: all,
-          multiclassEnabled: false,
-        });
-        return getLevelUpPowerOptions(
-          ctx,
-          getLevelUpSheetWithAbilities(ctx)
-        ).generalPowers.map((p) => p.name);
-      };
-      expect(names(undefined)).not.toContain(distinctionPower.name);
-      expect(
-        names([
-          {
-            id: distinctionPower.distinctionId ?? '',
-            name: 'Distinção',
-            acquiredAtLevel: 1,
-          },
-        ])
-      ).toContain(distinctionPower.name);
-    });
+    // As distinções e os poderes delas são do premium.
+    itWithPremium(
+      'poder de distinção só aparece com a distinção na ficha',
+      () => {
+        const all = [...Object.values(SupplementId)];
+        const distinctionPower = (dataRegistry.getPowersBySupplements(all)
+          .DISTINCAO ?? [])[0];
+        expect(distinctionPower?.distinctionId).toBeTruthy();
+        const names = (distinctions: CharacterSheet['distinctions']) => {
+          const sheet: CharacterSheet = { ...level1Sheet(), distinctions };
+          const ctx = buildLevelUpWizardContext({
+            sheet,
+            initialSheet: sheet,
+            level: 2,
+            selection: { level: 2, powerChoice: 'general' },
+            supplements: all,
+            multiclassEnabled: false,
+          });
+          return getLevelUpPowerOptions(
+            ctx,
+            getLevelUpSheetWithAbilities(ctx)
+          ).generalPowers.map((p) => p.name);
+        };
+        expect(names(undefined)).not.toContain(distinctionPower.name);
+        expect(
+          names([
+            {
+              id: distinctionPower.distinctionId ?? '',
+              name: 'Distinção',
+              acquiredAtLevel: 1,
+            },
+          ])
+        ).toContain(distinctionPower.name);
+      }
+    );
   });
 });
