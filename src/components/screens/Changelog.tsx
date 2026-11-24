@@ -435,6 +435,25 @@ const Changelog: React.FC = () => {
                   por cena. Antes, o texto dizia que a criatura que passava no
                   teste ficava imune por um dia.
                 </li>
+                <li>
+                  <strong>Correção:</strong> o <strong>Vassalo</strong> agora
+                  segue o livro ao subir de nível. O{' '}
+                  <strong>Jovem Pajem</strong> e o <strong>Valete</strong>{' '}
+                  deixam você escolher a perícia (Adestramento ou Ofício
+                  (Armeiro); Diplomacia ou Nobreza) em vez de sortear. O{' '}
+                  <strong>Cavaleiro do Reino</strong> dá a arma, armadura ou
+                  escudo superior com duas melhorias à sua escolha. No{' '}
+                  <strong>Lorde</strong>, o caminho é escolhido antes e só
+                  mostra poderes de guerreiro ou de nobre, conforme o caminho. O{' '}
+                  <strong>Marquês</strong> dá RD 5 no Caminho do Soldado e soma
+                  o Carisma nas resistências no Caminho do Governante. O{' '}
+                  <strong>Conselheiro Real</strong> e o{' '}
+                  <strong>Imperador</strong> oferecem magias até o 4º e o 5º
+                  círculo, o <strong>Rei Mercenário</strong> distribui os 3
+                  pontos de atributo como quiser e o Imperador dá +1 em dois
+                  atributos. O <strong>Escudeiro Aprendiz</strong> dá +2 na
+                  Defesa com armadura pesada a quem já tem a proficiência.
+                </li>
               </ul>
 
               <h3>4.38</h3>
