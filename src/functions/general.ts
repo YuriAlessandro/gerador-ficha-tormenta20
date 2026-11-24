@@ -203,6 +203,12 @@ import {
 } from './learnedClassAbility';
 import { hasBestFriendAbility } from './companionLevels';
 import { getCavaleiroCaminho } from './powers/cavaleiroCaminho';
+import { resolveGrantClasses } from './powers/powerGrantClasses';
+import {
+  buildSuperiorItem,
+  isSuperiorItemComplete,
+  pickRandomSuperiorItem,
+} from './superiorItemGrant';
 import {
   resolveSchoolChoice,
   buildSpellPool,
@@ -1864,7 +1870,8 @@ export const applyPower = (
   const actionToChangeTypeMap: Record<string, string[]> = {
     ModifyAttribute: ['Attribute'],
     increaseAttribute: ['AttributeIncreasedByAumentoDeAtributo'],
-    addProficiency: ['ProficiencyAdded'],
+    addProficiency: ['ProficiencyAdded', 'ProficiencyAlreadyOwned'],
+    grantSuperiorItem: ['SuperiorItemGranted'],
     learnSkill: ['SkillsAdded'],
     addSense: ['SenseAdded'],
     addEquipment: ['EquipmentAdded'],
@@ -2233,6 +2240,18 @@ export const applyPower = (
             }
           });
         }
+        // Já era proficiente: os bônus são zerados no recálculo e voltam aqui
+        if (
+          sheetAction.action.type === 'addProficiency' &&
+          sheetAction.action.bonusesIfOwned &&
+          sheet.sheetActionHistory.some(
+            (entry) =>
+              entry.powerName === powerOrAbility.name &&
+              entry.changes.some((c) => c.type === 'ProficiencyAlreadyOwned')
+          )
+        ) {
+          sheet.sheetBonuses.push(...sheetAction.action.bonusesIfOwned);
+        }
         // For trainSkillOrBonus, re-apply the +2 bonus if the skill was already trained
         if (sheetAction.action.type === 'trainSkillOrBonus') {
           const previousResult = sheet.sheetActionHistory
@@ -2330,6 +2349,22 @@ export const applyPower = (
           ],
         });
       } else if (sheetAction.action.type === 'addProficiency') {
+        const { bonusesIfOwned } = sheetAction.action;
+        if (
+          bonusesIfOwned &&
+          sheetAction.action.availableProficiencies.every((prof) =>
+            sheet.classe.proficiencias.includes(prof)
+          )
+        ) {
+          sheet.sheetBonuses.push(...bonusesIfOwned);
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: [{ type: 'ProficiencyAlreadyOwned' }],
+          });
+          return;
+        }
+
         // Ver Proficiência em combat powers e depois remove comment
         let { availableProficiencies } = sheetAction.action;
         if (!sheet.classe.proficiencias.includes(todasProficiencias.MARCIAIS)) {
@@ -3831,9 +3866,50 @@ export const applyPower = (
             chosen.rolls
           );
         });
+      } else if (sheetAction.action.type === 'grantSuperiorItem') {
+        const { superiorItem } = manualSelections ?? {};
+        const item =
+          superiorItem &&
+          isSuperiorItemComplete(superiorItem, sheetAction.action.pick)
+            ? buildSuperiorItem(
+                superiorItem,
+                sheet.supplements?.length
+                  ? sheet.supplements
+                  : [SupplementId.TORMENTA20_CORE]
+              )
+            : undefined;
+        if (superiorItem && item?.id) {
+          // `addEquipment` trocaria um item de mesmo nome que já esteja na
+          // mochila; aqui é um item a mais.
+          const equipments = sheet.bag.getEquipments();
+          sheet.bag.setEquipments({
+            ...equipments,
+            [superiorItem.group]: [...equipments[superiorItem.group], item],
+          });
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: [
+              {
+                type: 'SuperiorItemGranted',
+                group: superiorItem.group,
+                itemId: item.id,
+              },
+            ],
+          });
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Recebe ${item.nome} (${superiorItem.modifications
+              .map((mod) => mod.mod)
+              .join(', ')})`,
+          });
+        }
       } else if (sheetAction.action.type === 'trainSkillOrBonus') {
         const { skills } = sheetAction.action;
-        const selectedSkill = getRandomItemFromArray(skills);
+        // Escolha do assistente, se houver; senão (ficha aleatória), sorteia.
+        const selectedSkill =
+          skills.find((skill) => manualSelections?.skills?.includes(skill)) ??
+          getRandomItemFromArray(skills);
         const alreadyTrained = sheet.skills.includes(selectedSkill);
 
         if (alreadyTrained) {
@@ -4586,13 +4662,20 @@ function levelUp(
   // Fora de um nível com concessão, não há poder nenhum a sortear.
   const grantsPowerThisLevel = !powerGrants || !!levelGrant;
 
+  // Opção do mesmo nível que decide de onde vem o poder (Lorde): sorteada já,
+  // para o poder e o caminho combinarem.
+  const grantByOption = levelGrant?.classesByOption;
+  const grantOption = grantByOption
+    ? getRandomItemFromArray(Object.keys(grantByOption.classes))
+    : undefined;
+
   // Escolher novo poder aleatório (geral ou poder da classe)
   const randomNumber = Math.random();
   let allowedPowers: ClassPower[];
   if (levelGrant) {
     allowedPowers = getForeignClassPowers(
       updatedSheet,
-      levelGrant.fromClasses,
+      resolveGrantClasses(levelGrant, grantOption),
       updatedSheet.nivel,
       levelGrant.excludePowers
     );
@@ -4697,7 +4780,24 @@ function levelUp(
     const abilitySubSteps: SubStep[] = [];
 
     newlyAvailableAbilities.forEach((ability) => {
-      const [newSheet, newSubSteps] = applyPower(updatedSheet, ability);
+      const randomSelections: SelectionOptions = {};
+      if (grantOption && grantByOption?.abilityName === ability.name) {
+        randomSelections.chosenOption = [grantOption];
+      }
+      ability.sheetActions?.forEach(({ action }) => {
+        if (action.type !== 'grantSuperiorItem') return;
+        randomSelections.superiorItem = pickRandomSuperiorItem(
+          updatedSheet,
+          action.groups,
+          action.pick,
+          supplements ?? [SupplementId.TORMENTA20_CORE]
+        );
+      });
+      const [newSheet, newSubSteps] = applyPower(
+        updatedSheet,
+        ability,
+        _.isEmpty(randomSelections) ? undefined : randomSelections
+      );
       updatedSheet = newSheet;
       abilitySubSteps.push(...newSubSteps);
     });

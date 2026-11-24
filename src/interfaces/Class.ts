@@ -83,6 +83,14 @@ export interface ClassPowerGrant {
    * Ex.: Lorde (Vassalo 9) e Autoridade Feudal.
    */
   excludePowers?: string[];
+  /**
+   * Classes conforme a opção escolhida, no mesmo nível, na habilidade
+   * `abilityName`. Ex.: Lorde, em que o caminho decide entre guerreiro e nobre.
+   */
+  classesByOption?: {
+    abilityName: string;
+    classes: Record<string, string[]>;
+  };
 }
 
 export type ClassPower = CountsAsTormentaPower & {

@@ -1,3 +1,4 @@
+import omit from 'lodash/omit';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
@@ -40,9 +41,11 @@ import {
   resolveClassPowerCatalog,
 } from '@/functions/powers';
 import { getActiveWaivers } from '@/functions/powers/prerequisiteWaivers';
+import { resolveGrantClasses } from '@/functions/powers/powerGrantClasses';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
 import {
+  clampPickToOptions,
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
   countRequirementSelections,
@@ -133,6 +136,17 @@ export function findPowerGrant(
   level: number
 ): ClassPowerGrant | undefined {
   return classDesc?.powerGrants?.find((grant) => grant.level === level);
+}
+
+/** Opção, escolhida neste nível, que decide de onde vem o poder (Lorde). */
+function getGrantOption(
+  grant: ClassPowerGrant,
+  abilitySelections: LevelUpSelections['abilityEffectSelections']
+): string | undefined {
+  const abilityName = grant.classesByOption?.abilityName;
+  return abilityName
+    ? abilitySelections?.[abilityName]?.chosenOption?.[0]
+    : undefined;
 }
 
 /** A classe concede escolha de poder neste nível? */
@@ -503,10 +517,16 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     // OUTRA classe, avaliados no nível do personagem. Sem declaração, vale o
     // catálogo da própria classe, como em toda classe padrão.
     const grant = findPowerGrant(selectedClassDesc, selectedClassLevel);
+    const grantClasses = grant
+      ? resolveGrantClasses(
+          grant,
+          getGrantOption(grant, currentLevelSelection.abilityEffectSelections)
+        )
+      : [];
     const classPowers = grant
       ? getForeignClassPowers(
           sheetForFiltering,
-          grant.fromClasses,
+          grantClasses,
           sheetForPowerSelection.nivel,
           grant.excludePowers
         )
@@ -531,7 +551,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         // não só nos disponíveis: sem ele o agrupamento cai no nome da classe
         // da FICHA, e um poder de Cavaleiro que o Vassalo não alcança aparecia
         // sob "Poder de Vassalo".
-        grant.fromClasses.flatMap((className) =>
+        grantClasses.flatMap((className) =>
           (
             findClassDescription(className, undefined, supplements)?.powers ??
             []
@@ -972,6 +992,17 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       steps.push('Melhor Amigo');
     }
 
+    // Quando a escolha de uma habilidade decide de onde vem o poder (Lorde), ela
+    // vem antes.
+    const abilityEffectsFirst = !!findPowerGrant(
+      selectedClassDesc,
+      selectedClassLevel
+    )?.classesByOption;
+    const showAbilityEffects = needsAbilityEffectSelections();
+    if (showAbilityEffects && abilityEffectsFirst) {
+      steps.push('Efeitos de Habilidades');
+    }
+
     // First level in a new class (multiclass) grants no power.
     // Classes com `powerGrants` (Vassalo) só concedem poder em certos níveis —
     // nos demais o passo não deve nem aparecer.
@@ -986,7 +1017,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       }
     }
 
-    if (needsAbilityEffectSelections()) {
+    if (showAbilityEffects && !abilityEffectsFirst) {
       steps.push('Efeitos de Habilidades');
     }
 
@@ -1092,7 +1123,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       // `resolveLearnSkillRemainingPick` escala o piso declarado pelo patamar
       // atual e subtrai o que o histórico já concedeu (Biblioteca Divina e
       // similares); para os demais tipos devolve `pick`.
-      const effectivePick = Math.min(
+      const effectivePick = clampPickToOptions(
+        req,
         resolveLearnSkillRemainingPick(
           req,
           getCurrentPlateau(sheetForCurrentLevel),
@@ -1613,6 +1645,27 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                   ...currentLevelSelection,
                   abilityEffectSelections: selections,
                 };
+                // Trocar a opção que decide de onde vem o poder (Lorde)
+                // descarta o poder de uma classe que deixou de valer.
+                const grant = findPowerGrant(
+                  selectedClassDesc,
+                  selectedClassLevel
+                );
+                const power = next.selectedClassPower;
+                if (
+                  grant?.classesByOption &&
+                  power?.className &&
+                  !resolveGrantClasses(
+                    grant,
+                    getGrantOption(grant, selections)
+                  ).includes(power.className)
+                ) {
+                  next.selectedClassPower = undefined;
+                  next.powerEffectSelections = omit(
+                    next.powerEffectSelections,
+                    power.name
+                  );
+                }
                 // Treinador 5: o step de truque deste nível só existe com
                 // Treino Intensivo — trocar a escolha invalida o truque bônus
                 // já selecionado (a entry 'power' do Ensinar Truque fica)

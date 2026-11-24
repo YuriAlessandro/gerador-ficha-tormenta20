@@ -205,7 +205,7 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
                     >
                       <span>
                         {option.mod}
-                        {option.double ? ' (2 pts)' : ''}
+                        {showCost && option.double ? ' (2 pts)' : ''}
                       </span>
                       {supplementMeta && (
                         <Chip
@@ -241,7 +241,7 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
                 <Box>
                   <Typography variant='body2' component='div'>
                     {option.mod}
-                    {option.double && (
+                    {showCost && option.double && (
                       <Chip size='small' label='2 pts' sx={{ ml: 1 }} />
                     )}
                     {supplementMeta && (
