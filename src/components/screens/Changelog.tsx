@@ -200,6 +200,49 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>Novo:</strong> poderes, habilidades e itens que mexem
+                  nas suas <strong>magias</strong> agora fazem isso sozinhos.
+                  Reduções de custo em PM (como a do Foco em Magia), bônus na
+                  CD, na cura e no dano, PM extras para aprimoramentos, dados a
+                  mais e troca do tipo de dano passam a valer no lançamento, na
+                  lista de magias, no PDF e na exportação para o Foundry,
+                  inclusive em fichas antigas. Poderes que pedem uma escolha
+                  (Foco em Magia, Mestre em Escola, Especialista em Escola, Tomo
+                  hermético) ganharam um botão no próprio poder e um passo novo
+                  na subida de nível, <strong>Magia do Poder</strong>. Magia
+                  Pungente, Magia Acelerada, Barreira Mística e Celebrar Ritual
+                  viram opções na hora de lançar a magia.
+                </li>
+                <li>
+                  <strong>Novo:</strong> o lançamento de magias respeita o{' '}
+                  <strong>limite de PM</strong> do livro, igual ao seu nível na
+                  classe da magia. Orbe cristalina, Contas de oração, Cajado
+                  arcano, Magia Ilimitada e Celebrar Ritual aumentam o limite
+                  como no livro.
+                </li>
+                <li>
+                  <strong>Novo:</strong>{' '}
+                  <strong>esotéricos superiores e mágicos</strong>. O editor de
+                  item e a tela Itens Superiores passam a oferecer as melhorias
+                  de esotérico (Canalizador, Energético, Harmonizado, Poderoso,
+                  Vigilante e Potencializador), material especial (como Mitral e
+                  Adamante) e os 26 encantos de esotérico de{' '}
+                  <em>Heróis de Arton</em>. Os efeitos só valem com o esotérico
+                  empunhado, e cada magia recebe os benefícios de um esotérico
+                  por vez (dois com Esoterismo), escolhido no lançamento. Para
+                  bardos, o instrumento musical conta como esotérico. Os
+                  encantos <strong>Canônico</strong> e{' '}
+                  <strong>Deslumbrante</strong> de armas e armaduras somam na CD
+                  das magias, e a loja ganhou os Cetros elementais de ácido,
+                  eletricidade, fogo e frio.
+                </li>
+                <li>
+                  <strong>Novo:</strong> a{' '}
+                  <strong>Poção de Curar Ferimentos (2d8+2 PV)</strong> está à
+                  venda nos itens gerais, por T$ 30 e meio espaço, já com a
+                  rolagem de cura.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> na <strong>Tela do Jogador</strong>
                   , o combate com muitos combatentes ficou mais fácil de
                   acompanhar em telas pequenas. Quando a lista não cabe inteira,
@@ -228,6 +271,27 @@ const Changelog: React.FC = () => {
                   único teste para todos os inimigos, usando o menor bônus entre
                   eles. Empates agora são decididos pelo maior bônus de
                   Iniciativa, como no livro, e não mais pela Destreza.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o poder{' '}
+                  <strong>Acuidade com Arma</strong> agora troca Força por
+                  Destreza sozinho no ataque e no dano, quando sua Destreza é
+                  maior. Vale para armas leves, ágeis, naturais e ataque
+                  desarmado; nas armas de arremesso, como a lança, só ao
+                  arremessar. Antes era preciso trocar o atributo à mão em cada
+                  arma. Uma escolha manual diferente de Força continua valendo.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o poder{' '}
+                  <strong>Mago Vermelho</strong> (Bardo,{' '}
+                  <em>Heróis de Arton</em>) soma sozinho o círculo máximo de
+                  magias no ataque e no dano com armas leves ou ágeis.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> a aba de equipamentos ganhou um
+                  botão para <strong>empunhar</strong> itens, e os ataques
+                  mostram quando a mão já está ocupada. O PDF passou a mostrar a
+                  CD de cada magia que pede teste de resistência.
                 </li>
                 <li>
                   <strong>Correção:</strong> na{' '}
@@ -328,6 +392,41 @@ const Changelog: React.FC = () => {
                   <strong>Atlas de Arton</strong>, agora aparece entre as opções
                   de Ofício na criação e na edição da ficha. Fichas que já
                   tinham criado esse Ofício à mão continuam com o treino.
+                </li>
+                <li>
+                  <strong>Correção:</strong> poderes que pedem{' '}
+                  <strong>lançar magias</strong>, como a Barreira Mística e a
+                  Magia Suspensa, agora conferem se o personagem lança magias, e
+                  de qual círculo e tradição. Antes, qualquer personagem podia
+                  escolhê-los. O círculo conta só as magias da sua classe,
+                  inclusive em multiclasse, como manda o livro.
+                </li>
+                <li>
+                  <strong>Correção:</strong> no <strong>Sátiro</strong>, as
+                  Pernas Caprinas agora usam Destreza no Atletismo quando ela é
+                  maior que a Força, e a <strong>Marrada</strong> aparece nos
+                  ataques como arma natural (1d6, x2, impacto). Fichas de Sátiro
+                  já salvas recebem as duas no próximo recálculo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> itens de origem com bônus em
+                  perícia passaram a somar: a tatuagem da gangue do{' '}
+                  <strong>Capanga</strong> (+1 em Intimidação), as bolas
+                  coloridas do <strong>Circense</strong> (+1 em Atuação) e a
+                  tatuagem de tripulação do <strong>Grumete Pirata</strong> (+1
+                  em Intimidação), inclusive em fichas já salvas.
+                </li>
+                <li>
+                  <strong>Correção:</strong> pôr uma melhoria ou um encanto num
+                  item pelo editor da mochila agora desconta do dinheiro o preço
+                  do item superior, com o desconto automático ligado. O editor
+                  mostra o preço e tem a opção de não cobrar, para itens ganhos
+                  (saque, recompensa do mestre).
+                </li>
+                <li>
+                  <strong>Correção:</strong> o PDF não imprime mais &quot;Idade:
+                  undefined&quot; em fichas sem a regra opcional de Idades
+                  Variadas.
                 </li>
               </ul>
 
