@@ -52,6 +52,8 @@ enum Skill {
   OFICIO_EGENHOQUEIRO = 'Ofício (Engenhoqueiro)',
   OFICIO_PINTOR = 'Ofício (Pintor)',
   OFICIO_MINERADOR = 'Ofício (Minerador)',
+  // Atlas de Arton: usado para criar tatuagens místicas (tamalus de Khubar)
+  OFICIO_TATUADOR = 'Ofício (Tatuador)',
   PERCEPCAO = 'Percepção',
   PILOTAGEM = 'Pilotagem',
   PONTARIA = 'Pontaria',
@@ -100,6 +102,7 @@ export const SkillsAttrs: Record<string, Atributo> = {
   'Ofício (Engenhoqueiro)': Atributo.INTELIGENCIA,
   'Ofício (Pintor)': Atributo.INTELIGENCIA,
   'Ofício (Minerador)': Atributo.INTELIGENCIA,
+  'Ofício (Tatuador)': Atributo.INTELIGENCIA,
   Percepção: Atributo.SABEDORIA,
   Pilotagem: Atributo.DESTREZA,
   Pontaria: Atributo.DESTREZA,
@@ -141,6 +144,7 @@ export const TrainedOnlySkills: Skill[] = [
   Skill.OFICIO_EGENHOQUEIRO,
   Skill.OFICIO_PINTOR,
   Skill.OFICIO_MINERADOR,
+  Skill.OFICIO_TATUADOR,
   Skill.PILOTAGEM,
   Skill.RELIGIAO,
 ];
@@ -162,6 +166,7 @@ export const ALL_SPECIFIC_OFICIOS: Skill[] = [
   Skill.OFICIO_EGENHOQUEIRO,
   Skill.OFICIO_PINTOR,
   Skill.OFICIO_MINERADOR,
+  Skill.OFICIO_TATUADOR,
 ];
 
 /**
