@@ -5,7 +5,12 @@ import CharacterSheet from '../../interfaces/CharacterSheet';
 import SelectOptions from '../../interfaces/SelectedOptions';
 import { WizardSelections } from '../../interfaces/WizardSelections';
 import { SupplementId } from '../../types/supplement.types';
-import Skill from '../../interfaces/Skills';
+import Skill, {
+  ALL_SPECIFIC_OFICIOS,
+  getSkillAttr,
+  isCustomOficio,
+  isTrainedOnlySkill,
+} from '../../interfaces/Skills';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { buildCustomOficio } from '../oficio';
 import { convertToFoundry } from '../../2foundry';
@@ -137,5 +142,33 @@ describe('Ofício customizado na ficha', () => {
       CUSTOM.replace(/\s*\((.*)\)/, ': $1')
     );
     expect(custom.every((skill) => skill.treinado)).toBe(true);
+  });
+});
+
+describe('Ofício (Tatuador) (Atlas de Arton)', () => {
+  it('faz parte do catálogo, não é mais um Ofício customizado', () => {
+    expect(ALL_SPECIFIC_OFICIOS).toContain(Skill.OFICIO_TATUADOR);
+    expect(isCustomOficio(Skill.OFICIO_TATUADOR)).toBe(false);
+    expect(getSkillAttr(Skill.OFICIO_TATUADOR)).toBe(Atributo.INTELIGENCIA);
+    expect(isTrainedOnlySkill(Skill.OFICIO_TATUADOR)).toBe(true);
+  });
+
+  it('não pode ser recriado à mão', () => {
+    expect(buildCustomOficio('tatuador').ok).toBe(false);
+  });
+
+  it('mantém o treino de fichas que já o tinham como customizado', () => {
+    const sheet = createMockCharacterSheet();
+    // Nome persistido pela ficha antiga, criado via buildCustomOficio
+    const legacyName = 'Ofício (Tatuador)' as unknown as Skill;
+    sheet.skills = [...sheet.skills, legacyName];
+
+    const result = recalculateSheet(sheet);
+
+    const rows = result.completeSkills?.filter(
+      (skill) => skill.name === Skill.OFICIO_TATUADOR
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows?.[0].training).toBeGreaterThan(0);
   });
 });
