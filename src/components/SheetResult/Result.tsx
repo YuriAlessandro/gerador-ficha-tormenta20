@@ -40,10 +40,7 @@ import {
   recalculateSheet,
   calculateBonusValue,
 } from '@/functions/recalculateSheet';
-import {
-  getActiveArmorPenalty,
-  getSheetProficiencias,
-} from '@/functions/proficiencies';
+import { getSheetProficiencias } from '@/functions/proficiencies';
 import {
   getDerivedSpells,
   getDerivedSpellsNotice,
@@ -59,6 +56,7 @@ import {
 } from '@/functions/maneuvers';
 import type { ManeuverRowData } from '@/components/ManeuverRow';
 import { ignoresEncumbrance } from '@/functions/encumbrance';
+import { getTotalArmorPenalty } from '@/functions/armorPenalty';
 import {
   applyManualLevelUp,
   applyMaxPointsGainToCurrent,
@@ -1586,7 +1584,6 @@ const Result: React.FC<ResultProps> = (props) => {
     generalPowers = [],
     classPowers = [],
     steps,
-    extraArmorPenalty = 0,
     completeSkills,
     dinheiro = 0,
     dinheiroTC = 0,
@@ -3058,8 +3055,7 @@ const Result: React.FC<ResultProps> = (props) => {
                 >
                   <strong>Penalidade de Armadura: </strong>
                   {(() => {
-                    const p =
-                      getActiveArmorPenalty(currentSheet) + extraArmorPenalty;
+                    const p = getTotalArmorPenalty(currentSheet);
                     return p > 0 ? `-${p}` : '0';
                   })()}
                 </Typography>
@@ -3446,10 +3442,10 @@ const Result: React.FC<ResultProps> = (props) => {
                   const tooltip = sheetIgnoresEncumbrance
                     ? `Sobrecarga: ${totalUsedSpaces.toFixed(
                         1
-                      )}/${effectiveMaxSpaces} espaços (sua raça ignora a redução de deslocamento)`
+                      )}/${effectiveMaxSpaces} espaços (−5 de penalidade de armadura; sua raça ignora a redução de deslocamento)`
                     : `Sobrecarga: ${totalUsedSpaces.toFixed(
                         1
-                      )}/${effectiveMaxSpaces} espaços (-3m)`;
+                      )}/${effectiveMaxSpaces} espaços (−3m de deslocamento, −5 de penalidade de armadura)`;
                   return (
                     <Tooltip title={tooltip}>
                       <Chip
