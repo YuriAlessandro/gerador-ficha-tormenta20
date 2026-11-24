@@ -321,6 +321,14 @@ const Changelog: React.FC = () => {
                   total, mas não apareciam na lista. Agora ficam numa seção
                   própria, sem precisar editar a coleção.
                 </li>
+                <li>
+                  <strong>Correção:</strong> o{' '}
+                  <strong>Ofício (Tatuador)</strong>, usado pelos tatuadores de
+                  Khubar para criar as tatuagens místicas do{' '}
+                  <strong>Atlas de Arton</strong>, agora aparece entre as opções
+                  de Ofício na criação e na edição da ficha. Fichas que já
+                  tinham criado esse Ofício à mão continuam com o treino.
+                </li>
               </ul>
 
               <h3>4.38</h3>
