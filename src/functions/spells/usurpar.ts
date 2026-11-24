@@ -1,7 +1,7 @@
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import { getEffectiveAttributeModifier } from '../effectiveAttributes';
 import Skill, { getSkillAttr } from '../../interfaces/Skills';
-import { getActiveArmorPenalty } from '../proficiencies';
+import { getTotalArmorPenalty } from '../armorPenalty';
 import { sheetHasClassAbility } from '../learnedClassAbility';
 import type {
   SpellCastCheck,
@@ -71,7 +71,7 @@ export function getUsurparCheckModifier(sheet: CharacterSheet): number {
   const others = skill?.others ?? 0;
 
   return (
-    halfLevel + attrValue + training + others - getActiveArmorPenalty(sheet)
+    halfLevel + attrValue + training + others - getTotalArmorPenalty(sheet)
   );
 }
 

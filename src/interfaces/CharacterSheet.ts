@@ -1,3 +1,5 @@
+import type { SpellModifier } from './SpellModifiers';
+import { SuperiorItemGroup } from './PowerSelections';
 import { ClassDescription, ClassPower, CrossTraditionRules } from './Class';
 import { GeneralPower, GeneralPowerType, OriginPower } from './Poderes';
 import Race, { AttributeVariant, RaceSize, raceSize } from './Race';
@@ -15,6 +17,7 @@ import type { ActiveEffect } from '../premium/interfaces/ActiveEffect';
 import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import type { SheetComplication } from '../premium/interfaces/Complication';
 import type { SheetAge } from './Age';
+import type { SheetDistinction } from '../premium/interfaces/Distinction';
 import type { SheetAnimalCompanion } from '../premium/interfaces/AnimalCompanion';
 import type { SheetPartner } from '../premium/interfaces/Partner';
 import type { DiceRoll } from './DiceRoll';
@@ -125,6 +128,11 @@ export type SheetActionStep =
       pick: number; // Number of spells to learn
       allowedType: 'Arcane' | 'Divine' | 'Both'; // Allowed types of spells
       schools?: SpellSchool[]; // Optional list of allowed schools
+      // Família de classe (ex.: 'Bardo', 'Druida') cujas escolas ESCOLHIDAS
+      // restringem o pool ("devem pertencer às escolas que você sabe usar").
+      // Resolvido em tempo de execução via `resolveActionSchools`: as escolas
+      // são por personagem, então não dá para fixá-las no dado.
+      schoolsFromClass?: string;
       // Teto de círculo, para regras que fixam o círculo ("uma magia de 1º
       // círculo") em vez de acompanhar o mais alto que o personagem lança.
       maxCircle?: number;
@@ -149,6 +157,21 @@ export type SheetActionStep =
       type: 'addProficiency';
       availableProficiencies: string[]; // List of available proficiencies
       pick: number; // Number of proficiencies to learn
+      /**
+       * Em vez da proficiência, para quem já tem TODAS as listadas. Ex.:
+       * Escudeiro Aprendiz (+2 na Defesa com armadura pesada).
+       */
+      bonusesIfOwned?: SheetBonus[];
+    }
+  | {
+      /**
+       * Item superior à escolha do jogador (ex.: Cavaleiro do Reino). Sem
+       * escolha não concede nada: o recálculo de uma ficha antiga não pode
+       * inventar um item.
+       */
+      type: 'grantSuperiorItem';
+      groups: SuperiorItemGroup[];
+      pick: number; // Quantas melhorias
     }
   | {
       type: 'addEquipment';
@@ -281,6 +304,10 @@ export type SheetActionStep =
         name: string;
         text: string;
         sheetBonuses?: SheetBonus[];
+        // Efeitos sobre magias que a opção concede (ex.: Mestre em Escola, a
+        // escola escolhida). Lidos pelo motor de modificadores de magia a
+        // partir de `optionChoices[optionKey]`.
+        spellModifiers?: SpellModifier[];
         repeatable?: boolean; // Pode ser escolhida mais de uma vez (multi-pick)
         grantedSpells?: Spell[]; // Magias concedidas ao escolher esta opção (fixas)
         // Concessão de magias por ESCOLHA do jogador ao escolher esta opção
@@ -346,10 +373,14 @@ export type SheetActionStep =
       // família (Xamã Místico → 'Druida'). O assistente esconde as escolas que a
       // classe já tem, e o sorteio também as evita.
       appendChosenSpellSchoolTo?: string;
+      // Só as opções já escolhidas sob esta outra `optionKey` (Mestre em
+      // Escola: "Especialista em Escola com a escola escolhida"). Sem escolha
+      // gravada lá (ficha antiga), a lista fica completa.
+      onlyOptionsChosenIn?: string;
     }
   | {
       type: 'trainSkillOrBonus';
-      skills: Skill[]; // Skills to choose from (if > 1, pick one randomly)
+      skills: Skill[]; // Havendo mais de uma, o jogador escolhe (sorteio na ficha aleatória)
     };
 
 export type SheetActionReceipt =
@@ -394,6 +425,15 @@ export type SheetActionReceipt =
   | {
       type: 'ProficiencyAdded';
       proficiency: string;
+    }
+  | {
+      // Já tinha a proficiência: valem os `bonusesIfOwned` da ação.
+      type: 'ProficiencyAlreadyOwned';
+    }
+  | {
+      type: 'SuperiorItemGranted';
+      group: SuperiorItemGroup;
+      itemId: string;
     }
   | {
       type: 'EquipmentAdded';
@@ -486,6 +526,13 @@ export type StatModifierTarget =
     }
   | {
       type: 'ArmorPenalty';
+    }
+  | {
+      // Todas as perícias em que a ficha NÃO é treinada (Herói dos Sete
+      // Instrumentos). Avaliado no Step 8 do `recalculateSheet`, depois de o
+      // Step 7.7 resolver o `training` de cada linha de `completeSkills`: soma
+      // o valor ao `others` de toda linha com `training` 0 ou ausente.
+      type: 'UntrainedSkills';
     }
   | {
       type: 'PickSkill';
@@ -697,6 +744,15 @@ export type StatModifier =
       formula: string;
     }
   | {
+      // Escala com o total de poderes da distinção `distinctionId` na ficha
+      // ("+1 para cada dois outros poderes da distinção"). `{distPowQtd}` é
+      // substituído por `countDistinctionPowers` — o próprio poder incluso,
+      // então "outros" é `({distPowQtd} - 1)` na fórmula.
+      type: 'DistinctionPowersCalc';
+      distinctionId: string;
+      formula: string;
+    }
+  | {
       type: 'SpecialAttribute';
       attribute: 'spellKeyAttr';
     }
@@ -759,6 +815,17 @@ export type BonusConditionClause = (
       attribute: Atributo;
       op: BonusConditionOp;
       value: number;
+    }
+  /**
+   * Compara dois atributos da ficha (`attribute` op `otherAttribute`), pelo
+   * valor base — mesma leitura da cláusula `attribute`. Para habilidades do tipo
+   * "pode usar X em vez de Y" (Pernas Caprinas: Destreza no Atletismo).
+   */
+  | {
+      kind: 'attributeCompare';
+      attribute: Atributo;
+      op: BonusConditionOp;
+      otherAttribute: Atributo;
     }
   | { kind: 'isClass'; value: string }
   | { kind: 'hasPower'; value: string }
@@ -927,6 +994,12 @@ export default interface CharacterSheet {
    * e do recálculo final pós-level-up).
    */
   optionChoices?: Record<string, string[]>;
+  /**
+   * Magias escolhidas para modificadores de "escolha uma magia" (Foco em
+   * Magia, Estola…): nome da fonte → nomes das magias. Ver
+   * `SpellModifierChoiceSpec`.
+   */
+  spellModifierChoices?: Record<string, string[]>;
   defesa: number;
   bag: Bag;
   // Currently wielded items (Equipment.id references). Optional — when both are
@@ -1093,6 +1166,7 @@ export default interface CharacterSheet {
   customDefenseAttribute?: Atributo; // Custom attribute for defense (overrides DES/CAR)
   useDefenseAttribute?: boolean; // Whether to use attribute mod (false = ignore even without heavy armor)
   bonusDefense?: number; // Manual defense bonus
+  bonusArmorPenalty?: number; // Ajuste manual da penalidade de armadura (positivo aumenta a penalidade)
   bonusSpellDC?: number; // Manual bonus to spell DC (Teste de Resistência)
   /**
    * Modificador temporário por atributo registrado À MÃO pelo jogador (magia
@@ -1171,6 +1245,8 @@ export default interface CharacterSheet {
    */
   layoutId?: string;
   propositoCriacaoPower?: string; // Poder geral escolhido como Propósito de Criação (raças Golem)
+  /** Distinções conquistadas (Heróis/Deuses de Arton) — só referências. */
+  distinctions?: SheetDistinction[];
   complication?: SheetComplication; // Complicação (Heróis de Arton) — cópia embutida + nome do poder concedido
   optionalRules?: SheetOptionalRules; // Demais regras opcionais de Heróis de Arton em uso nesta ficha
   age?: SheetAge; // Idades Variadas (Heróis de Arton) — faixa etária + complicações de idade

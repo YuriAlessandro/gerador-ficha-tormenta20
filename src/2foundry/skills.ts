@@ -1,6 +1,7 @@
 import CharacterSheet from '../interfaces/CharacterSheet';
 import Skill, { isOficioSkill } from '../interfaces/Skills';
-import { FoundryAttribute } from './enums';
+import { getSkillTotal } from '../functions/skills/skillTotal';
+import { ATTRIBUTE_KEYS, FoundryAttribute } from './enums';
 
 /**
  * Campos PERSISTIDOS de uma perícia no sistema (`schemaSkill`). O valor final,
@@ -135,23 +136,69 @@ export function buildDefaultSkills(): Record<string, FoundryCharSkill> {
   return skills;
 }
 
+/** `T20.sizeModifiers` do sistema: o `@tamanho` das perícias com `size`. */
+const SIZE_SKILL_MODIFIERS: Record<string, number> = {
+  min: 5,
+  peq: 2,
+  med: 0,
+  gra: -2,
+  eno: -5,
+  col: -10,
+};
+
+/** O que o Foundry soma sozinho numa perícia, além do `outros`. */
+export interface SkillDerivation {
+  /** Nível do personagem (soma dos itens de classe). */
+  level: number;
+  /** Chave de tamanho do ator (`tracos.tamanho`). */
+  size: string;
+  /** `@pda`: soma das penalidades dos itens vestidos (número ≤ 0). */
+  armorPenalty: number;
+  /** Valor do atributo no Foundry, já com os efeitos ligados. */
+  attribute: (attribute: FoundryAttribute) => number;
+  /** Bônus de efeitos ligados na perícia (chave própria ou curinga). */
+  effectBonus: (skillKey: string) => number;
+}
+
+/** `attributes.treino` do sistema. */
+export function getTrainingBonus(level: number): number {
+  if (level > 14) return 6;
+  if (level > 6) return 4;
+  return 2;
+}
+
+/** `prepareSkill` do sistema, sem o `outros`. */
+function getFoundrySkillValue(
+  key: string,
+  skill: FoundryCharSkill,
+  derivation: SkillDerivation
+): number {
+  const { level } = derivation;
+  return (
+    Math.floor(level / 2) +
+    derivation.attribute(skill.atributo) +
+    (skill.treinado ? getTrainingBonus(level) : 0) +
+    derivation.effectBonus(key) +
+    (skill.pda ? derivation.armorPenalty : 0) +
+    (skill.size ? SIZE_SKILL_MODIFIERS[derivation.size] ?? 0 : 0)
+  );
+}
+
 /**
- * `others` são bônus de perícia da ficha que não viraram efeito (por chave de
- * perícia); somados ao ajuste manual do jogador, vão no `outros`.
+ * Perícias do ator. O `outros` de cada perícia fecha a conta com o total que a
+ * ficha mostra, como a Defesa: absorve o que a ficha soma por caminhos que o
+ * Foundry não enxerga (bônus sem efeito equivalente, penalidade de armadura
+ * sem proficiência, ajuste manual) e desconta o que ele já soma sozinho.
  */
 export function buildSkills(
   sheet: CharacterSheet,
-  others: Record<string, number> = {}
+  derivation: SkillDerivation
 ): Record<string, FoundryCharSkill> {
   const skills = buildDefaultSkills();
-
-  Object.entries(others).forEach(([key, value]) => {
-    if (skills[key]) skills[key].outros += value;
-  });
-  (sheet.completeSkills ?? []).forEach((skill) => {
-    const key = FOUNDRY_SKILLS[skill.name as Skill];
-    if (key && skill.manualOthers) skills[key].outros += skill.manualOthers;
-  });
+  // Nome da perícia na ficha → chave no Foundry, incluindo os ofícios custom.
+  const keys = new Map<string, string>(
+    Object.entries(FOUNDRY_SKILLS) as [string, string][]
+  );
 
   let customCrafts = 0;
   (sheet.skills ?? []).forEach((skill) => {
@@ -165,13 +212,26 @@ export function buildSkills(
     // cria pelo botão "novo ofício".
     if (isOficioSkill(skill) && customCrafts < MAX_CUSTOM_CRAFTS) {
       customCrafts += 1;
-      skills[`ofi${customCrafts}`] = {
+      const customKey = `ofi${customCrafts}`;
+      skills[customKey] = {
         ...buildSkill(['int', true]),
         treinado: true,
         custom: true,
         label: toCraftLabel(skill),
       };
+      keys.set(skill, customKey);
     }
+  });
+
+  (sheet.completeSkills ?? []).forEach((skill) => {
+    const key = keys.get(skill.name);
+    const target = key && skills[key];
+    if (!target) return;
+    // A perícia usa o atributo da ficha, que o jogador pode ter trocado.
+    if (skill.modAttr) target.atributo = ATTRIBUTE_KEYS[skill.modAttr];
+    target.outros =
+      getSkillTotal(sheet, skill) -
+      getFoundrySkillValue(key, target, derivation);
   });
 
   return skills;

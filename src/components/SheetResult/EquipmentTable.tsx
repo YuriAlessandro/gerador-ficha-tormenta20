@@ -11,8 +11,32 @@ import {
 } from '@/functions/equipmentStats';
 import { useContainerWidth } from '@/hooks/useContainerWidth';
 import { getSupplementInitials } from '@/functions/equipmentDisplay';
+import { dataRegistry } from '@/data/registry';
+import {
+  getContainerIds,
+  getLocationLabel,
+  isCarried,
+} from '@/functions/bagStorage';
 import RollButton from '../RollButton';
 import { CATEGORY_ORDER, itemTypeStyles } from './BackpackModal/itemTypeStyles';
+import WieldingControl from './BackpackModal/WieldingControl';
+import {
+  getWieldingSlot,
+  isWieldable,
+  WieldingDisabledSlots,
+  WieldingSlot,
+  WieldingState,
+} from './BackpackModal/wielding';
+
+/** Empunhar direto da tabela (varinhas, esotéricos, escudos, armas). */
+export interface EquipmentTableWielding {
+  state: WieldingState;
+  extraHands: boolean;
+  onChange: (itemId: string, slot: WieldingSlot) => void;
+  getDisabledSlots?: (
+    itemId: string | undefined
+  ) => WieldingDisabledSlots | undefined;
+}
 
 interface EquipmentTableProps {
   /** Itens já na ordem manual definida na Mochila. */
@@ -20,6 +44,10 @@ interface EquipmentTableProps {
   characterName: string;
   /** Aviso informativo por item (ex.: fundamentalista fora da arma preferida). */
   getItemWarning?: (item: Equipment) => string | undefined;
+  /** Ausente = ficha só-leitura, sem botão de empunhar. */
+  wielding?: EquipmentTableWielding;
+  /** Ações extras na linha do item (escolha de magia do Harmonizado). */
+  getItemActions?: (item: Equipment) => React.ReactNode;
 }
 
 interface EquipmentGroup {
@@ -138,19 +166,67 @@ const EquipmentRow: React.FC<{
   compact: boolean;
   characterName: string;
   warning?: string;
-}> = ({ item, stats, gridTemplate, compact, characterName, warning }) => {
+  wieldingSlot: WieldingSlot;
+  wielding?: EquipmentTableWielding;
+  actions?: React.ReactNode;
+  /** Local quando o item não está com o personagem ("Alforje", "Guardado"). */
+  locationLabel?: string;
+}> = ({
+  item,
+  stats,
+  gridTemplate,
+  compact,
+  characterName,
+  warning,
+  wieldingSlot,
+  wielding,
+  actions,
+  locationLabel,
+}) => {
   const spaces = getItemSpaces(item);
   // `—` significa "espaço não definido", não "zero": um item que o jogador
   // zerou de propósito precisa mostrar 0, senão a edição parece não ter salvo.
   const spacesLabel = item.spaces === undefined && !item.isAmmo ? '—' : spaces;
   const countLabel = getCountLabel(item);
   const supplement = getSupplementInitials(item.supplementName);
+  // Melhorias e encantos: para esotérico, é o que mexe nas magias.
+  const modificationsLabel = [
+    ...(item.modifications ?? []).map((m) => {
+      if (m.deity) return `${m.mod}: ${m.deity}`;
+      if (m.mod !== 'Material especial' || !m.specialMaterial) return m.mod;
+      const material = dataRegistry.getSpecialMaterialByName(m.specialMaterial);
+      return (
+        material?.esotericEffect?.material ??
+        material?.weaponEffect?.material ??
+        material?.armorEffect?.material ??
+        m.specialMaterial
+      );
+    }),
+    ...(item.enchantments ?? []).map((e) => e.enchantment),
+  ].join(', ');
+
+  const wieldControl =
+    wielding && item.id && isWieldable(item) ? (
+      <WieldingControl
+        item={item}
+        currentSlot={wieldingSlot}
+        onChange={(slot) => wielding.onChange(item.id as string, slot)}
+        disabledSlots={wielding.getDisabledSlots?.(item.id)}
+        extraHands={wielding.extraHands}
+      />
+    ) : null;
 
   const nameCell = (
     <Box sx={NAME_LINE_SX}>
+      {wieldControl}
       <Typography variant='body2' sx={{ fontWeight: 500 }}>
         {item.customDisplayName || item.nome}
       </Typography>
+      {modificationsLabel && (
+        <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+          ({modificationsLabel})
+        </Typography>
+      )}
       {warning && (
         <Tooltip
           title={warning}
@@ -166,6 +242,16 @@ const EquipmentRow: React.FC<{
         </Tooltip>
       )}
       {countLabel && <Chip label={countLabel} size='small' sx={QTY_CHIP_SX} />}
+      {locationLabel && (
+        <Chip
+          label={locationLabel}
+          title='Não conta na sua carga'
+          size='small'
+          variant='outlined'
+          color='info'
+          sx={SUPPLEMENT_CHIP_SX}
+        />
+      )}
       {supplement && (
         <Chip
           label={supplement}
@@ -188,6 +274,7 @@ const EquipmentRow: React.FC<{
           characterName={characterName}
         />
       )}
+      {actions}
     </Box>
   );
 
@@ -256,6 +343,8 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({
   items,
   characterName,
   getItemWarning,
+  wielding,
+  getItemActions,
 }) => {
   const [containerRef, containerWidth] = useContainerWidth<HTMLDivElement>();
 
@@ -269,12 +358,18 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({
       else byGroup.set(item.group, [item]);
     });
 
+    // Subtotal = o que o personagem CARREGA, para somar com o total da ficha.
+    const containerIds = getContainerIds(items);
     return CATEGORY_ORDER.filter((group) => byGroup.has(group)).map((group) => {
       const groupItems = byGroup.get(group) as Equipment[];
       return {
         group,
         items: groupItems,
-        spaces: groupItems.reduce((acc, item) => acc + getItemSpaces(item), 0),
+        spaces: groupItems.reduce(
+          (acc, item) =>
+            isCarried(item, containerIds) ? acc + getItemSpaces(item) : acc,
+          0
+        ),
       };
     });
   }, [items]);
@@ -377,6 +472,12 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({
                 compact={compact}
                 characterName={characterName}
                 warning={getItemWarning?.(item)}
+                wieldingSlot={
+                  wielding ? getWieldingSlot(item.id, wielding.state) : null
+                }
+                wielding={wielding}
+                actions={getItemActions?.(item)}
+                locationLabel={getLocationLabel(item, items)}
               />
             ))}
           </Box>

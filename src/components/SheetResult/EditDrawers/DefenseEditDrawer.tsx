@@ -33,6 +33,7 @@ import {
   getWornArmor,
   isItemWielded,
 } from '@/components/SheetResult/BackpackModal/wielding';
+import { getTotalArmorPenalty } from '@/functions/armorPenalty';
 import NumberField from '@/components/common/NumberField';
 import { usesCharismaForDefense } from '@/functions/learnedClassAbility';
 
@@ -49,6 +50,7 @@ interface EditedData {
   customDefenseAttribute: Atributo | undefined;
   useDefenseAttribute: boolean;
   bonusDefense: number;
+  bonusArmorPenalty: number;
 }
 
 const SPECIFIC_DAMAGE_TYPES: DamageType[] = ALL_DAMAGE_TYPES.filter(
@@ -76,6 +78,7 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
     customDefenseAttribute: sheet.customDefenseAttribute,
     useDefenseAttribute: sheet.useDefenseAttribute ?? true,
     bonusDefense: sheet.bonusDefense ?? 0,
+    bonusArmorPenalty: sheet.bonusArmorPenalty ?? 0,
   });
 
   // RD editing. State holds the total values (auto + manual), which is what the
@@ -93,6 +96,7 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
         customDefenseAttribute: sheet.customDefenseAttribute,
         useDefenseAttribute: sheet.useDefenseAttribute ?? true,
         bonusDefense: sheet.bonusDefense ?? 0,
+        bonusArmorPenalty: sheet.bonusArmorPenalty ?? 0,
       });
       setEditedRd(sheet.reducaoDeDano ?? {});
     }
@@ -246,6 +250,7 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
       customDefenseAttribute: editedData.customDefenseAttribute,
       useDefenseAttribute: editedData.useDefenseAttribute,
       bonusDefense: editedData.bonusDefense,
+      bonusArmorPenalty: editedData.bonusArmorPenalty || undefined,
       bonusRd: Object.keys(newBonusRd).length > 0 ? newBonusRd : undefined,
     };
 
@@ -266,6 +271,7 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
       customDefenseAttribute: sheet.customDefenseAttribute,
       useDefenseAttribute: sheet.useDefenseAttribute ?? true,
       bonusDefense: sheet.bonusDefense ?? 0,
+      bonusArmorPenalty: sheet.bonusArmorPenalty ?? 0,
     });
     setEditedRd(sheet.reducaoDeDano ?? {});
     onClose();
@@ -286,6 +292,11 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
       />
     );
   };
+
+  const armorPenaltyPreview = getTotalArmorPenalty({
+    ...sheet,
+    bonusArmorPenalty: editedData.bonusArmorPenalty,
+  });
 
   const heavyArmor = hasHeavyArmor();
   const defaultAttribute = getDefaultDefenseAttribute();
@@ -426,6 +437,24 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
               });
             }}
             helperText='Bônus adicional de fontes não automáticas'
+            min={-50}
+            max={50}
+          />
+
+          {/* Ajuste manual da penalidade de armadura */}
+          <NumberField
+            fullWidth
+            label='Ajuste de Penalidade de Armadura'
+            value={editedData.bonusArmorPenalty}
+            onValueChange={(v) => {
+              setEditedData({
+                ...editedData,
+                bonusArmorPenalty: v ?? 0,
+              });
+            }}
+            helperText={`Positivo aumenta a penalidade; negativo reduz. Total: ${
+              armorPenaltyPreview > 0 ? `−${armorPenaltyPreview}` : '0'
+            } (inclui armadura, escudo, poderes e sobrecarga)`}
             min={-50}
             max={50}
           />

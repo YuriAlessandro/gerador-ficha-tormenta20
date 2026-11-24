@@ -16,6 +16,10 @@ import Equipment from '../interfaces/Equipment';
 export const WEAPON_TAG_LEVE = 'leve';
 export const WEAPON_TAG_AGIL = 'agil';
 export const WEAPON_TAG_ESPADA = 'espada';
+/** Arma natural (chifres, cascos, marrada...): arma leve corpo a corpo (JdA p. 143). */
+export const WEAPON_TAG_NATURAL = 'natural';
+/** Ataque desarmado: arma leve corpo a corpo (JdA p. 143). */
+export const WEAPON_TAG_DESARMADO = 'desarmado';
 
 /**
  * Comparação sem caixa nem acento: as tags são texto livre no editor e no
@@ -28,7 +32,7 @@ const normalizeTag = (tag: string): string =>
     .trim()
     .toLowerCase();
 
-const hasWeaponTag = (weapon: Equipment, tag: string): boolean =>
+export const hasWeaponTag = (weapon: Equipment, tag: string): boolean =>
   weapon.weaponTags?.some((t) => normalizeTag(t) === tag) === true;
 
 /**

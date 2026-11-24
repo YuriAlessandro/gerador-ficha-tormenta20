@@ -23,12 +23,11 @@ const BAR_SX = { height: 8, borderRadius: 1, mt: 0.5 } as const;
 /**
  * Carga da mochila. Em Tormenta 20 o limite não é um teto duro: até o limite
  * não há penalidade; entre o limite e o dobro o personagem fica sobrecarregado
- * (−3m de deslocamento); acima do dobro ele não consegue se mover. A barra
+ * (−3m de deslocamento e penalidade de armadura −5); acima do dobro ele não consegue se mover. A barra
  * mostra a faixa em que a ficha está, que é a leitura que importa.
  *
- * Raças com `ignoreEncumbrance` (Anão, Trog Anão, Golem) não sofrem os −3m —
- * a faixa continua sendo mostrada, mas sem anunciar uma penalidade que o
- * cálculo não aplica. A faixa de imobilidade vale para todos.
+ * Raças com `ignoreEncumbrance` (Anão, Trog Anão, Golem) não sofrem os −3m,
+ * só a penalidade de armadura. A faixa de imobilidade vale para todos.
  */
 const CarryLoadSummary: React.FC<CarryLoadSummaryProps> = ({
   usedSpaces,
@@ -48,8 +47,11 @@ const CarryLoadSummary: React.FC<CarryLoadSummaryProps> = ({
   let hint = 'Sem penalidade de carga.';
   if (immobile) hint = 'Acima do dobro do limite: não é possível se mover.';
   else if (exempt)
-    hint = 'Sobrecarregado, mas sua raça ignora a redução de deslocamento.';
-  else if (overloaded) hint = 'Sobrecarregado: −3m de deslocamento.';
+    hint =
+      'Sobrecarregado: −5 de penalidade de armadura (sua raça ignora a redução de deslocamento).';
+  else if (overloaded)
+    hint =
+      'Sobrecarregado: −3m de deslocamento e −5 de penalidade de armadura.';
 
   // A barra enche até o limite; o excesso continua legível pela cor e pelo aviso.
   const percent =

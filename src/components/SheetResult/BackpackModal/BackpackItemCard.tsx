@@ -15,6 +15,7 @@ import DragIcon from '@mui/icons-material/DragIndicator';
 import EditIcon from '@mui/icons-material/Edit';
 import RemoveIcon from '@mui/icons-material/Remove';
 import OverflowIcon from '@mui/icons-material/ReportProblem';
+import LuggageIcon from '@mui/icons-material/Luggage';
 
 import { describeItemBonuses } from '@/functions/equipmentDisplay';
 import Equipment, { DefenseEquipment } from '../../../interfaces/Equipment';
@@ -26,6 +27,7 @@ import {
   canWieldOneHanded,
   hasMechanicalBonus,
   isTwoHanded,
+  isWornLikeClothing,
   WieldingSlot,
   WieldingDisabledSlots,
 } from './wielding';
@@ -57,6 +59,15 @@ export interface BackpackItemCardProps {
   onWornChange?: (worn: boolean) => void;
   /** Adjust ammunition units remaining (positive or negative delta). */
   onAdjustAmmoUnits?: (delta: number) => void;
+  /**
+   * Local do item quando NÃO está com o personagem ("Alforje", "Guardado").
+   * Item fora do personagem não é empunhado nem vestido.
+   */
+  locationLabel?: string;
+  /** Abre a escolha de local (com você / recipiente / guardado). */
+  onMove?: () => void;
+  /** Capacidade, se o item é um recipiente (Alforje, Carroça…). */
+  containerCapacity?: number;
 }
 
 function formatEnhancementsSuffix(item: Equipment): string {
@@ -95,7 +106,11 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
   isWorn = false,
   onWornChange,
   onAdjustAmmoUnits,
+  locationLabel,
+  onMove,
+  containerCapacity,
 }) => {
+  const isStored = locationLabel !== undefined;
   // A lança montada numa mão só já mostra o chip da mão; o "2 mãos" ao lado
   // contradiria o estado.
   const heldOneHanded =
@@ -264,7 +279,7 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
                   sx={{ height: 20, fontSize: '0.65rem' }}
                 />
               )}
-              {isWorn && item.group === 'Vestuário' && (
+              {isWorn && isWornLikeClothing(item) && (
                 <Chip
                   size='small'
                   label='Vestindo'
@@ -275,8 +290,8 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
               {/* "Guardado" só quando guardar de fato muda algum número —
                   sinalizar em toda roupa sem efeito só poluiria os cards. */}
               {!isWorn &&
-                item.group === 'Vestuário' &&
-                hasMechanicalBonus(item) && (
+                isWornLikeClothing(item) &&
+                (hasMechanicalBonus(item) || item.canBeWorn) && (
                   <Chip
                     size='small'
                     label='Guardado'
@@ -360,6 +375,15 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
               </Typography>
             )}
 
+            {containerCapacity !== undefined && (
+              <Typography
+                variant='caption'
+                sx={{ display: 'block', mt: 0.5, color: 'text.secondary' }}
+              >
+                Recipiente: carrega até {containerCapacity} espaços
+              </Typography>
+            )}
+
             {isOverflowing && (
               <Stack
                 direction='row'
@@ -385,7 +409,8 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
               alignItems: 'center',
             }}
           >
-            {(item.group === 'Armadura' || item.group === 'Vestuário') &&
+            {!isStored &&
+              (item.group === 'Armadura' || isWornLikeClothing(item)) &&
               onWornChange && (
                 <WornItemControl
                   item={item}
@@ -393,8 +418,9 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
                   onChange={onWornChange}
                 />
               )}
-            {item.group !== 'Armadura' &&
-              item.group !== 'Vestuário' &&
+            {!isStored &&
+              item.group !== 'Armadura' &&
+              !isWornLikeClothing(item) &&
               !isAmmoItem &&
               onWieldingChange && (
                 <WieldingControl
@@ -405,6 +431,24 @@ const BackpackItemCard: React.FC<BackpackItemCardProps> = ({
                   extraHands={wieldingExtraHands}
                 />
               )}
+            {onMove && (
+              <Tooltip
+                title={
+                  isStored
+                    ? `Em: ${locationLabel}. Clique para mover.`
+                    : 'Mover para Alforje, veículo ou guardado'
+                }
+              >
+                <IconButton
+                  size='small'
+                  onClick={onMove}
+                  aria-label='Mover item'
+                  color={isStored ? 'primary' : 'default'}
+                >
+                  <LuggageIcon fontSize='small' />
+                </IconButton>
+              </Tooltip>
+            )}
             {onEdit && (
               <Tooltip title='Editar item'>
                 <IconButton size='small' onClick={onEdit} aria-label='Editar'>

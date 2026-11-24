@@ -22,7 +22,8 @@ import type CharacterSheet from '@/interfaces/CharacterSheet';
  *    personagem, não da cena — senão poderes apareceriam e sumiriam conforme o
  *    efeito expira.
  *  - **Exportações** (PDF, Foundry) leem o BASE: estado transitório de combate
- *    não é congelado na exportação.
+ *    não é congelado na exportação. O Foundry recebe o delta à parte, como
+ *    efeitos ligados que o jogador desliga (`buildAttributeLayerEffects`).
  *  - **Condições** (`activeConditions`) não entram aqui. Em RAW "Fraco" é "−2 em
  *    testes de Força", penalidade de TESTE e não redução de atributo, com
  *    agregação pior-vence; elas continuam emitindo bônus `Skill` e só aparecem

@@ -100,7 +100,18 @@ export function getSkillOthersBreakdown(
         .slice(0, bonus.target.pick)
         .includes(skill.name);
 
-    if (!isSkillTarget && !isAttackTarget && !isPickedSkillTarget) return;
+    // Herói dos Sete Instrumentos: mesma regra do Step 8 (`training` 0 ou
+    // ausente).
+    const isUntrainedTarget =
+      bonus.target.type === 'UntrainedSkills' && !skill.training;
+
+    if (
+      !isSkillTarget &&
+      !isAttackTarget &&
+      !isPickedSkillTarget &&
+      !isUntrainedTarget
+    )
+      return;
 
     const value = calculateBonusValue(sheet, bonus.modifier, bonus.source);
     if (value === 0) return;

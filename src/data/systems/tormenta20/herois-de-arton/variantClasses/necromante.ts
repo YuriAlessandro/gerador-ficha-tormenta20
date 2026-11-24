@@ -83,6 +83,9 @@ const NECROMANTE: VariantClassOverrides = {
       name: 'Domínio Sobre a Morte',
       text: 'No 20° nível, você domina as fronteiras da vida e da morte. O custo em PM de suas magias de necromancia é reduzido à metade (após aplicar aprimoramentos e quaisquer outros efeitos que reduzam custo). Além disso, quando você mata uma criatura viva com uma magia de necromancia, pode gastar 2 PM para erguer seu cadáver como um morto-vivo sob seu controle. Isso funciona como a magia Servo Morto-Vivo, mas você escolhe o tipo de parceiro entre quaisquer aprimoramentos da magia e não precisa pagar seu componente material. Mortos-vivos erguidos dessa forma não contam em seu limite de parceiros durante a cena em que são criados (ao fim da cena, mortos-vivos excedentes, a sua escolha, voltam a ser apenas cadáveres).',
       nivel: 20,
+      spellModifiers: [
+        { filter: { schools: ['Necro'] }, effect: { type: 'PmHalve' } },
+      ],
     },
   ],
   spellPath: {

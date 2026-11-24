@@ -226,14 +226,43 @@ describe('Vassalo', () => {
       });
     });
 
-    it('Marquês dá Defesa só no Caminho do Soldado', () => {
-      const bonuses = byName('Marquês').sheetBonuses ?? [];
+    it('Marquês dá Defesa e redução de dano só no Caminho do Soldado', () => {
+      const bonuses = (byName('Marquês').sheetBonuses ?? []).filter(
+        (bonus) => bonus.target.type !== 'Skill'
+      );
 
-      expect(bonuses).toHaveLength(1);
-      expect(bonuses[0].target).toMatchObject({ type: 'Defense' });
-      expect(bonuses[0].condition?.clauses).toContainEqual({
-        kind: 'optionChosen',
-        value: CAMINHO_SOLDADO,
+      expect(bonuses.map((bonus) => bonus.target.type)).toEqual([
+        'Defense',
+        'DamageReduction',
+      ]);
+      bonuses.forEach((bonus) =>
+        expect(bonus.condition?.clauses).toContainEqual({
+          kind: 'optionChosen',
+          value: CAMINHO_SOLDADO,
+        })
+      );
+    });
+
+    it('Marquês soma Carisma nas resistências só no Governante', () => {
+      const bonuses = (byName('Marquês').sheetBonuses ?? []).filter(
+        (bonus) => bonus.target.type === 'Skill'
+      );
+
+      expect(bonuses.map((bonus) => bonus.target)).toEqual(
+        [Skill.FORTITUDE, Skill.REFLEXOS, Skill.VONTADE].map((name) => ({
+          type: 'Skill',
+          name,
+        }))
+      );
+      bonuses.forEach((bonus) => {
+        expect(bonus.modifier).toEqual({
+          type: 'Attribute',
+          attribute: Atributo.CARISMA,
+        });
+        expect(bonus.condition?.clauses).toContainEqual({
+          kind: 'optionChosen',
+          value: CAMINHO_GOVERNANTE,
+        });
       });
     });
   });
