@@ -233,7 +233,11 @@ describe('sincronização com a main', () => {
       sheet,
       initialSheet: sheet,
       level: 2,
-      selection: { level: 2, selectedClassName: 'Arcanista' },
+      selection: {
+        level: 2,
+        powerChoice: 'class',
+        selectedClassName: 'Arcanista',
+      },
       supplements: SUPPLEMENTS,
       multiclassEnabled: true,
     });
