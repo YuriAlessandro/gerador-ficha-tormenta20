@@ -10,10 +10,14 @@ import {
 } from '../powers/intelligenceIncreaseSkills';
 import { CAMINHO_GOVERNANTE } from '../../data/systems/tormenta20/herois-de-arton/variantClasses/vassalo';
 import {
+  clampPickToOptions,
   countRequirementSelections,
+  getFilteredAvailableOptions,
   getPowerSelectionRequirements,
+  resolveLearnSkillRemainingPick,
   validateSelections,
 } from '../powers/manualPowerSelection';
+import { getCurrentPlateau } from '../powers/general';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import { ClassPower } from '../../interfaces/Class';
@@ -215,5 +219,44 @@ describe('perícias por aumento de Inteligência', () => {
     expect(up.atributos[Atributo.INTELIGENCIA].value).toBe(2);
     expect(up.skills).toContain(chosen);
     expect(up.skills).toHaveLength(base.skills.length + 1);
+  });
+
+  // As perícias de um aumento de Inteligência ficam no histórico do Aumento de
+  // Atributo; o próximo Aumento de Atributo as descontava do `pick` e não
+  // deixava escolher nenhum atributo ("Você já possui 1 proficiência(s)").
+  describe('Aumento de Atributo seguinte a um aumento de Inteligência', () => {
+    const effectivePick = (sheet: CharacterSheet) => {
+      const [requirement] = getPowerSelectionRequirements(
+        aumento()
+      )!.requirements;
+      return clampPickToOptions(
+        requirement,
+        resolveLearnSkillRemainingPick(
+          requirement,
+          getCurrentPlateau(sheet),
+          sheet,
+          'Aumento de Atributo'
+        ),
+        getFilteredAvailableOptions(requirement, sheet).length
+      );
+    };
+
+    const afterIntelligence = (): CharacterSheet => {
+      const base = generate(1);
+      const [chosen] = untrained(base);
+      return raiseIntelligence(base, [chosen]);
+    };
+
+    test('no mesmo patamar, ainda pede 1 atributo', () => {
+      const sheet = afterIntelligence();
+      expect(getCurrentPlateau(sheet)).toBe(1);
+      expect(effectivePick(sheet)).toBe(1);
+    });
+
+    test('no patamar seguinte, ainda pede 1 atributo', () => {
+      const sheet = { ...afterIntelligence(), nivel: 5 };
+      expect(getCurrentPlateau(sheet)).toBe(2);
+      expect(effectivePick(sheet)).toBe(1);
+    });
   });
 });

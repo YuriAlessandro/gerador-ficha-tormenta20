@@ -202,6 +202,15 @@ export function resolveLearnSkillRemainingPick(
 ): number {
   const totalPick = resolveLearnSkillPick(requirement, plateau);
   if (!sheet || !powerName) return totalPick;
+  // Só o `learnSkill` escalado acumula vagas entre patamares. Nos demais, um
+  // `SkillsAdded` do mesmo poder é de outra instância — ex.: as perícias de um
+  // Aumento de Atributo anterior em Inteligência zeravam o `pick` do próximo
+  // Aumento de Atributo, e nenhum atributo podia ser escolhido.
+  if (
+    requirement.type !== 'learnSkill' ||
+    !requirement.metadata?.perTierAboveIniciante
+  )
+    return totalPick;
 
   const alreadyGranted = (sheet.sheetActionHistory || [])
     .filter((entry) => entry.powerName === powerName)
