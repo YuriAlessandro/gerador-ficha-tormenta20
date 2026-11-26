@@ -42,6 +42,7 @@ import FolderIcon from '@mui/icons-material/Folder';
 import Button from '@mui/material/Button';
 import React from 'react';
 import { useHistory, useLocation, Prompt } from 'react-router-dom';
+import type { Location } from 'history';
 import Select, { StylesConfig } from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import { formatGroupLabel } from 'react-select/src/builtins';
@@ -352,9 +353,10 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const [scrollToSheet, setScrollToSheet] = React.useState(false);
   const sheetAnchorRef = React.useRef<HTMLDivElement>(null);
   const [showUnsavedDialog, setShowUnsavedDialog] = React.useState(false);
-  const [pendingNavigation, setPendingNavigation] = React.useState<
-    string | null
-  >(null);
+  // Destino inteiro (caminho, busca, âncora e `state`): sem o `state`, telas
+  // que recebem dados pela navegação abriam vazias depois de "Sair Sem Salvar".
+  const [pendingNavigation, setPendingNavigation] =
+    React.useState<Location | null>(null);
   const [showGolemDespertoModal, setShowGolemDespertoModal] =
     React.useState(false);
   const [pendingGolemDespertoSheet, setPendingGolemDespertoSheet] =
@@ -1281,7 +1283,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   // Handle navigation blocking with custom dialog
   const handleNavigationAttempt = React.useCallback(
-    (location: any) => {
+    (location: Location) => {
       // Check ref first for immediate bypass
       if (allowNavigationRef.current) {
         return true;
@@ -1289,7 +1291,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
       if (randomSheet && !sheetSavedToCloud && !showHistoric) {
         setShowUnsavedDialog(true);
-        setPendingNavigation(location.pathname);
+        setPendingNavigation(location);
         return false; // Block navigation
       }
       return true; // Allow navigation
