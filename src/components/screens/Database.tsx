@@ -420,39 +420,25 @@ const Database: React.FC<IProps> = ({ embedded = false }) => {
               {selectedMenu !== -1 && (
                 <Switch>
                   <Route path={`${path}/raças/:selectedRace?`}>
-                    <Box className='table-container'>
-                      <RacesTable />
-                    </Box>
+                    <RacesTable />
                   </Route>
                   <Route path={`${path}/classes/:selectedClass?`}>
-                    <Box className='table-container'>
-                      <ClassesTable />
-                    </Box>
+                    <ClassesTable />
                   </Route>
                   <Route path={`${path}/origens/:selectedOrigin?`}>
-                    <Box className='table-container'>
-                      <OriginsTable />
-                    </Box>
+                    <OriginsTable />
                   </Route>
                   <Route path={`${path}/divindades/:selectedGod?`}>
-                    <Box className='table-container'>
-                      <DivindadesTable />
-                    </Box>
+                    <DivindadesTable />
                   </Route>
                   <Route path={`${path}/poderes/:selectedPower?`}>
-                    <Box className='table-container'>
-                      <PowersTable />
-                    </Box>
+                    <PowersTable />
                   </Route>
                   <Route path={`${path}/distinções/:selectedDistinction?`}>
-                    <Box className='table-container'>
-                      <DistinctionsTable />
-                    </Box>
+                    <DistinctionsTable />
                   </Route>
                   <Route path={`${path}/magias/:selectedSpell?`}>
-                    <Box className='table-container'>
-                      <SpellsTable />
-                    </Box>
+                    <SpellsTable />
                   </Route>
                 </Switch>
               )}

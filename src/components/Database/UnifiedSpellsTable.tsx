@@ -1,29 +1,9 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  IconButton,
-  Collapse,
-  Box,
-  Chip,
-  Typography,
-  Divider,
-  useTheme,
-} from '@mui/material';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Box, Button, Chip, Paper, Typography, useTheme } from '@mui/material';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import FilterDramaIcon from '@mui/icons-material/FilterDrama';
+import AllInclusiveIcon from '@mui/icons-material/AllInclusive';
 import { useHistory, useRouteMatch } from 'react-router-dom';
-
-import { DESKTOP_ONLY_CELL_SX } from '@/components/common/responsiveSx';
-import { useIsMobile } from '@/hooks/useIsMobile';
-import { SEO, getPageSEO } from '../SEO';
 import {
   allArcaneSpellsCircle1,
   allArcaneSpellsCircle2,
@@ -31,7 +11,6 @@ import {
   allArcaneSpellsCircle4,
   allArcaneSpellsCircle5,
 } from '../../data/systems/tormenta20/magias/arcane';
-
 import {
   allDivineSpellsCircle1,
   allDivineSpellsCircle2,
@@ -39,396 +18,90 @@ import {
   allDivineSpellsCircle4,
   allDivineSpellsCircle5,
 } from '../../data/systems/tormenta20/magias/divine';
-
-import { Spell, spellsCircles } from '../../interfaces/Spells';
-import AdvancedSpellFilter from './AdvancedSpellFilter';
-import TormentaTitle from './TormentaTitle';
-import SearchInput from '../DatabaseTables/SearchInput';
-import CopyUrlButton from './CopyUrlButton';
-import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
-import { encyclopediaIds } from '../../functions/encyclopediaSearch';
-import { EncyclopediaSummaryRow } from './EncyclopediaRowSummary';
-import { useAuth } from '../../hooks/useAuth';
+import { SpellSchool } from '../../interfaces/Spells';
 import {
   SupplementId,
   SUPPLEMENT_METADATA,
 } from '../../types/supplement.types';
 import { TORMENTA20_SYSTEM } from '../../data/systems/tormenta20';
-import SupplementFilter from '../DatabaseTables/SupplementFilter';
 import { normalizeSearch } from '../../functions/stringUtils';
+import { encyclopediaIds } from '../../functions/encyclopediaSearch';
+import { SEO, getPageSEO } from '../SEO';
+import TormentaTitle from './TormentaTitle';
+import SearchInput from '../DatabaseTables/SearchInput';
+import SupplementFilter from '../DatabaseTables/SupplementFilter';
+import CopyUrlButton from './CopyUrlButton';
+import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
+import DatabaseGrid from './DatabaseGrid';
+import DatabaseCard from './DatabaseCard';
+import FormattedSpellText from './FormattedSpellText';
+import AdvancedSpellFilter from './AdvancedSpellFilter';
+import {
+  ALVO_TIPO_LABELS,
+  DESCRITOR_LABELS,
+  EnrichedSpell,
+  ExtendedSpell,
+  FUNCAO_LABELS,
+  SCHOOL_LABELS,
+  SpellFilters,
+  filterEnrichedSpells,
+  getCircleNumber,
+  mergeAndEnrichSpells,
+} from '../DatabaseTables/spellsFilters';
 
-interface ExtendedSpell extends Spell {
-  spellType: 'arcane' | 'divine';
-  supplementId?: SupplementId;
-}
+const ALL_SPELL_SUPPLEMENTS: SupplementId[] = [
+  SupplementId.TORMENTA20_CORE,
+  SupplementId.TORMENTA20_AMEACAS_ARTON,
+  SupplementId.TORMENTA20_DEUSES_ARTON,
+  SupplementId.TORMENTA20_HEROIS_ARTON,
+];
 
-interface MergedSpell extends Spell {
-  spellTypes: ('arcane' | 'divine')[];
-  supplementId?: SupplementId;
-}
-
-// Helper function to convert circle number to spellsCircles enum
-const getSpellCircleEnum = (circleNumber: number): spellsCircles => {
-  switch (circleNumber) {
-    case 1:
-      return spellsCircles.c1;
-    case 2:
-      return spellsCircles.c2;
-    case 3:
-      return spellsCircles.c3;
-    case 4:
-      return spellsCircles.c4;
-    case 5:
-      return spellsCircles.c5;
-    default:
-      return spellsCircles.c1;
-  }
-};
-
-// Helper function to extract circle number from spellsCircles enum
-const getCircleNumber = (spellCircle: spellsCircles): number => {
-  switch (spellCircle) {
-    case spellsCircles.c1:
-      return 1;
-    case spellsCircles.c2:
-      return 2;
-    case spellsCircles.c3:
-      return 3;
-    case spellsCircles.c4:
-      return 4;
-    case spellsCircles.c5:
-      return 5;
-    default:
-      return 1;
-  }
-};
-
-interface SpellFilters {
-  search: string;
-  circles: number[];
-  schools: string[];
-  executionTimes: string[];
-  spellType: 'arcane' | 'divine' | 'all';
-}
-
-// Function to merge duplicate spells
-const mergeSpells = (spells: ExtendedSpell[]): MergedSpell[] => {
-  const spellMap: { [key: string]: MergedSpell } = {};
-
-  spells.forEach((spell) => {
-    const key = `${spell.nome}-${spell.spellCircle}`;
-
-    if (spellMap[key]) {
-      // Add the spell type if it's not already there
-      if (!spellMap[key].spellTypes.includes(spell.spellType)) {
-        spellMap[key].spellTypes.push(spell.spellType);
-      }
-    } else {
-      // Create new merged spell entry
-      spellMap[key] = {
-        ...spell,
-        spellTypes: [spell.spellType],
-        supplementId: spell.supplementId,
-      };
-    }
-  });
-
-  return Object.values(spellMap).sort((a, b) =>
-    a.nome.localeCompare(b.nome, 'pt-BR')
-  );
-};
-
-const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
-  spell,
-  defaultOpen,
-}) => {
-  const [open, setOpen] = useState(false);
-  const theme = useTheme();
-  const isMobile = useIsMobile();
-
-  useEffect(() => {
-    setOpen(defaultOpen);
-  }, [defaultOpen]);
-
-  const typeChips = spell.spellTypes.map((type) => (
-    <Chip
-      key={type}
-      icon={type === 'arcane' ? <AutoFixHighIcon /> : <FilterDramaIcon />}
-      label={type === 'arcane' ? 'Arcana' : 'Divina'}
-      size='small'
-      color={type === 'arcane' ? 'primary' : 'secondary'}
-      variant='outlined'
-      sx={{
-        fontSize: '0.75rem',
-        height: '24px',
-        fontFamily: 'Tfont, serif',
-      }}
-    />
-  ));
-  const supplementChip = spell.supplementId &&
-    spell.supplementId !== SupplementId.TORMENTA20_CORE && (
-      <Chip
-        label={SUPPLEMENT_METADATA[spell.supplementId]?.abbreviation || ''}
-        size='small'
-        color='primary'
-        variant='outlined'
-        sx={{ ml: 1 }}
-      />
-    );
-  const shareButton = (
-    <CopyUrlButton
-      itemName={spell.nome}
-      itemType='magia'
-      size='small'
-      variant='minimal'
-    />
-  );
-  // Guardar no grimório fica junto do compartilhar, no celular e no desktop.
-  const rowActions = (
-    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-      <AddToGrimoireButton
-        itemId={encyclopediaIds.spell(spell.nome)}
-        itemName={spell.nome}
-      />
-      {shareButton}
-    </Box>
-  );
-
-  return (
-    <>
-      {isMobile ? (
-        <EncyclopediaSummaryRow
-          colSpan={6}
-          name={spell.nome}
-          open={open}
-          onToggle={() => setOpen(!open)}
-          badge={`${getCircleNumber(spell.spellCircle)}º`}
-          tags={
-            <>
-              {typeChips}
-              {supplementChip}
-            </>
-          }
-          action={rowActions}
-        />
-      ) : (
-        <TableRow
-          sx={{
-            '& > *': { borderBottom: 'unset' },
-            '&:hover': {
-              backgroundColor: `${theme.palette.primary.main}05`,
-            },
-          }}
-        >
-          <TableCell width={10}>
-            <IconButton
-              aria-label='expand row'
-              size='small'
-              onClick={() => setOpen(!open)}
-            >
-              {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-            </IconButton>
-          </TableCell>
-          <TableCell component='th' scope='row'>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                flexWrap: 'wrap',
-              }}
-            >
-              <Typography
-                variant='body1'
-                sx={{
-                  fontWeight: 500,
-                  minWidth: 'fit-content',
-                }}
-              >
-                {spell.nome}
-              </Typography>
-              {typeChips}
-              {supplementChip}
-              {rowActions}
-            </Box>
-          </TableCell>
-          <TableCell>{getCircleNumber(spell.spellCircle)}º</TableCell>
-          <TableCell>{spell.school}</TableCell>
-          <TableCell>{spell.execucao}</TableCell>
-          <TableCell />
-        </TableRow>
-      )}
-      <TableRow>
-        <TableCell
-          style={{ paddingBottom: 0, paddingTop: 0 }}
-          colSpan={6}
-          sx={{ overflow: 'hidden' }}
-        >
-          <Collapse in={open} timeout='auto' unmountOnExit>
-            <Box
-              sx={{
-                margin: 1,
-                p: 2,
-                borderLeft: `3px solid ${theme.palette.primary.main}`,
-                wordWrap: 'break-word',
-                overflowWrap: 'break-word',
-                maxWidth: '100%',
-              }}
-            >
-              <Typography
-                variant='h6'
-                color='primary'
-                gutterBottom
-                sx={{ fontFamily: 'Tfont, serif' }}
-              >
-                {spell.nome} - {spell.school}
-              </Typography>
-              <Box sx={{ mb: 2 }}>
-                <AddToGrimoireButton
-                  itemId={encyclopediaIds.spell(spell.nome)}
-                  itemName={spell.nome}
-                  variant='labeled'
-                />
-              </Box>
-
-              <Box sx={{ mb: 2 }}>
-                <Typography variant='body2' component='div'>
-                  <Box component='ul' sx={{ pl: 2, m: 0 }}>
-                    <li>
-                      <strong>Execução:</strong> {spell.execucao}
-                    </li>
-                    <li>
-                      <strong>Alcance:</strong> {spell.alcance}
-                    </li>
-                    <li>
-                      <strong>Alvo:</strong> {spell.alvo || '-'}
-                    </li>
-                    <li>
-                      <strong>Área:</strong> {spell.area || '-'}
-                    </li>
-                    <li>
-                      <strong>Duração:</strong> {spell.duracao}
-                    </li>
-                    <li>
-                      <strong>Resistência:</strong> {spell.resistencia}
-                    </li>
-                  </Box>
-                </Typography>
-              </Box>
-
-              <Divider sx={{ my: 2 }} />
-
-              <Typography
-                variant='body1'
-                sx={{
-                  wordWrap: 'break-word',
-                  overflowWrap: 'break-word',
-                  whiteSpace: 'pre-wrap',
-                  marginBottom: '16px',
-                }}
-              >
-                {spell.description}
-              </Typography>
-
-              {spell.aprimoramentos && (
-                <>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography
-                    variant='h6'
-                    color='primary'
-                    gutterBottom
-                    sx={{ fontFamily: 'Tfont, serif' }}
-                  >
-                    Aprimoramentos
-                  </Typography>
-                  <Box component='ul' sx={{ pl: 2 }}>
-                    {spell.aprimoramentos.map((apr) => (
-                      <li
-                        key={`${spell.nome}-${apr.addPm}-${apr.text.slice(
-                          0,
-                          30
-                        )}`}
-                      >
-                        <strong>
-                          {apr.trick ? 'TRUQUE' : `+${apr.addPm} PM`}:
-                        </strong>{' '}
-                        {apr.text}
-                      </li>
-                    ))}
-                  </Box>
-                </>
-              )}
-            </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
-    </>
-  );
+const INITIAL_FILTERS: SpellFilters = {
+  search: '',
+  circles: [],
+  schools: [],
+  executionTimes: [],
+  spellType: 'all',
+  funcoes: [],
+  descritores: [],
+  tiposDano: [],
+  alvoTipos: [],
+  resistencias: [],
+  alcances: [],
+  deities: [],
 };
 
 const UnifiedSpellsTable: React.FC = () => {
-  const { user } = useAuth();
   const theme = useTheme();
-  const [selectedSupplements, setSelectedSupplements] = useState<
-    SupplementId[]
-  >(
-    user?.enabledSupplements || [
-      SupplementId.TORMENTA20_CORE,
-      SupplementId.TORMENTA20_AMEACAS_ARTON,
-      SupplementId.TORMENTA20_DEUSES_ARTON,
-      SupplementId.TORMENTA20_HEROIS_ARTON,
-    ]
+  const [selectedSupplements, setSelectedSupplements] = useState<SupplementId[]>(
+    ALL_SPELL_SUPPLEMENTS
   );
+  const [filters, setFilters] = useState<SpellFilters>(INITIAL_FILTERS);
+  const { params } = useRouteMatch<{ selectedSpell?: string }>();
+  const history = useHistory();
 
-  // Get supplement spells memoized
   const supplementSpells = useMemo((): ExtendedSpell[] => {
     const spells: ExtendedSpell[] = [];
-
     selectedSupplements.forEach((supplementId) => {
       const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
       if (supplement?.spells) {
-        // Add arcane spells
         supplement.spells.arcane?.forEach((spell) => {
-          spells.push({
-            ...spell,
-            spellType: 'arcane',
-            supplementId,
-          });
+          spells.push({ ...spell, spellType: 'arcane', supplementId });
         });
-
-        // Add divine spells
         supplement.spells.divine?.forEach((spell) => {
-          spells.push({
-            ...spell,
-            spellType: 'divine',
-            supplementId,
-          });
+          spells.push({ ...spell, spellType: 'divine', supplementId });
         });
-
-        // Add universal spells (they appear in both lists)
         supplement.spells.universal?.forEach((spell) => {
-          spells.push({
-            ...spell,
-            spellType: 'arcane',
-            supplementId,
-          });
-          spells.push({
-            ...spell,
-            spellType: 'divine',
-            supplementId,
-          });
+          spells.push({ ...spell, spellType: 'arcane', supplementId });
+          spells.push({ ...spell, spellType: 'divine', supplementId });
         });
       }
     });
-
     return spells;
   }, [selectedSupplements]);
 
-  // Combine and merge all spells with type indicators
-  const allSpells: MergedSpell[] = useMemo(() => {
+  const allSpells: EnrichedSpell[] = useMemo(() => {
     const combinedSpells: ExtendedSpell[] = [];
-
-    // Only include core spells if TORMENTA20_CORE is selected
     if (selectedSupplements.includes(SupplementId.TORMENTA20_CORE)) {
       const arcaneSpells = [
         ...allArcaneSpellsCircle1,
@@ -448,141 +121,356 @@ const UnifiedSpellsTable: React.FC = () => {
 
       combinedSpells.push(...arcaneSpells, ...divineSpells);
     }
-
     combinedSpells.push(...supplementSpells);
-    return mergeSpells(combinedSpells);
+    return mergeAndEnrichSpells(combinedSpells);
   }, [supplementSpells, selectedSupplements]);
 
-  const [filters, setFilters] = useState<SpellFilters>({
-    search: '',
-    circles: [],
-    schools: [],
-    executionTimes: [],
-    spellType: 'all',
-  });
+  const availableSchools = useMemo(() => {
+    const schools = [...new Set(allSpells.map((s) => s.school))] as SpellSchool[];
+    return schools.sort((a, b) =>
+      (SCHOOL_LABELS[a] || a).localeCompare(SCHOOL_LABELS[b] || b, 'pt-BR')
+    );
+  }, [allSpells]);
 
-  const [filteredSpells, setFilteredSpells] =
-    useState<MergedSpell[]>(allSpells);
-  const { params } = useRouteMatch();
-  const history = useHistory();
+  const availableExecutionTimes = useMemo(() => {
+    const times = [...new Set(allSpells.map((s) => s.execucaoGroup))];
+    return times.sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [allSpells]);
 
-  // Filter spells based on all criteria
+  const availableFuncoes = useMemo(() => {
+    const set = new Set<string>();
+    allSpells.forEach((s) => s.funcao.forEach((f) => set.add(f)));
+    return Array.from(set).sort((a, b) =>
+      (FUNCAO_LABELS[a] || a).localeCompare(FUNCAO_LABELS[b] || b, 'pt-BR')
+    );
+  }, [allSpells]);
+
+  const availableDescritores = useMemo(() => {
+    const set = new Set<string>();
+    allSpells.forEach((s) => {
+      s.descritores.forEach((d) => set.add(d));
+      s.tiposDano.forEach((t) => set.add(t));
+    });
+    return Array.from(set).sort((a, b) =>
+      (DESCRITOR_LABELS[a] || a).localeCompare(
+        DESCRITOR_LABELS[b] || b,
+        'pt-BR'
+      )
+    );
+  }, [allSpells]);
+
+  const availableAlvoTipos = useMemo(() => {
+    const set = new Set<string>();
+    allSpells.forEach((s) => s.alvoTipo.forEach((a) => set.add(a)));
+    return Array.from(set).sort((a, b) =>
+      (ALVO_TIPO_LABELS[a] || a).localeCompare(
+        ALVO_TIPO_LABELS[b] || b,
+        'pt-BR'
+      )
+    );
+  }, [allSpells]);
+
+  const availableResistencias = useMemo(() => {
+    const order = [
+      'Sem resistência',
+      'Fortitude',
+      'Reflexos',
+      'Vontade',
+      'Veja texto',
+    ];
+    const present = new Set(allSpells.map((s) => s.resistenciaGroup));
+    return order.filter((o) => present.has(o));
+  }, [allSpells]);
+
+  const availableAlcances = useMemo(() => {
+    const order = [
+      'Pessoal',
+      'Toque',
+      'Curto',
+      'Médio',
+      'Longo',
+      'Ilimitado',
+      'Outro',
+    ];
+    const present = new Set(allSpells.map((s) => s.alcanceGroup));
+    return order.filter((o) => present.has(o));
+  }, [allSpells]);
+
+  const availableDeities = useMemo(() => {
+    const set = new Set<string>();
+    allSpells.forEach((s) => s.deities.forEach((d) => set.add(d)));
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [allSpells]);
+
+  const filteredSpells = useMemo(
+    () => filterEnrichedSpells(allSpells, filters),
+    [allSpells, filters]
+  );
+
   useEffect(() => {
-    let filtered = allSpells;
-
-    // Search filter (searches in name, description, and enhancements)
-    if (filters.search.trim()) {
-      const searchTerm = normalizeSearch(filters.search.trim());
-      filtered = filtered.filter(
-        (spell) =>
-          normalizeSearch(spell.nome).includes(searchTerm) ||
-          normalizeSearch(spell.description).includes(searchTerm) ||
-          normalizeSearch(spell.school).includes(searchTerm) ||
-          (spell.aprimoramentos &&
-            spell.aprimoramentos.some((apr) =>
-              normalizeSearch(apr.text).includes(searchTerm)
-            ))
-      );
-    }
-
-    // Circle filter
-    if (filters.circles.length) {
-      const targetCircles = filters.circles.map(getSpellCircleEnum);
-      filtered = filtered.filter((spell) =>
-        targetCircles.includes(spell.spellCircle)
-      );
-    }
-
-    // School filter
-    if (filters.schools.length) {
-      filtered = filtered.filter((spell) =>
-        filters.schools.includes(spell.school)
-      );
-    }
-
-    // Execution time filter
-    if (filters.executionTimes.length) {
-      filtered = filtered.filter((spell) =>
-        filters.executionTimes.includes(spell.execucao)
-      );
-    }
-
-    // Spell type filter
-    if (filters.spellType !== 'all') {
-      filtered = filtered.filter((spell) =>
-        spell.spellTypes.includes(filters.spellType as 'arcane' | 'divine')
-      );
-    }
-
-    setFilteredSpells(filtered);
-
-    // Handle URL navigation for single results only (enables deep linking)
-    // We don't push for multiple results to avoid unnecessary navigation
-    if (filtered.length === 1 && filters.search.trim()) {
-      const spellName = filtered[0].nome.toLowerCase();
-      const targetUrl = `/database/magias/${spellName}`;
-      // Only push if we're not already at this URL
-      if (!history.location.pathname.endsWith(spellName)) {
-        history.push(targetUrl);
-      }
-    }
-  }, [filters, allSpells, history]);
-
-  // Handle URL parameters - only set search from URL on initial load or direct navigation
-  useEffect(() => {
-    const { selectedSpell } = params as { selectedSpell?: string };
+    const { selectedSpell } = params;
     if (selectedSpell) {
-      // Decode URL and handle case sensitivity
-      const decodedSpellName = decodeURIComponent(selectedSpell).toLowerCase();
-
-      // Try to find exact match first
-      const exactMatch = allSpells.find(
-        (spell) => spell.nome.toLowerCase() === decodedSpellName
+      const decoded = decodeURIComponent(selectedSpell);
+      const exact = allSpells.find(
+        (s) => s.nome.toLowerCase() === decoded.toLowerCase()
       );
-
-      const newSearchValue = exactMatch ? exactMatch.nome : selectedSpell;
-
-      // Only update if the search value is different
-      setFilters((prev) => {
-        if (prev.search !== newSearchValue) {
-          return { ...prev, search: newSearchValue };
-        }
-        return prev;
-      });
+      setFilters((prev) => ({
+        ...prev,
+        search: exact ? exact.nome : decoded,
+      }));
     }
-    // Note: We don't clear search when no selectedSpell - the user controls the search field
   }, [params, allSpells]);
 
   const handleFilterChange = (newFilters: Partial<SpellFilters>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
   };
 
-  const onVoiceSearch = (newValue: string) => {
-    setFilters((prev) => ({ ...prev, search: newValue }));
-  };
-
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFilters((prev) => ({ ...prev, search: event.target.value }));
+    if (params.selectedSpell) {
+      history.push('/database/magias');
+    }
   };
 
-  // Get unique values for filters
-  const availableSchools = useMemo(() => {
-    const schools = [...new Set(allSpells.map((spell) => spell.school))];
-    return schools.sort((a, b) => a.localeCompare(b, 'pt-BR'));
-  }, [allSpells]);
+  const onVoiceSearch = (newValue: string) => {
+    setFilters((prev) => ({ ...prev, search: newValue }));
+    if (params.selectedSpell) {
+      history.push('/database/magias');
+    }
+  };
 
-  const availableExecutionTimes = useMemo(() => {
-    const times = [...new Set(allSpells.map((spell) => spell.execucao))];
-    return times.sort((a, b) => a.localeCompare(b, 'pt-BR'));
-  }, [allSpells]);
+  const handleToggleSupplement = (supplementId: SupplementId) => {
+    setSelectedSupplements((prev) => {
+      if (prev.includes(supplementId)) {
+        if (prev.length === 1) return prev;
+        return prev.filter((id) => id !== supplementId);
+      }
+      if (supplementId === SupplementId.TORMENTA20_CORE) {
+        return [supplementId, ...prev];
+      }
+      return [...prev, supplementId];
+    });
+  };
 
-  // Get selected spell for SEO
+  const normalizedSelected = params.selectedSpell
+    ? normalizeSearch(decodeURIComponent(params.selectedSpell))
+    : '';
+
   const selectedSpellData =
-    filteredSpells.length === 1 &&
-    (params as { selectedSpell?: string }).selectedSpell
+    filteredSpells.length === 1 && params.selectedSpell
       ? filteredSpells[0]
       : null;
   const spellsSEO = getPageSEO('spells');
+
+  const renderSpellCard = (spell: EnrichedSpell) => {
+    const circleNum = getCircleNumber(spell.spellCircle);
+    const schoolFull = SCHOOL_LABELS[spell.school] || spell.school;
+
+    const actions = (
+      <>
+        <AddToGrimoireButton
+          itemId={encyclopediaIds.spell(spell.nome)}
+          itemName={spell.nome}
+        />
+        <CopyUrlButton
+          itemName={spell.nome}
+          itemType='magia'
+          size='small'
+          variant='minimal'
+        />
+      </>
+    );
+
+    const traditionIcon =
+      spell.traditionLabel === 'Universal' ? (
+        <AllInclusiveIcon fontSize='small' />
+      ) : spell.traditionLabel === 'Arcana' ? (
+        <AutoFixHighIcon fontSize='small' />
+      ) : (
+        <FilterDramaIcon fontSize='small' />
+      );
+
+    const badges = (
+      <>
+        <Chip
+          label={`${circleNum}º Círculo`}
+          size='small'
+          color='primary'
+          variant='filled'
+          sx={{ fontFamily: 'Tfont, serif', fontSize: '0.7rem' }}
+        />
+        <Chip
+          label={schoolFull}
+          size='small'
+          variant='outlined'
+          color='primary'
+          sx={{ fontFamily: 'Tfont, serif', fontSize: '0.7rem' }}
+        />
+        <Chip
+          label={spell.traditionLabel}
+          size='small'
+          variant='outlined'
+          color={
+            spell.traditionLabel === 'Universal'
+              ? 'warning'
+              : spell.traditionLabel === 'Arcana'
+              ? 'info'
+              : 'secondary'
+          }
+          sx={{ fontFamily: 'Tfont, serif', fontSize: '0.7rem' }}
+        />
+        {spell.supplementId &&
+          spell.supplementId !== SupplementId.TORMENTA20_CORE && (
+            <Chip
+              label={
+                SUPPLEMENT_METADATA[spell.supplementId]?.name ||
+                spell.supplementId
+              }
+              size='small'
+              variant='outlined'
+              color='secondary'
+              sx={{ fontFamily: 'Tfont, serif', fontSize: '0.7rem' }}
+            />
+          )}
+        {spell.funcao.map((f) => (
+          <Chip
+            key={`${spell.nome}-fn-${f}`}
+            label={FUNCAO_LABELS[f] || f}
+            size='small'
+            variant='outlined'
+            sx={{ fontFamily: 'Tfont, serif', fontSize: '0.68rem' }}
+          />
+        ))}
+        {spell.deities.map((d) => (
+          <Chip
+            key={`${spell.nome}-deity-${d}`}
+            label={`Devoção: ${d}`}
+            size='small'
+            variant='outlined'
+            color='warning'
+            sx={{ fontFamily: 'Tfont, serif', fontSize: '0.68rem' }}
+          />
+        ))}
+      </>
+    );
+
+    const footer =
+      spell.aprimoramentos && spell.aprimoramentos.length > 0 ? (
+        <Box>
+          <Typography
+            variant='caption'
+            sx={{
+              display: 'block',
+              fontFamily: 'Tfont, serif',
+              fontWeight: 700,
+              color: 'primary.main',
+              mb: 0.75,
+              textTransform: 'uppercase',
+              letterSpacing: 0.4,
+            }}
+          >
+            Aprimoramentos
+          </Typography>
+          <Box
+            component='ul'
+            sx={{
+              pl: 2.25,
+              m: 0,
+              '& li': { mb: 0.6, fontSize: '0.84rem', lineHeight: 1.5 },
+              '& li:last-child': { mb: 0 },
+            }}
+          >
+            {spell.aprimoramentos.map((apr, idx) => (
+              <li
+                key={`${spell.nome}-apr-${idx}-${apr.addPm}-${apr.text.slice(
+                  0,
+                  24
+                )}`}
+              >
+                <Typography component='span' variant='body2'>
+                  <strong style={{ color: theme.palette.primary.main }}>
+                    {apr.trick ? 'TRUQUE' : `+${apr.addPm} PM`}:
+                  </strong>{' '}
+                  {apr.text}
+                </Typography>
+              </li>
+            ))}
+          </Box>
+        </Box>
+      ) : undefined;
+
+    return (
+      <DatabaseCard
+        key={`${spell.nome}-${spell.spellCircle}-${spell.spellTypes.join('-')}`}
+        title={spell.nome}
+        icon={traditionIcon}
+        badges={badges}
+        actions={actions}
+        footer={footer}
+        highlighted={
+          Boolean(normalizedSelected) &&
+          normalizeSearch(spell.nome) === normalizedSelected
+        }
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 0.75,
+            mb: 1.5,
+            p: 1,
+            borderRadius: 1,
+            bgcolor:
+              theme.palette.mode === 'dark'
+                ? 'rgba(255,255,255,0.03)'
+                : 'rgba(0,0,0,0.025)',
+            fontSize: '0.8rem',
+          }}
+        >
+          <Typography variant='caption'>
+            <strong>Execução:</strong> {spell.execucao}
+          </Typography>
+          <Typography variant='caption'>•</Typography>
+          <Typography variant='caption'>
+            <strong>Alcance:</strong> {spell.alcance}
+          </Typography>
+          {spell.alvo && (
+            <>
+              <Typography variant='caption'>•</Typography>
+              <Typography variant='caption'>
+                <strong>Alvo:</strong> {spell.alvo}
+              </Typography>
+            </>
+          )}
+          {spell.area && (
+            <>
+              <Typography variant='caption'>•</Typography>
+              <Typography variant='caption'>
+                <strong>Área:</strong> {spell.area}
+              </Typography>
+            </>
+          )}
+          <Typography variant='caption'>•</Typography>
+          <Typography variant='caption'>
+            <strong>Duração:</strong> {spell.duracao}
+          </Typography>
+          {spell.resistencia && (
+            <>
+              <Typography variant='caption'>•</Typography>
+              <Typography variant='caption'>
+                <strong>Resistência:</strong> {spell.resistencia}
+              </Typography>
+            </>
+          )}
+        </Box>
+
+        <FormattedSpellText
+          description={spell.description}
+          formattedDescription={spell.formattedDescription}
+        />
+      </DatabaseCard>
+    );
+  };
 
   return (
     <>
@@ -602,8 +490,8 @@ const UnifiedSpellsTable: React.FC = () => {
             : spellsSEO.description
         }
         url={`/database/magias${
-          selectedSpellData
-            ? `/${(params as { selectedSpell?: string }).selectedSpell}`
+          selectedSpellData && params.selectedSpell
+            ? `/${params.selectedSpell}`
             : ''
         }`}
       />
@@ -612,9 +500,14 @@ const UnifiedSpellsTable: React.FC = () => {
           Magias
         </TormentaTitle>
 
-        {/* Search Input */}
+        <SupplementFilter
+          selectedSupplements={selectedSupplements}
+          availableSupplements={ALL_SPELL_SUPPLEMENTS}
+          onToggleSupplement={handleToggleSupplement}
+        />
+
         <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
-          <Box sx={{ width: '100%', maxWidth: 500 }}>
+          <Box sx={{ width: '100%', maxWidth: 540 }}>
             <SearchInput
               value={filters.search}
               handleChange={handleSearchChange}
@@ -623,144 +516,51 @@ const UnifiedSpellsTable: React.FC = () => {
           </Box>
         </Box>
 
-        {/* Supplement Filter */}
-        <SupplementFilter
-          selectedSupplements={selectedSupplements}
-          availableSupplements={[
-            SupplementId.TORMENTA20_CORE,
-            SupplementId.TORMENTA20_AMEACAS_ARTON,
-            SupplementId.TORMENTA20_DEUSES_ARTON,
-            SupplementId.TORMENTA20_HEROIS_ARTON,
-          ]}
-          onToggleSupplement={(supplementId) => {
-            setSelectedSupplements((prev) => {
-              if (prev.includes(supplementId)) {
-                // Don't allow deselecting all supplements
-                if (prev.length === 1) return prev;
-                return prev.filter((id) => id !== supplementId);
-              }
-              // Keep CORE at the top when adding
-              if (supplementId === SupplementId.TORMENTA20_CORE) {
-                return [supplementId, ...prev];
-              }
-              return [...prev, supplementId];
-            });
-          }}
-        />
-
-        {/* Advanced Filters */}
         <AdvancedSpellFilter
           filters={filters}
           onFilterChange={handleFilterChange}
           availableSchools={availableSchools}
           availableExecutionTimes={availableExecutionTimes}
+          availableFuncoes={availableFuncoes}
+          availableDescritores={availableDescritores}
+          availableAlvoTipos={availableAlvoTipos}
+          availableResistencias={availableResistencias}
+          availableAlcances={availableAlcances}
+          availableDeities={availableDeities}
         />
 
-        {/* Results Summary */}
         <Box sx={{ mb: 2, textAlign: 'center' }}>
-          <Typography
-            variant='body1'
-            sx={{
-              color: 'text.secondary',
-            }}
-          >
-            {filteredSpells.length === 0
-              ? 'Nenhuma magia encontrada com os filtros aplicados'
-              : `${filteredSpells.length} magia${
-                  filteredSpells.length !== 1 ? 's' : ''
-                } encontrada${filteredSpells.length !== 1 ? 's' : ''}`}
+          <Typography variant='body1' sx={{ color: 'text.secondary' }}>
+            {filteredSpells.length} magia
+            {filteredSpells.length !== 1 ? 's' : ''} exibida
+            {filteredSpells.length !== 1 ? 's' : ''}
           </Typography>
         </Box>
 
-        {/* Spells Table */}
-        <TableContainer
-          component={Paper}
-          className='table-container'
-          sx={{
-            maxWidth: '100%',
-            overflowX: 'auto',
-            '& .MuiTable-root': {
-              minWidth: { xs: '100%', md: 650 },
-            },
-          }}
+        <DatabaseGrid
+          ariaLabel='Grade de magias'
+          resetKey={`${JSON.stringify(filters)}|${selectedSupplements.join(',')}`}
+          emptyState={
+            <Paper
+              variant='outlined'
+              sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}
+            >
+              <Typography variant='body1' sx={{ color: 'text.secondary', mb: 2 }}>
+                Nenhuma magia encontrada com os filtros aplicados.
+              </Typography>
+              <Button
+                variant='outlined'
+                size='small'
+                onClick={() => setFilters(INITIAL_FILTERS)}
+                sx={{ fontFamily: 'Tfont, serif' }}
+              >
+                Limpar filtros
+              </Button>
+            </Paper>
+          }
         >
-          <Table aria-label='unified spells table'>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={DESKTOP_ONLY_CELL_SX} />
-                <TableCell>
-                  <Typography
-                    variant='h6'
-                    sx={{
-                      fontFamily: 'Tfont, serif',
-                      color: theme.palette.primary.main,
-                    }}
-                  >
-                    Nome da Magia
-                  </Typography>
-                </TableCell>
-                <TableCell sx={DESKTOP_ONLY_CELL_SX}>
-                  <Typography
-                    variant='h6'
-                    sx={{
-                      fontFamily: 'Tfont, serif',
-                      color: theme.palette.primary.main,
-                    }}
-                  >
-                    Círculo
-                  </Typography>
-                </TableCell>
-                <TableCell sx={DESKTOP_ONLY_CELL_SX}>
-                  <Typography
-                    variant='h6'
-                    sx={{
-                      fontFamily: 'Tfont, serif',
-                      color: theme.palette.primary.main,
-                    }}
-                  >
-                    Escola
-                  </Typography>
-                </TableCell>
-                <TableCell sx={DESKTOP_ONLY_CELL_SX}>
-                  <Typography
-                    variant='h6'
-                    sx={{
-                      fontFamily: 'Tfont, serif',
-                      color: theme.palette.primary.main,
-                    }}
-                  >
-                    Execução
-                  </Typography>
-                </TableCell>
-                <TableCell sx={DESKTOP_ONLY_CELL_SX} />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredSpells.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} align='center' sx={{ py: 4 }}>
-                    <Typography
-                      variant='body1'
-                      sx={{
-                        color: 'text.secondary',
-                      }}
-                    >
-                      Nenhuma magia encontrada. Tente ajustar os filtros.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredSpells.map((spell) => (
-                  <Row
-                    key={`${spell.nome}-${spell.spellTypes.join('-')}`}
-                    spell={spell}
-                    defaultOpen={filteredSpells.length === 1}
-                  />
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+          {filteredSpells.map(renderSpellCard)}
+        </DatabaseGrid>
       </Box>
     </>
   );

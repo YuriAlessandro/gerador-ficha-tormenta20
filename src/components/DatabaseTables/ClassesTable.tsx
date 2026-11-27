@@ -1,599 +1,326 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  IconButton,
-  Collapse,
   Box,
-  Typography,
-  Divider,
+  Button,
   Chip,
-  Grid,
+  Divider,
+  Paper,
+  Stack,
   ToggleButton,
   ToggleButtonGroup,
+  Typography,
   useTheme,
 } from '@mui/material';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import WhatshotIcon from '@mui/icons-material/Whatshot';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
-
 import { useHistory, useRouteMatch } from 'react-router-dom';
-import { useIsMobile } from '@/hooks/useIsMobile';
-import { DESKTOP_ONLY_CELL_SX } from '@/components/common/responsiveSx';
-import SearchInput from './SearchInput';
-import { SEO, getPageSEO } from '../SEO';
-import { Requirement } from '../../interfaces/Poderes';
+import { SupplementId } from '../../types/supplement.types';
+import { dataRegistry, ClassWithSupplement } from '../../data/registry';
 import { formatRequirement } from '../../functions/requirementText';
-import TormentaTitle from '../Database/TormentaTitle';
-import CopyUrlButton from '../Database/CopyUrlButton';
-import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
+import { normalizeSearch } from '../../functions/stringUtils';
 import {
   classLabelOf,
   encyclopediaIds,
 } from '../../functions/encyclopediaSearch';
-import { EncyclopediaSummaryRow } from '../Database/EncyclopediaRowSummary';
+import { SEO, getPageSEO } from '../SEO';
+import TormentaTitle from '../Database/TormentaTitle';
+import SearchInput from './SearchInput';
 import SupplementFilter from './SupplementFilter';
-import { SupplementId } from '../../types/supplement.types';
-import { dataRegistry, ClassWithSupplement } from '../../data/registry';
-import { normalizeSearch } from '../../functions/stringUtils';
+import DatabaseGrid from '../Database/DatabaseGrid';
+import DatabaseCard from '../Database/DatabaseCard';
+import ClickableChipFilterGroup from '../Database/ClickableChipFilterGroup';
+import CopyUrlButton from '../Database/CopyUrlButton';
+import AddToGrimoireButton from '../PocketGrimoire/AddToGrimoireButton';
 import ClassPowerTreesView from '../PowerTrees/ClassPowerTreesView';
 
-type PowersView = 'lista' | 'arvore';
+type ClassKindFilter = 'ALL' | 'BASE' | 'VARIANT';
+type SpellcasterFilter = 'ALL' | 'CASTERS' | 'MARTIAL';
+type CardSectionView = 'tudo' | 'arvore';
 
-interface IProps {
-  classe: ClassWithSupplement;
-  defaultOpen: boolean;
-  /** Suplementos ligados na enciclopédia, repassados para a view de árvore. */
-  supplements: SupplementId[];
+const ALL_CLASS_SUPPLEMENTS: SupplementId[] = [
+  SupplementId.TORMENTA20_CORE,
+  SupplementId.TORMENTA20_AMEACAS_ARTON,
+  SupplementId.TORMENTA20_DEUSES_ARTON,
+  SupplementId.TORMENTA20_HEROIS_ARTON,
+];
+
+function isSpellcasterClass(classe: ClassWithSupplement): boolean {
+  if (classe.spellPath) return true;
+  return (classe.abilities || []).some((a) =>
+    normalizeSearch(a.name).includes('magia')
+  );
 }
 
-const Req: React.FC<{ requirement: Requirement }> = ({ requirement }) => (
-  <Chip
-    label={formatRequirement(requirement)}
-    size='small'
-    variant='outlined'
-    color='secondary'
-    sx={{
-      m: 0.5,
-      fontFamily: 'Tfont, serif',
-      fontSize: '0.75rem',
-    }}
-  />
-);
+const ClassGridCard: React.FC<{
+  classe: ClassWithSupplement;
+  supplements: SupplementId[];
+  highlighted: boolean;
+}> = ({ classe, supplements, highlighted }) => {
+  const [sectionView, setSectionView] = useState<CardSectionView>('tudo');
+  const fullName = classLabelOf(classe);
 
-const Row: React.FC<IProps> = ({ classe, defaultOpen, supplements }) => {
-  const theme = useTheme();
-  const [open, setOpen] = useState(false);
-  const isMobile = useIsMobile();
-  const [powersView, setPowersView] = useState<PowersView>('lista');
-
-  useEffect(() => {
-    setOpen(defaultOpen);
-  }, [defaultOpen]);
-
-  const variantChip = classe.isVariant && classe.baseClassName && (
-    <Chip
-      label={`Variante de ${classe.baseClassName}`}
-      size='small'
-      variant='outlined'
-      color='info'
-      sx={{
-        height: '20px',
-        fontSize: '0.7rem',
-      }}
-    />
-  );
-  const supplementChip = classe.supplementId !==
-    SupplementId.TORMENTA20_CORE && (
-    <Chip
-      label={classe.supplementName}
-      size='small'
-      sx={{
-        height: '20px',
-        fontSize: '0.7rem',
-        backgroundColor: 'secondary.main',
-        color: 'secondary.contrastText',
-      }}
-    />
-  );
-  const shareButton = (
-    <CopyUrlButton
-      itemName={classe.name}
-      itemType='classe'
-      size='small'
-      variant='minimal'
-    />
-  );
-  // Guardar no grimório fica junto do compartilhar, no celular e no desktop.
-  const rowActions = (
-    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+  const actions = (
+    <>
       <AddToGrimoireButton
         itemId={encyclopediaIds.class(classe)}
-        itemName={classLabelOf(classe)}
+        itemName={fullName}
       />
-      {shareButton}
-    </Box>
+      <CopyUrlButton
+        itemName={classe.name}
+        itemType='classe'
+        size='small'
+        variant='minimal'
+      />
+    </>
+  );
+
+  const badges = (
+    <>
+      <Chip
+        label={
+          classe.isVariant && classe.baseClassName
+            ? `Variante de ${classe.baseClassName}`
+            : 'Classe Base'
+        }
+        size='small'
+        color={classe.isVariant ? 'info' : 'primary'}
+        variant='filled'
+        sx={{ fontFamily: 'Tfont, serif', fontSize: '0.7rem' }}
+      />
+      <Chip
+        label={classe.supplementName}
+        size='small'
+        variant='outlined'
+        color={
+          classe.supplementId === SupplementId.TORMENTA20_CORE
+            ? 'default'
+            : 'secondary'
+        }
+        sx={{ fontFamily: 'Tfont, serif', fontSize: '0.7rem' }}
+      />
+      <Chip
+        label={`PV: ${classe.pv} (+${classe.addpv}/nível)`}
+        size='small'
+        variant='outlined'
+        sx={{ fontFamily: 'Tfont, serif', fontSize: '0.7rem' }}
+      />
+      <Chip
+        label={`PM: +${classe.pm}/nível`}
+        size='small'
+        variant='outlined'
+        sx={{ fontFamily: 'Tfont, serif', fontSize: '0.7rem' }}
+      />
+    </>
   );
 
   return (
-    <>
-      {isMobile ? (
-        <EncyclopediaSummaryRow
-          colSpan={3}
-          name={
-            classe.subname ? `${classe.name} (${classe.subname})` : classe.name
-          }
-          open={open}
-          onToggle={() => setOpen(!open)}
-          tags={
-            <>
-              {variantChip}
-              {supplementChip}
-            </>
-          }
-          action={rowActions}
-        />
-      ) : (
-        <TableRow
-          sx={{
-            '& > *': { borderBottom: 'unset' },
-            '&:hover': {
-              backgroundColor: 'rgba(209, 50, 53, 0.02)',
-            },
-          }}
-        >
-          <TableCell width={10}>
-            <IconButton
-              aria-label='expand row'
+    <DatabaseCard
+      title={fullName}
+      icon={<WhatshotIcon fontSize='small' />}
+      badges={badges}
+      actions={actions}
+      highlighted={highlighted}
+    >
+      {/* Perícias & Proficiências */}
+      <Box sx={{ mb: 1.5 }}>
+        <Typography variant='body2' sx={{ mb: 0.75 }}>
+          <strong>Perícias básicas:</strong>{' '}
+          {classe.periciasbasicas
+            .map((per) =>
+              per.type === 'and'
+                ? per.list.join(' e ')
+                : per.list.join(' ou ')
+            )
+            .join('; ')}
+        </Typography>
+        <Typography variant='body2' sx={{ mb: 0.75 }}>
+          <strong>+{classe.periciasrestantes.qtd} perícias entre:</strong>{' '}
+          {classe.periciasrestantes.list.join(', ')}
+        </Typography>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+          {classe.proficiencias.map((prof) => (
+            <Chip
+              key={`${fullName}-prof-${prof}`}
+              label={prof}
               size='small'
-              onClick={() => setOpen(!open)}
-            >
-              {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-            </IconButton>
-          </TableCell>
-          <TableCell component='th' scope='row'>
+              variant='outlined'
+              color='secondary'
+              sx={{ fontFamily: 'Tfont, serif', fontSize: '0.68rem' }}
+            />
+          ))}
+        </Box>
+      </Box>
+
+      <Divider sx={{ my: 1.5 }} />
+
+      {/* Habilidades de Classe */}
+      <Typography
+        variant='subtitle2'
+        sx={{ fontFamily: 'Tfont, serif', fontWeight: 700, mb: 1 }}
+      >
+        Habilidades de {classe.name} ({classe.abilities.length})
+      </Typography>
+
+      <Stack spacing={1.25} divider={<Divider flexItem />} sx={{ mb: 2 }}>
+        {classe.abilities.map((ability) => (
+          <Box key={`${fullName}-ablt-${ability.name}-${ability.nivel}`}>
             <Box
               sx={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                gap: 1,
               }}
             >
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: 1,
-                  rowGap: 0.5,
-                }}
-              >
-                <WhatshotIcon color='primary' fontSize='small' />
-                <Typography
-                  variant='body1'
-                  sx={{
-                    fontWeight: 500,
-                  }}
-                >
-                  {classe.name}
-                  {classe.subname && (
-                    <Typography
-                      component='span'
-                      variant='body2'
-                      sx={{
-                        color: 'text.secondary',
-                        ml: 1,
-                      }}
-                    >
-                      ({classe.subname})
-                    </Typography>
-                  )}
-                </Typography>
-                {variantChip}
-                {supplementChip}
-              </Box>
-              {rowActions}
-            </Box>
-          </TableCell>
-          <TableCell />
-        </TableRow>
-      )}
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
-          <Collapse in={open} timeout='auto' unmountOnExit>
-            <Box
-              sx={{
-                margin: 1,
-                p: 2,
-                borderLeft: `3px solid ${theme.palette.primary.main}`,
-              }}
-            >
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  columnGap: 1,
-                  rowGap: 0.5,
-                  mb: 1,
-                }}
-              >
-                <Typography
-                  variant='h6'
-                  color='primary'
-                  sx={{ fontFamily: 'Tfont, serif' }}
-                >
-                  {classe.name}
-                  {classe.subname && ` (${classe.subname})`}
-                </Typography>
-                <Chip
-                  label={classe.supplementName}
-                  size='small'
-                  variant='outlined'
-                  color={
-                    classe.supplementId === SupplementId.TORMENTA20_CORE
-                      ? 'default'
-                      : 'secondary'
-                  }
-                  sx={{ fontFamily: 'Tfont, serif' }}
-                />
-              </Box>
-              <Box sx={{ mb: 2 }}>
-                <AddToGrimoireButton
-                  itemId={encyclopediaIds.class(classe)}
-                  itemName={classLabelOf(classe)}
-                  variant='labeled'
-                />
-              </Box>
-
-              {classe.isVariant && classe.baseClassName && (
-                <Typography
-                  variant='body2'
-                  sx={{
-                    color: 'text.secondary',
-                    mb: 2,
-                    fontStyle: 'italic',
-                  }}
-                >
-                  Classe variante de {classe.baseClassName}. Utiliza os mesmos
-                  poderes de classe.
-                </Typography>
-              )}
-
-              {/* Basic Stats */}
-              <Grid container spacing={2} sx={{ mb: 3 }}>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Box
-                    sx={{
-                      p: 2,
-                      backgroundColor: 'rgba(209, 50, 53, 0.05)',
-                      borderRadius: 1,
-                    }}
-                  >
-                    <Typography
-                      variant='h6'
-                      gutterBottom
-                      sx={{ fontFamily: 'Tfont, serif', fontSize: '1.1rem' }}
-                    >
-                      Pontos de Vida
-                    </Typography>
-                    <Typography variant='body2'>
-                      Começa com <strong>{classe.pv} PV</strong> (+ mod.
-                      Constituição)
-                      <br />
-                      Ganha <strong>{classe.addpv} PV</strong> (+ mod. Con.) por
-                      nível
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Box
-                    sx={{
-                      p: 2,
-                      backgroundColor: 'rgba(209, 50, 53, 0.05)',
-                      borderRadius: 1,
-                    }}
-                  >
-                    <Typography
-                      variant='h6'
-                      gutterBottom
-                      sx={{ fontFamily: 'Tfont, serif', fontSize: '1.1rem' }}
-                    >
-                      Pontos de Mana
-                    </Typography>
-                    <Typography variant='body2'>
-                      <strong>{classe.pm} PM</strong> por nível
-                    </Typography>
-                  </Box>
-                </Grid>
-              </Grid>
-
-              {/* Skills */}
-              <Box sx={{ mb: 3 }}>
-                <Typography
-                  variant='h6'
-                  gutterBottom
-                  sx={{ fontFamily: 'Tfont, serif', fontSize: '1.1rem' }}
-                >
-                  Perícias
-                </Typography>
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant='body2' gutterBottom>
-                    <strong>Perícias básicas:</strong>
-                  </Typography>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      gap: 1,
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    {classe.periciasbasicas.map((per) => (
-                      <Chip
-                        key={`basic-skill-${per.type}-${per.list.join('-')}`}
-                        label={
-                          per.type === 'and'
-                            ? per.list.join(' e ')
-                            : per.list.join(' ou ')
-                        }
-                        size='small'
-                        variant='outlined'
-                        color='primary'
-                        sx={{ fontFamily: 'Tfont, serif' }}
-                      />
-                    ))}
-                  </Box>
-                </Box>
-                <Typography variant='body2'>
-                  <strong>
-                    Mais {classe.periciasrestantes.qtd} à sua escolha entre:
-                  </strong>
-                </Typography>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    gap: 1,
-                    flexWrap: 'wrap',
-                    mt: 1,
-                  }}
-                >
-                  {classe.periciasrestantes.list.map((skill) => (
-                    <Chip
-                      key={`remaining-skill-${skill}`}
-                      label={skill}
-                      size='small'
-                      variant='outlined'
-                      sx={{ fontFamily: 'Tfont, serif' }}
-                    />
-                  ))}
-                </Box>
-              </Box>
-
-              {/* Proficiencies */}
-              <Box sx={{ mb: 3 }}>
-                <Typography
-                  variant='h6'
-                  gutterBottom
-                  sx={{ fontFamily: 'Tfont, serif', fontSize: '1.1rem' }}
-                >
-                  Proficiências
-                </Typography>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    gap: 1,
-                    flexWrap: 'wrap',
-                  }}
-                >
-                  {classe.proficiencias.map((prof) => (
-                    <Chip
-                      key={`proficiency-${prof}`}
-                      label={prof}
-                      size='small'
-                      variant='filled'
-                      color='secondary'
-                      sx={{ fontFamily: 'Tfont, serif' }}
-                    />
-                  ))}
-                </Box>
-              </Box>
-
-              <Divider sx={{ my: 3 }} />
-
-              {/* Abilities */}
               <Typography
-                variant='h6'
-                gutterBottom
-                sx={{ fontFamily: 'Tfont, serif', fontSize: '1.2rem' }}
+                variant='subtitle2'
+                color='primary'
+                sx={{ fontFamily: 'Tfont, serif', fontWeight: 700 }}
               >
-                Habilidades de {classe.name}
+                {ability.name} ({ability.nivel}º nível)
               </Typography>
-              {classe.abilities.map((ability) => (
-                <Box key={ability.name} sx={{ mb: 3 }}>
-                  <Typography
-                    variant='h6'
-                    color='primary'
-                    sx={{
-                      fontFamily: 'Tfont, serif',
-                      fontSize: '1rem',
-                      mb: 1,
-                    }}
-                  >
-                    {ability.name} ({ability.nivel}º nível)
-                    <AddToGrimoireButton
-                      itemId={encyclopediaIds.classAbility(
-                        classe,
-                        ability.name
-                      )}
-                      itemName={ability.name}
-                    />
-                  </Typography>
-                  <Typography
-                    variant='body1'
-                    sx={{
-                      marginBottom: '16px',
-                    }}
-                  >
-                    {ability.text}
-                  </Typography>
-                  {ability.name !==
-                    classe.abilities[classe.abilities.length - 1]?.name && (
-                    <Divider sx={{ my: 2 }} />
-                  )}
-                </Box>
-              ))}
+              <AddToGrimoireButton
+                itemId={encyclopediaIds.classAbility(classe, ability.name)}
+                itemName={ability.name}
+              />
+            </Box>
+            <Typography
+              variant='body2'
+              sx={{ whiteSpace: 'pre-line', lineHeight: 1.55 }}
+            >
+              {ability.text}
+            </Typography>
+          </Box>
+        ))}
+      </Stack>
 
-              <Divider sx={{ my: 3 }} />
+      <Divider sx={{ my: 1.5 }} />
 
-              {/* Powers */}
+      {/* Poderes de Classe (Lista Completa ou Árvore) */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 1,
+          mb: 1.5,
+        }}
+      >
+        <Typography
+          variant='subtitle2'
+          sx={{ fontFamily: 'Tfont, serif', fontWeight: 700 }}
+        >
+          Poderes de {classe.name} ({classe.powers.length})
+        </Typography>
+        <ToggleButtonGroup
+          size='small'
+          exclusive
+          value={sectionView}
+          onChange={(_e, next) => {
+            if (next) setSectionView(next as CardSectionView);
+          }}
+          aria-label={`Modo de exibição dos poderes de ${classe.name}`}
+        >
+          <ToggleButton value='tudo'>
+            <FormatListBulletedIcon fontSize='small' sx={{ mr: 0.5 }} />
+            Textos
+          </ToggleButton>
+          <ToggleButton value='arvore'>
+            <AccountTreeIcon fontSize='small' sx={{ mr: 0.5 }} />
+            Árvore
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
+
+      {sectionView === 'arvore' ? (
+        <ClassPowerTreesView classe={classe} supplements={supplements} />
+      ) : (
+        <Stack spacing={1.25} divider={<Divider flexItem />}>
+          {classe.powers.map((power) => (
+            <Box key={`${fullName}-pwr-${power.name}`}>
               <Box
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  flexWrap: 'wrap',
                   gap: 1,
-                  mb: 1,
                 }}
               >
                 <Typography
-                  variant='h6'
-                  sx={{ fontFamily: 'Tfont, serif', fontSize: '1.2rem' }}
+                  variant='subtitle2'
+                  color='primary'
+                  sx={{ fontFamily: 'Tfont, serif', fontWeight: 700 }}
                 >
-                  Poderes de {classe.name}
+                  {power.name}
                 </Typography>
-                {/* Duas leituras da mesma lista: o texto das regras e o desenho
-                    de quem exige quem. */}
-                <ToggleButtonGroup
-                  size='small'
-                  exclusive
-                  value={powersView}
-                  onChange={(_event, next) => {
-                    if (next) setPowersView(next as PowersView);
-                  }}
-                  aria-label='Como ver os poderes'
-                >
-                  <ToggleButton value='lista' aria-label='Ver em lista'>
-                    <FormatListBulletedIcon fontSize='small' sx={{ mr: 0.5 }} />
-                    Lista
-                  </ToggleButton>
-                  <ToggleButton value='arvore' aria-label='Ver em árvore'>
-                    <AccountTreeIcon fontSize='small' sx={{ mr: 0.5 }} />
-                    Árvore
-                  </ToggleButton>
-                </ToggleButtonGroup>
-              </Box>
-
-              {powersView === 'arvore' && (
-                <ClassPowerTreesView
-                  classe={classe}
-                  supplements={supplements}
+                <AddToGrimoireButton
+                  itemId={encyclopediaIds.classPower(classe, power.name)}
+                  itemName={power.name}
                 />
+              </Box>
+              <Typography
+                variant='body2'
+                sx={{ whiteSpace: 'pre-line', lineHeight: 1.55 }}
+              >
+                {power.text}
+              </Typography>
+              {power.requirements && power.requirements.length > 0 && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    mt: 0.75,
+                  }}
+                >
+                  {power.requirements.map((reqGroup, rIdx) => (
+                    <React.Fragment key={`${power.name}-rg-${rIdx}`}>
+                      {reqGroup.map((req, sIdx) => (
+                        <Chip
+                          key={`${power.name}-r-${sIdx}-${req.name || req.text}`}
+                          label={formatRequirement(req)}
+                          size='small'
+                          variant='outlined'
+                          color='secondary'
+                          sx={{ fontFamily: 'Tfont, serif', fontSize: '0.7rem' }}
+                        />
+                      ))}
+                      {power.requirements &&
+                        power.requirements.length > 1 &&
+                        rIdx + 1 < power.requirements.length && (
+                          <Typography variant='caption' sx={{ fontStyle: 'italic' }}>
+                            ou
+                          </Typography>
+                        )}
+                    </React.Fragment>
+                  ))}
+                </Box>
               )}
-
-              {powersView === 'lista' &&
-                classe.powers.map((power) => (
-                  <Box key={power.name} sx={{ mb: 3 }}>
-                    <Typography
-                      variant='h6'
-                      color='primary'
-                      sx={{
-                        fontFamily: 'Tfont, serif',
-                        fontSize: '1rem',
-                        mb: 1,
-                      }}
-                    >
-                      {power.name}
-                      <AddToGrimoireButton
-                        itemId={encyclopediaIds.classPower(classe, power.name)}
-                        itemName={power.name}
-                      />
-                    </Typography>
-                    <Typography
-                      variant='body1'
-                      sx={{
-                        marginBottom: '16px',
-                      }}
-                    >
-                      {power.text}
-                    </Typography>
-                    {power.requirements && power.requirements.length > 0 && (
-                      <Box sx={{ mt: 2 }}>
-                        <Typography variant='body2' gutterBottom>
-                          <strong>Requisitos:</strong>
-                        </Typography>
-                        {power.requirements.map((reqGroup, reqIndex) => (
-                          <Box
-                            key={`power-${power.name}-reqGroup-${reqGroup
-                              .map((r) => r.name || r.text)
-                              .join('-')}`}
-                            sx={{ mb: 1 }}
-                          >
-                            {reqGroup.map((req, _reqSubIndex) => (
-                              <Req
-                                key={`power-${power.name}-req-${
-                                  req.name || req.text
-                                }-${req.value || 'novalue'}`}
-                                requirement={req}
-                              />
-                            ))}
-                            {power.requirements &&
-                              power.requirements.length > 1 &&
-                              reqIndex + 1 < power.requirements.length && (
-                                <Typography
-                                  variant='body2'
-                                  sx={{ my: 1, fontStyle: 'italic' }}
-                                >
-                                  ou
-                                </Typography>
-                              )}
-                          </Box>
-                        ))}
-                      </Box>
-                    )}
-                    {power.name !==
-                      classe.powers[classe.powers.length - 1]?.name && (
-                      <Divider sx={{ my: 2 }} />
-                    )}
-                  </Box>
-                ))}
             </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
-    </>
+          ))}
+        </Stack>
+      )}
+    </DatabaseCard>
   );
 };
 
 const ClassesTable: React.FC = () => {
   const theme = useTheme();
   const [value, setValue] = useState('');
-  const [selectedSupplements, setSelectedSupplements] = useState<
-    SupplementId[]
-  >([
-    SupplementId.TORMENTA20_CORE,
-    SupplementId.TORMENTA20_AMEACAS_ARTON,
-    SupplementId.TORMENTA20_DEUSES_ARTON,
-    SupplementId.TORMENTA20_HEROIS_ARTON,
-  ]);
+  const [selectedSupplements, setSelectedSupplements] = useState<SupplementId[]>(
+    ALL_CLASS_SUPPLEMENTS
+  );
+  const [kindFilter, setKindFilter] = useState<ClassKindFilter>('ALL');
+  const [casterFilter, setCasterFilter] = useState<SpellcasterFilter>('ALL');
   const { params } = useRouteMatch<{ selectedClass?: string }>();
   const history = useHistory();
 
-  // Derive filtered classes using useMemo - this ensures data is always in sync with state
-  const classes = useMemo(() => {
+  const sortedClasses = useMemo(() => {
     const allClasses =
       dataRegistry.getClassesWithSupplementInfo(selectedSupplements);
-
-    // Ordena variantes logo após sua classe base
     const baseClasses = allClasses.filter((c) => !c.isVariant);
     const variants = allClasses.filter((c) => c.isVariant);
     const sorted: ClassWithSupplement[] = [];
@@ -601,34 +328,36 @@ const ClassesTable: React.FC = () => {
       sorted.push(base);
       sorted.push(...variants.filter((v) => v.baseClassName === base.name));
     });
-
-    const search = normalizeSearch(value);
-
-    if (search.length > 0) {
-      return sorted.filter((classe) => {
-        if (
-          normalizeSearch(classe.name).includes(search) ||
-          (classe.subname &&
-            normalizeSearch(classe.subname).includes(search)) ||
-          (classe.baseClassName &&
-            normalizeSearch(classe.baseClassName).includes(search))
-        ) {
-          return true;
-        }
-        const abltNames = classe.abilities.map((ablt) => ablt.name);
-        const powersnames = classe.powers.map((power) => power.name);
-
-        if (abltNames.find((name) => normalizeSearch(name).includes(search)))
-          return true;
-
-        if (powersnames.find((name) => normalizeSearch(name).includes(search)))
-          return true;
-
-        return false;
-      });
-    }
     return sorted;
-  }, [selectedSupplements, value]);
+  }, [selectedSupplements]);
+
+  const classes = useMemo(() => {
+    const search = normalizeSearch(value.trim());
+
+    return sortedClasses.filter((classe) => {
+      if (kindFilter === 'BASE' && classe.isVariant) return false;
+      if (kindFilter === 'VARIANT' && !classe.isVariant) return false;
+
+      const caster = isSpellcasterClass(classe);
+      if (casterFilter === 'CASTERS' && !caster) return false;
+      if (casterFilter === 'MARTIAL' && caster) return false;
+
+      if (search.length > 0) {
+        const haystack = normalizeSearch(
+          [
+            classe.name,
+            classe.subname || '',
+            classe.baseClassName || '',
+            ...classe.abilities.flatMap((a) => [a.name, a.text]),
+            ...classe.powers.flatMap((p) => [p.name, p.text]),
+          ].join(' ')
+        );
+        if (!haystack.includes(search)) return false;
+      }
+
+      return true;
+    });
+  }, [sortedClasses, value, kindFilter, casterFilter]);
 
   const handleToggleSupplement = (supplementId: SupplementId) => {
     setSelectedSupplements((prev) => {
@@ -636,7 +365,6 @@ const ClassesTable: React.FC = () => {
         if (prev.length === 1) return prev;
         return prev.filter((id) => id !== supplementId);
       }
-      // Keep CORE at the top when adding
       if (supplementId === SupplementId.TORMENTA20_CORE) {
         return [supplementId, ...prev];
       }
@@ -644,30 +372,34 @@ const ClassesTable: React.FC = () => {
     });
   };
 
-  // Handle URL params for deep linking
   useEffect(() => {
     const { selectedClass } = params;
-    if (selectedClass && selectedClass !== value) {
-      setValue(selectedClass);
+    if (selectedClass) {
+      setValue(decodeURIComponent(selectedClass));
     }
   }, [params]);
 
-  // Handle URL navigation when filtering results in single match
-  useEffect(() => {
-    if (classes.length > 1 && value) {
-      history.push('/database/classes');
-    }
-  }, [classes.length, value, history]);
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(event.target.value);
+    if (params.selectedClass) history.push('/database/classes');
+  };
 
   const onVoiceSearch = (newValue: string) => {
     setValue(newValue);
+    if (params.selectedClass) history.push('/database/classes');
   };
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValue(event.target.value);
+  const clearFilters = () => {
+    setValue('');
+    setKindFilter('ALL');
+    setCasterFilter('ALL');
+    if (params.selectedClass) history.push('/database/classes');
   };
 
-  // Get selected class for SEO
+  const normalizedSelected = params.selectedClass
+    ? normalizeSearch(decodeURIComponent(params.selectedClass))
+    : '';
+
   const selectedClassData =
     classes.length === 1 && params.selectedClass ? classes[0] : null;
   const classesSEO = getPageSEO('classes');
@@ -686,7 +418,9 @@ const ClassesTable: React.FC = () => {
             : classesSEO.description
         }
         url={`/database/classes${
-          selectedClassData ? `/${params.selectedClass}` : ''
+          selectedClassData && params.selectedClass
+            ? `/${params.selectedClass}`
+            : ''
         }`}
       />
       <Box>
@@ -694,21 +428,14 @@ const ClassesTable: React.FC = () => {
           Classes e Poderes de Classe
         </TormentaTitle>
 
-        {/* Supplement Filter */}
         <SupplementFilter
           selectedSupplements={selectedSupplements}
-          availableSupplements={[
-            SupplementId.TORMENTA20_CORE,
-            SupplementId.TORMENTA20_AMEACAS_ARTON,
-            SupplementId.TORMENTA20_DEUSES_ARTON,
-            SupplementId.TORMENTA20_HEROIS_ARTON,
-          ]}
+          availableSupplements={ALL_CLASS_SUPPLEMENTS}
           onToggleSupplement={handleToggleSupplement}
         />
 
-        {/* Search Input */}
         <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
-          <Box sx={{ width: '100%', maxWidth: 500 }}>
+          <Box sx={{ width: '100%', maxWidth: 540 }}>
             <SearchInput
               value={value}
               handleChange={handleChange}
@@ -717,69 +444,105 @@ const ClassesTable: React.FC = () => {
           </Box>
         </Box>
 
-        {/* Results Summary */}
+        <Paper
+          variant='outlined'
+          sx={{
+            p: { xs: 1.5, sm: 2 },
+            mb: 3,
+            borderRadius: 2,
+            borderColor: `${theme.palette.primary.main}33`,
+            bgcolor:
+              theme.palette.mode === 'dark'
+                ? 'rgba(255,255,255,0.02)'
+                : 'rgba(0,0,0,0.015)',
+          }}
+        >
+          <Stack spacing={1.5}>
+            <ClickableChipFilterGroup
+              label='Tipo de Classe:'
+              allLabel={`Todas (${sortedClasses.length})`}
+              options={[
+                {
+                  value: 'BASE',
+                  label: 'Classes Base',
+                  count: sortedClasses.filter((c) => !c.isVariant).length,
+                },
+                {
+                  value: 'VARIANT',
+                  label: 'Variantes',
+                  count: sortedClasses.filter((c) => c.isVariant).length,
+                },
+              ]}
+              selected={kindFilter === 'ALL' ? [] : [kindFilter]}
+              onToggle={(val) =>
+                setKindFilter(
+                  kindFilter === val ? 'ALL' : (val as ClassKindFilter)
+                )
+              }
+              onClear={() => setKindFilter('ALL')}
+            />
+
+            <ClickableChipFilterGroup
+              label='Perfil de Conjuração:'
+              allLabel='Todas'
+              options={[
+                { value: 'CASTERS', label: 'Conjuradoras' },
+                { value: 'MARTIAL', label: 'Não Conjuradoras' },
+              ]}
+              selected={casterFilter === 'ALL' ? [] : [casterFilter]}
+              onToggle={(val) =>
+                setCasterFilter(
+                  casterFilter === val ? 'ALL' : (val as SpellcasterFilter)
+                )
+              }
+              onClear={() => setCasterFilter('ALL')}
+            />
+          </Stack>
+        </Paper>
+
         <Box sx={{ mb: 2, textAlign: 'center' }}>
-          <Typography
-            variant='body1'
-            sx={{
-              color: 'text.secondary',
-            }}
-          >
-            {classes.length === 0
-              ? 'Nenhuma classe encontrada com os filtros aplicados'
-              : `${classes.length} classe${
-                  classes.length !== 1 ? 's' : ''
-                } encontrada${classes.length !== 1 ? 's' : ''}`}
+          <Typography variant='body1' sx={{ color: 'text.secondary' }}>
+            {classes.length} classe{classes.length !== 1 ? 's' : ''} exibida
+            {classes.length !== 1 ? 's' : ''}
           </Typography>
         </Box>
 
-        {/* Classes Table */}
-        <TableContainer component={Paper} className='table-container'>
-          <Table aria-label='classes table'>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={DESKTOP_ONLY_CELL_SX} />
-                <TableCell>
-                  <Typography
-                    variant='h6'
-                    sx={{
-                      fontFamily: 'Tfont, serif',
-                      color: theme.palette.primary.main,
-                    }}
-                  >
-                    Nome da Classe
-                  </Typography>
-                </TableCell>
-                <TableCell sx={DESKTOP_ONLY_CELL_SX} />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {classes.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={3} align='center' sx={{ py: 4 }}>
-                    <Typography
-                      variant='body1'
-                      sx={{
-                        color: 'text.secondary',
-                      }}
-                    >
-                      Nenhuma classe encontrada. Tente ajustar a busca.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                classes.map((cl) => (
-                  <Row
-                    key={cl.name}
-                    classe={cl}
-                    defaultOpen={classes.length === 1}
-                    supplements={selectedSupplements}
-                  />
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DatabaseGrid
+          variant='wide'
+          batchSize={12}
+          ariaLabel='Grade de classes'
+          resetKey={`${value}|${kindFilter}|${casterFilter}|${selectedSupplements.join(',')}`}
+          emptyState={
+            <Paper
+              variant='outlined'
+              sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}
+            >
+              <Typography variant='body1' sx={{ color: 'text.secondary', mb: 2 }}>
+                Nenhuma classe encontrada com os filtros aplicados.
+              </Typography>
+              <Button
+                variant='outlined'
+                size='small'
+                onClick={clearFilters}
+                sx={{ fontFamily: 'Tfont, serif' }}
+              >
+                Limpar filtros
+              </Button>
+            </Paper>
+          }
+        >
+          {classes.map((cl) => (
+            <ClassGridCard
+              key={`${cl.supplementId}-${classLabelOf(cl)}`}
+              classe={cl}
+              supplements={selectedSupplements}
+              highlighted={
+                Boolean(normalizedSelected) &&
+                normalizeSearch(cl.name) === normalizedSelected
+              }
+            />
+          ))}
+        </DatabaseGrid>
       </Box>
     </>
   );

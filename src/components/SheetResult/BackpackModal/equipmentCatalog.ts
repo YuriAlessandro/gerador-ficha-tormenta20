@@ -12,10 +12,19 @@ import { SupplementId } from '../../../types/supplement.types';
 /**
  * One subgroup inside a category (e.g. "Armas Simples" inside "Arma").
  * Categories without subgroups have a single subgroup whose label === category.
+ *
+ * `ontologyTag` drives the subfilter chips in `ItemSubfilterChips`:
+ *   - Armas: 'simples' | 'marcial' | 'exótica' | 'fogo' | 'munição'
+ *   - Armaduras: 'leve' | 'pesada'
+ *   - Alquimia: 'preparado' | 'catalisador' | 'veneno'
+ *   - Item Geral: 'aventureiro' | 'ferramentas'
+ *   - Demais: '' (sem subfiltro por subgrupo)
  */
 export interface CatalogSubgroup {
   key: string;
   label: string;
+  /** Tag ontológica usada pelos chips de subfiltro. '' = sem subfiltro. */
+  ontologyTag: string;
   items: Equipment[];
 }
 
@@ -29,26 +38,49 @@ const armasSubgroups: CatalogSubgroup[] = [
   {
     key: 'simples',
     label: 'Simples',
+    ontologyTag: 'simples',
     // Ataque Desarmado fica fora de `EQUIPAMENTOS.armasSimples` (não deve
     // entrar nos pools de "arma simples aleatória" das origens) — prepended
     // só aqui, na lista que o modal de adicionar item de fato renderiza.
     items: [Armas.ATAQUE_DESARMADO, ...EQUIPAMENTOS.armasSimples],
   },
-  { key: 'marciais', label: 'Marciais', items: EQUIPAMENTOS.armasMarciais },
-  { key: 'exoticas', label: 'Exóticas', items: EQUIPAMENTOS.armasExoticas },
-  { key: 'fogo', label: 'De Fogo', items: EQUIPAMENTOS.armasDeFogo },
-  { key: 'municao', label: 'Munição', items: EQUIPAMENTOS.municao },
+  {
+    key: 'marciais',
+    label: 'Marciais',
+    ontologyTag: 'marcial',
+    items: EQUIPAMENTOS.armasMarciais,
+  },
+  {
+    key: 'exoticas',
+    label: 'Exóticas',
+    ontologyTag: 'exótica',
+    items: EQUIPAMENTOS.armasExoticas,
+  },
+  {
+    key: 'fogo',
+    label: 'De Fogo',
+    ontologyTag: 'fogo',
+    items: EQUIPAMENTOS.armasDeFogo,
+  },
+  {
+    key: 'municao',
+    label: 'Munição',
+    ontologyTag: 'munição',
+    items: EQUIPAMENTOS.municao,
+  },
 ];
 
 const armadurasSubgroups: CatalogSubgroup[] = [
   {
     key: 'leves',
     label: 'Armaduras Leves',
+    ontologyTag: 'leve',
     items: EQUIPAMENTOS.armadurasLeves as Equipment[],
   },
   {
     key: 'pesadas',
     label: 'Armaduras Pesadas',
+    ontologyTag: 'pesada',
     items: EQUIPAMENTOS.armaduraPesada as Equipment[],
   },
 ];
@@ -57,6 +89,7 @@ const escudosSubgroups: CatalogSubgroup[] = [
   {
     key: 'escudos',
     label: 'Escudos',
+    ontologyTag: '',
     items: EQUIPAMENTOS.escudos as Equipment[],
   },
 ];
@@ -65,11 +98,13 @@ const itemGeralSubgroups: CatalogSubgroup[] = [
   {
     key: 'aventureiro',
     label: 'Equipamentos de Aventureiro',
+    ontologyTag: 'aventureiro',
     items: GENERAL_EQUIPMENT.adventurerEquipment,
   },
   {
     key: 'ferramentas',
     label: 'Ferramentas',
+    ontologyTag: 'ferramentas',
     items: GENERAL_EQUIPMENT.tools,
   },
 ];
@@ -78,16 +113,19 @@ const alquimiaSubgroups: CatalogSubgroup[] = [
   {
     key: 'preparados',
     label: 'Preparados',
+    ontologyTag: 'preparado',
     items: GENERAL_EQUIPMENT.alchemyPrepared,
   },
   {
     key: 'catalisadores',
     label: 'Catalisadores',
+    ontologyTag: 'catalisador',
     items: GENERAL_EQUIPMENT.alchemyCatalysts,
   },
   {
     key: 'venenos',
     label: 'Venenos',
+    ontologyTag: 'veneno',
     items: GENERAL_EQUIPMENT.alchemyPoisons,
   },
 ];
@@ -96,7 +134,7 @@ const flatSubgroup = (
   key: string,
   label: string,
   items: Equipment[]
-): CatalogSubgroup[] => [{ key, label, items }];
+): CatalogSubgroup[] => [{ key, label, ontologyTag: '', items }];
 
 export const EQUIPMENT_CATALOG: CatalogCategory[] = [
   { group: 'Arma', label: 'Armas', subgroups: armasSubgroups },
@@ -150,12 +188,28 @@ export function getCategory(group: equipGroup): CatalogCategory | undefined {
   return EQUIPMENT_CATALOG.find((c) => c.group === group);
 }
 
+/** Mapeamento de weaponCategory para ontologyTag de armas. */
+const WEAPON_CAT_ONTOLOGY: Record<string, string> = {
+  simple: 'simples',
+  martial: 'marcial',
+  exotic: 'exótica',
+  firearm: 'fogo',
+};
+
+/** Rótulo de seção para armas de suplemento com quebra por categoria. */
+const WEAPON_CAT_LABEL: Record<string, string> = {
+  simple: 'Simples',
+  martial: 'Marciais',
+  exotic: 'Exóticas',
+  firearm: 'De Fogo',
+};
+
 /**
  * Builds an equipment catalog merging core data with items from each active
- * supplement. Each non-core supplement contributes a single per-category
- * subgroup labelled with the supplement name, appended after the core
- * subgroups for that category. Items keep their `supplementId`/`supplementName`
- * fields (set by the registry) so the supplement chip still renders.
+ * supplement. For weapons, supplement items are split by `weaponCategory` so
+ * they integrate cleanly into the existing ontology subgroups. For armors,
+ * they are split by `isHeavyArmor`. Other categories get a single per-supplement
+ * subgroup appended after the core subgroups.
  */
 export function buildEquipmentCatalog(
   supplementIds: SupplementId[]
@@ -182,6 +236,58 @@ export function buildEquipmentCatalog(
     const { abbreviation: supplementAbbr } =
       dataRegistry.getSupplementLabel(supplementId);
 
+    const filterBy = <T extends Equipment>(arr: T[]): T[] =>
+      arr.filter((it) => it.supplementId === supplementId);
+
+    // ── Armas: split por weaponCategory ──────────────────────────────────
+    const suppWeapons = filterBy(merged.weapons);
+    (['simple', 'martial', 'exotic', 'firearm'] as const).forEach((wcat) => {
+      const catItems = suppWeapons.filter((w) => w.weaponCategory === wcat);
+      if (catItems.length === 0) return;
+      findCategory('Arma')?.subgroups.push({
+        key: `${supplementId}-${wcat}`,
+        label: `${WEAPON_CAT_LABEL[wcat]} — ${supplementAbbr}`,
+        ontologyTag: WEAPON_CAT_ONTOLOGY[wcat],
+        items: catItems,
+      });
+    });
+    // Armas sem weaponCategory (custom / ammo) como subgrupo genérico
+    const uncategorizedWeapons = suppWeapons.filter((w) => !w.weaponCategory);
+    if (uncategorizedWeapons.length > 0) {
+      findCategory('Arma')?.subgroups.push({
+        key: `${supplementId}-Arma`,
+        label: supplementAbbr,
+        ontologyTag: '',
+        items: uncategorizedWeapons,
+      });
+    }
+
+    // ── Armaduras: split por isHeavyArmor ────────────────────────────────
+    const suppArmors = filterBy(merged.armors);
+    const leveArmors = suppArmors.filter(
+      (a) => !(a as DefenseEquipment).isHeavyArmor
+    );
+    const pesadaArmors = suppArmors.filter(
+      (a) => !!(a as DefenseEquipment).isHeavyArmor
+    );
+    if (leveArmors.length > 0) {
+      findCategory('Armadura')?.subgroups.push({
+        key: `${supplementId}-armadura-leve`,
+        label: `Leves — ${supplementAbbr}`,
+        ontologyTag: 'leve',
+        items: leveArmors,
+      });
+    }
+    if (pesadaArmors.length > 0) {
+      findCategory('Armadura')?.subgroups.push({
+        key: `${supplementId}-armadura-pesada`,
+        label: `Pesadas — ${supplementAbbr}`,
+        ontologyTag: 'pesada',
+        items: pesadaArmors,
+      });
+    }
+
+    // ── Escudos e demais: subgrupo único por suplemento ──────────────────
     const append = (group: equipGroup, items: Equipment[]) => {
       if (items.length === 0) return;
       const cat = findCategory(group);
@@ -189,15 +295,11 @@ export function buildEquipmentCatalog(
       cat.subgroups.push({
         key: `${supplementId}-${group}`,
         label: supplementAbbr,
+        ontologyTag: '',
         items,
       });
     };
 
-    const filterBy = <T extends Equipment>(arr: T[]): T[] =>
-      arr.filter((it) => it.supplementId === supplementId);
-
-    append('Arma', filterBy(merged.weapons));
-    append('Armadura', filterBy(merged.armors));
     append('Escudo', filterBy(merged.shields));
     append('Item Geral', filterBy(merged.generalItems));
     append('Esotérico', filterBy(merged.esoteric));

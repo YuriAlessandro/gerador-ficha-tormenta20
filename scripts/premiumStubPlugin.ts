@@ -57,11 +57,12 @@ export function premiumStubPlugin(rootDir: string) {
       if (spec === '@/premium' || spec.startsWith('@/premium/')) {
         abs = path.resolve(rootDir, 'src', spec.slice(2));
       } else if (path.isAbsolute(spec)) {
-        abs = spec;
-      } else if (/^\.{1,2}\//.test(spec) && importer) {
+        abs = path.normalize(spec);
+      } else if (/^\.{1,2}[\\/]/.test(spec) && importer) {
         abs = path.resolve(path.dirname(importer), spec);
       }
       if (!abs) return null;
+      abs = path.normalize(abs);
       if (abs !== PREMIUM_DIR && !abs.startsWith(PREMIUM_DIR + path.sep))
         return null;
 

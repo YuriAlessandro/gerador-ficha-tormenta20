@@ -20,11 +20,17 @@ const renderDialog = (defaultCategory?: (typeof CATEGORY_ORDER)[number]) =>
     />
   );
 
+/**
+ * Os chips de categoria agora renderizam o rótulo com o total de itens,
+ * e.g. "Armadura (28)". Removemos o sufixo para comparar apenas o nome.
+ */
 const selectedTabName = (): string | null => {
   const selected = screen
     .getAllByRole('tab')
     .find((tab) => tab.getAttribute('aria-selected') === 'true');
-  return selected?.textContent ?? null;
+  return (
+    selected?.textContent?.replace(/\s*\(\d+\)\s*$/, '').trim() ?? null
+  );
 };
 
 describe('AddItemDialog — aba inicial', () => {
