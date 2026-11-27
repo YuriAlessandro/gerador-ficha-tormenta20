@@ -210,6 +210,26 @@ describe('requisito LANCAR_MAGIAS nos dados', () => {
     expect(open.map((p) => p.name)).toEqual([]);
   });
 
+  it('nenhum poder de Magia exige a habilidade de classe Magias', () => {
+    // "Todos os poderes deste grupo possuem como pré-requisito lançar
+    // magias" (JdA): magia de raça (Tatuagem Mística) também vale.
+    const byClassAbility = powers.MAGIA.filter((power) =>
+      (power.requirements ?? []).some((group) =>
+        group.some(
+          (rule) =>
+            rule.type === RequirementType.HABILIDADE && rule.name === 'Magias'
+        )
+      )
+    );
+    expect(byClassAbility.map((p) => p.name)).toEqual([]);
+  });
+
+  it('qareen com a magia da Tatuagem Mística pode pegar Foco em Magia', () => {
+    const foco = find('Foco em Magia');
+    expect(isPowerAvailable(sheetWith({}), foco)).toBe(false);
+    expect(isPowerAvailable(sheetWith({ spells: [ARCANE] }), foco)).toBe(true);
+  });
+
   it('Barreira Mística exige lançar magias; Magia Suspensa, 2º círculo', () => {
     expect(isPowerAvailable(sheetWith({}), find('Barreira Mística'))).toBe(
       false
