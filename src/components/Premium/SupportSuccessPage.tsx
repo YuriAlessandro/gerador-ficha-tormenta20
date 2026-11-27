@@ -156,7 +156,10 @@ const SupportSuccessPage: React.FC = () => {
               }}
             >
               Seu pagamento esta sendo processado. Isso pode levar alguns
-              instantes. Se o problema persistir, entre em contato conosco.
+              instantes — no Pix, a confirmação do banco pode levar alguns
+              minutos. Seu apoio é liberado automaticamente assim que o
+              pagamento for confirmado. Se o problema persistir, entre em
+              contato conosco.
             </Typography>
             <Stack spacing={2}>
               <Button
