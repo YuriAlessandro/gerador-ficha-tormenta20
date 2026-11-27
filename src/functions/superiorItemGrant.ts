@@ -20,7 +20,7 @@ import {
   isProficientWithDefense,
   isProficientWithWeapon,
 } from './proficiencies';
-import { getRandomItemFromArray } from './randomUtils';
+import { getRandomItemFromArray, pickFromArray } from './randomUtils';
 
 /**
  * Item superior concedido por habilidade (ex.: Cavaleiro do Reino, do Vassalo:
@@ -114,7 +114,10 @@ export function pickRandomSuperiorItem(
     .filter(({ items }) => items.length > 0);
   if (options.length === 0) return undefined;
 
-  const { group, items } = getRandomItemFromArray(options);
+  const { group, items } = getRandomItemFromArray(
+    options,
+    'Item superior: tipo'
+  );
   const improvements = dataRegistry.getImprovementsBySupplements(supplements);
   const simple = (
     group === 'Arma' ? improvements.weapons : improvements.armors
@@ -123,7 +126,7 @@ export function pickRandomSuperiorItem(
   );
   return {
     group,
-    itemName: getRandomItemFromArray(items).nome,
-    modifications: _.sampleSize(simple, pick),
+    itemName: getRandomItemFromArray(items, 'Item superior: item').nome,
+    modifications: pickFromArray(simple, pick, 'Item superior: melhorias'),
   };
 }

@@ -81,7 +81,8 @@ export function resolveSchoolChoice(spellPath: SpellPath): void {
   const pool = spellPath.schoolChoice.available ?? allSpellSchools;
   spellPath.schools = pickFromArray(
     pool,
-    Math.min(spellPath.schoolChoice.count, pool.length)
+    Math.min(spellPath.schoolChoice.count, pool.length),
+    'Escolas de magia'
   );
 }
 
@@ -282,7 +283,12 @@ export function buildSpellPool({
       ).filter((spell) => crossSchools.includes(spell.school));
       const offered =
         crossTraditionMode === 'sampleOnePerCircle' && circleSpells.length > 0
-          ? [getRandomItemFromArray(circleSpells)]
+          ? [
+              getRandomItemFromArray(
+                circleSpells,
+                'Magia de outra tradição (uma por círculo)'
+              ),
+            ]
           : circleSpells;
       crossSpells.push(...offered);
       crossNamesByCircle.set(
@@ -372,18 +378,21 @@ export function pickWithMinimumCrossTradition(
   qty: number,
   minCross: number
 ): Spell[] {
-  if (minCross <= 0 || qty <= 0) return pickFromArray([...pool], qty);
+  if (minCross <= 0 || qty <= 0) return pickFromArray([...pool], qty, 'Magias');
 
   const crossPool = pool.filter((spell) => crossNames.has(spell.nome));
   const nativePool = pool.filter((spell) => !crossNames.has(spell.nome));
 
   const crossQty = Math.min(minCross, qty, crossPool.length);
-  const picked = pickFromArray(crossPool, crossQty);
+  const picked = pickFromArray(crossPool, crossQty, 'Magias de outra tradição');
   const pickedNames = new Set(picked.map((spell) => spell.nome));
 
   const remaining = [
     ...nativePool,
     ...crossPool.filter((spell) => !pickedNames.has(spell.nome)),
   ];
-  return [...picked, ...pickFromArray(remaining, qty - picked.length)];
+  return [
+    ...picked,
+    ...pickFromArray(remaining, qty - picked.length, 'Magias'),
+  ];
 }

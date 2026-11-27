@@ -6,7 +6,10 @@ import {
   getDefaultSize,
   getDefaultDisplacement,
 } from '../../races/functions/functions';
-import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import {
+  getRandomItemFromArray,
+  randomFloat,
+} from '../../../../../functions/randomUtils';
 import HUMANO from '../../races/humano';
 
 const yidishanAbilities: RaceAbility[] = [
@@ -68,10 +71,10 @@ const YIDISHAN: Race = {
         element.name !== 'Yidishan'
     );
 
-    const randomNumber = Math.random();
+    const randomNumber = randomFloat('Raça antiga (humano ou outra)');
     let oldRace = HUMANO;
     if (randomNumber < 0.2) {
-      oldRace = getRandomItemFromArray(validRaces);
+      oldRace = getRandomItemFromArray(validRaces, 'Raça antiga');
     }
 
     return {

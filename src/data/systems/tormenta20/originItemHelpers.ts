@@ -88,7 +88,7 @@ export function itemChoice(
   // Com o pool vazio o sorteio devolveria `undefined`; cai para o próprio
   // rótulo, que os consumidores já sabem tratar como item de texto livre.
   const fallback = validOptions.length
-    ? getRandomItemFromArray(validOptions)
+    ? getRandomItemFromArray(validOptions, 'Item da origem')
     : label;
 
   const withExtras = (equipment: Equipment | string): Equipment | string =>

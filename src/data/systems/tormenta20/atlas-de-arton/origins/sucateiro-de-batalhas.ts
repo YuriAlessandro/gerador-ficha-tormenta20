@@ -45,7 +45,7 @@ const SUCATEIRO_DE_BATALHAS: Origin = {
     },
   ],
   // T$ 4d6 (Atlas p. 478). Vai para o dinheiro da ficha, não para a mochila.
-  getMoney: () => rollDice(4, 6),
+  getMoney: () => rollDice(4, 6, 0, 'Dinheiro da origem (4d6)'),
 };
 
 export default SUCATEIRO_DE_BATALHAS;

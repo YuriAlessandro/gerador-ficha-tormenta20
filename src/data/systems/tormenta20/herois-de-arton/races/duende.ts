@@ -6,6 +6,7 @@ import Skill from '../../../../../interfaces/Skills';
 import {
   getRandomItemFromArray,
   pickFromArray,
+  randomFloat,
 } from '../../../../../functions/randomUtils';
 import { Atributo } from '../../atributos';
 import {
@@ -138,17 +139,20 @@ function generateRandomBonusAttributes(isAnimal: boolean): Atributo[] {
   const allAttrs = Object.values(Atributo);
 
   // Dons: sempre dois atributos diferentes
-  const firstAttr = getRandomItemFromArray(allAttrs);
+  const firstAttr = getRandomItemFromArray(allAttrs, 'Duende: dom');
   const remainingAttrs = allAttrs.filter((a) => a !== firstAttr);
-  const secondAttr = getRandomItemFromArray(remainingAttrs);
+  const secondAttr = getRandomItemFromArray(remainingAttrs, 'Duende: dom');
 
   if (isAnimal) {
     // Natureza Animal: +1 em um atributo (pode acumular com os Dons)
     // 50% de chance de repetir um dos Dons, 50% atributo aleatório
-    const shouldRepeat = Math.random() > 0.5;
+    const shouldRepeat = randomFloat('Duende: repetir um dom') > 0.5;
     const thirdAttr = shouldRepeat
-      ? getRandomItemFromArray([firstAttr, secondAttr])
-      : getRandomItemFromArray(allAttrs);
+      ? getRandomItemFromArray(
+          [firstAttr, secondAttr],
+          'Duende: atributo da Natureza Animal'
+        )
+      : getRandomItemFromArray(allAttrs, 'Duende: atributo da Natureza Animal');
     return [firstAttr, secondAttr, thirdAttr];
   }
 
@@ -195,10 +199,23 @@ const DUENDE: Race = {
    */
   setup: (race) => {
     // Gerar escolhas aleatórias
-    const randomNatureId = getRandomItemFromArray(DUENDE_NATURE_NAMES);
-    const randomSizeId = getRandomItemFromArray(DUENDE_SIZE_NAMES);
-    const randomPresentes = pickFromArray(DUENDE_PRESENTE_NAMES, 3);
-    const randomTabuSkill = getRandomItemFromArray(DUENDE_TABU_SKILLS);
+    const randomNatureId = getRandomItemFromArray(
+      DUENDE_NATURE_NAMES,
+      'Duende: natureza'
+    );
+    const randomSizeId = getRandomItemFromArray(
+      DUENDE_SIZE_NAMES,
+      'Duende: tamanho'
+    );
+    const randomPresentes = pickFromArray(
+      DUENDE_PRESENTE_NAMES,
+      3,
+      'Duende: presentes'
+    );
+    const randomTabuSkill = getRandomItemFromArray(
+      DUENDE_TABU_SKILLS,
+      'Duende: tabu'
+    );
 
     // Gerar atributos dos Dons
     const isAnimal = randomNatureId === 'animal';
