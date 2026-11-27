@@ -11,6 +11,7 @@ import {
 import {
   Armaduras,
   Armas,
+  isHeavyArmor,
 } from '../../../../data/systems/tormenta20/equipamentos';
 
 /**
@@ -646,5 +647,53 @@ describe('buildSavedItem — efeitos de item personalizado', () => {
     };
     const edited = save(catalogo, mkForm({ sheetBonuses: [] }));
     expect(edited.sheetBonuses).toEqual([bonus(1)]);
+  });
+});
+
+describe('buildSavedItem — desmarcar "Pesada" em armadura de catálogo', () => {
+  // Cota élfica (JdA): cota de malha defensora de mitral que conta como leve.
+  // O nome de catálogo vencia `isHeavyArmor: false` e a ficha seguia sem
+  // somar Destreza na Defesa.
+  const cota = Armaduras.COTA_DE_MALHA as DefenseEquipment;
+
+  it('desmarcada, deixa de ser pesada', () => {
+    const result = save(
+      cota,
+      mkForm({ isHeavyArmor: false })
+    ) as DefenseEquipment;
+    expect(result.lightArmorOverride).toBe(true);
+    expect(isHeavyArmor(result)).toBe(false);
+  });
+
+  it('marcada de novo, volta a ser pesada e o override some', () => {
+    const light = save(
+      cota,
+      mkForm({ isHeavyArmor: false })
+    ) as DefenseEquipment;
+    const result = save(
+      light,
+      mkForm({ isHeavyArmor: true })
+    ) as DefenseEquipment;
+    expect(result.lightArmorOverride).toBeUndefined();
+    expect(isHeavyArmor(result)).toBe(true);
+  });
+
+  it('ficha antiga com `isHeavyArmor: false` gravado por padrão segue pesada', () => {
+    expect(isHeavyArmor({ ...cota, isHeavyArmor: false })).toBe(true);
+  });
+
+  it('armadura que não é de catálogo não ganha override', () => {
+    const custom: DefenseEquipment = {
+      nome: 'Gibão da Casa',
+      group: 'Armadura',
+      defenseBonus: 3,
+      armorPenalty: 1,
+    };
+    const result = save(
+      custom,
+      mkForm({ isHeavyArmor: false })
+    ) as DefenseEquipment;
+    expect(result.lightArmorOverride).toBeUndefined();
+    expect(isHeavyArmor(result)).toBe(false);
   });
 });

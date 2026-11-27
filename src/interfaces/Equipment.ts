@@ -515,6 +515,12 @@ export interface DefenseEquipment extends Equipment {
   baseArmorPenalty?: number;
   // Flag to indicate if this is a heavy armor (affects defense calculation)
   isHeavyArmor?: boolean;
+  /**
+   * O usuário desmarcou "Pesada" numa armadura que o catálogo diz pesada
+   * (Cota élfica: cota de malha que conta como leve). Sem isto, o nome de
+   * catálogo vence `isHeavyArmor: false` — ver `isHeavyArmor()`.
+   */
+  lightArmorOverride?: true;
 }
 
 export interface CombatItems {

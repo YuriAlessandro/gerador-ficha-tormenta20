@@ -907,16 +907,33 @@ const KNOWN_HEAVY_NAMES = new Set([
  * `isHeavyArmor: false` porque o editor de item gravava `false` por padrão. O
  * nome vence, o que auto-cura fichas já corrompidas sem precisar de migração.
  *
- * Efeito colateral intencional: o checkbox "Armadura pesada" do editor não
- * tem efeito nesses nomes conhecidos. Marcar como leve salva `false`, mas o
- * helper continua devolvendo `true`.
+ * A exceção é `lightArmorOverride`: o editor só grava esse campo quando o
+ * usuário desmarca "Pesada" de propósito numa armadura de catálogo (Cota
+ * élfica), então ele vence o nome. Ver `heavyArmorFields`.
  *
  * Para itens não listados (custom, homebrew), o valor vem da propriedade
  * `isHeavyArmor` definida no dado ou editada pelo usuário.
  */
 export function isHeavyArmor(armor: DefenseEquipment): boolean {
+  if (armor.lightArmorOverride) return false;
   if (KNOWN_HEAVY_NAMES.has(armor.nome)) return true;
   return armor.isHeavyArmor === true;
+}
+
+/**
+ * Campos que os editores de item gravam a partir do checkbox "Pesada". O
+ * override só existe quando o usuário contraria o catálogo; nos demais casos
+ * ele some, e o `false` antigo de ficha corrompida continua sendo ignorado.
+ */
+export function heavyArmorFields(
+  nome: string,
+  heavy: boolean
+): Pick<DefenseEquipment, 'isHeavyArmor' | 'lightArmorOverride'> {
+  return {
+    isHeavyArmor: heavy,
+    lightArmorOverride:
+      !heavy && KNOWN_HEAVY_NAMES.has(nome) ? true : undefined,
+  };
 }
 
 export const bardInstruments: string[] = [
