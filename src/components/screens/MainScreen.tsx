@@ -1227,6 +1227,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         sheet={randomSheet}
         isDarkMode={isDarkMode}
         onSheetUpdate={handleSheetUpdate}
+        allowBuildFromSheet
       />
     );
   };
