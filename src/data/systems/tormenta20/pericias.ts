@@ -26,22 +26,24 @@ export function getNotUsedSkillsFromAllowed(
 
 export function getNotRepeatedRandomSkill(
   usedSkills: Skill[],
-  allowedSkills?: Skill[]
+  allowedSkills?: Skill[],
+  label = 'Perícia'
 ): Skill {
   const notRepeatedSkills = allowedSkills
     ? getNotUsedSkillsFromAllowed(usedSkills, allowedSkills)
     : getNotUsedSkillsFromAllowed(usedSkills);
 
-  return getRandomItemFromArray(notRepeatedSkills);
+  return getRandomItemFromArray(notRepeatedSkills, label);
 }
 
 export function getNotRepeatedSkillsByQtd(
   usedSkills: Skill[],
   qtd: number,
-  allowedSkills?: Skill[]
+  allowedSkills?: Skill[],
+  label = 'Perícias'
 ): Skill[] {
   const notUsed = getNotUsedSkillsFromAllowed(usedSkills, allowedSkills);
-  return pickFromArray(notUsed, qtd);
+  return pickFromArray(notUsed, qtd, label);
 }
 
 export function expandOficioInBasicas(
@@ -82,7 +84,11 @@ const baseSkillsStrategies: Record<
     return [...usedSkills, ...notUsed];
   },
   or(baseSkills: Skill[], usedSkills: Skill[]) {
-    const newSkill = getNotRepeatedRandomSkill(usedSkills, baseSkills);
+    const newSkill = getNotRepeatedRandomSkill(
+      usedSkills,
+      baseSkills,
+      'Perícia de classe (escolha entre opções)'
+    );
     return [...usedSkills, newSkill];
   },
 };
@@ -132,6 +138,7 @@ export function getRemainingSkills(
   return getNotRepeatedSkillsByQtd(
     usedSkills,
     classe.periciasrestantes.qtd,
-    classe.periciasrestantes.list
+    classe.periciasrestantes.list,
+    'Perícias da classe'
   );
 }

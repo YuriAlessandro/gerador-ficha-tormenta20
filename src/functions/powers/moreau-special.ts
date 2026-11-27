@@ -42,7 +42,10 @@ export function applyMoreauSapiencia(_sheet: CharacterSheet): SubStep[] {
     );
 
     if (availableSpells.length > 0) {
-      const selectedSpell = getRandomItemFromArray<Spell>(availableSpells);
+      const selectedSpell = getRandomItemFromArray<Spell>(
+        availableSpells,
+        'Sapiência: magia de Adivinhação'
+      );
 
       const spellWithCustomAttr = {
         ...selectedSpell,

@@ -104,7 +104,10 @@ import {
   pickFaith,
   pickFromAllowed,
   pickFromArray,
+  randomFloat,
   rollDice,
+  shuffleArray,
+  getRandomArbitrary,
 } from './randomUtils';
 import { applyTormentaAttributePenalty } from './tormentaCharismaPenalty';
 import todasProficiencias from '../data/systems/tormenta20/proficiencias';
@@ -399,7 +402,10 @@ function ensureInventorSpecialization(skills: Skill[]): Skill[] {
 
   // Choose a random specialization skill if none exists
   const specializations = Object.values(INVENTOR_SPECIALIZATIONS);
-  const randomSpecialization = getRandomItemFromArray(specializations);
+  const randomSpecialization = getRandomItemFromArray(
+    specializations,
+    'Especialização do Inventor'
+  );
 
   return [...skills, randomSpecialization.skill];
 }
@@ -511,7 +517,7 @@ function replaceGenericOficioWithSpecific(
 
     // Return a random specific oficio
     return finalOficios.length > 0
-      ? getRandomItemFromArray(finalOficios)
+      ? getRandomItemFromArray(finalOficios, 'Perícia de Ofício')
       : Skill.OFICIO_ARTESANATO; // Final fallback
   });
 }
@@ -530,7 +536,7 @@ export function getInitialMoneyWithDetails(level: number): {
     // Roll 4 individual dice to show the breakdown
     const dice: number[] = [];
     for (let i = 0; i < 4; i += 1) {
-      dice.push(Math.floor(Math.random() * 6) + 1);
+      dice.push(getRandomArbitrary(1, 6, 'Dinheiro inicial (4d6)'));
     }
     const total = dice.reduce((sum, die) => sum + die, 0);
     return {
@@ -562,7 +568,7 @@ export function getInitialMoneyWithDetails(level: number): {
   };
 
   return {
-    amount: fixedAmounts[level] || rollDice(4, 6, 0),
+    amount: fixedAmounts[level] || rollDice(4, 6, 0, 'Dinheiro inicial (4d6)'),
   };
 }
 
@@ -575,9 +581,9 @@ export function getInitialMoneyWithDetails(level: number): {
 const MIN_ATTRIBUTE_VALUE = 8;
 
 function rollAttributeWithMinimum(): number {
-  let value = rollDice(4, 6, 1);
+  let value = rollDice(4, 6, 1, 'Valor de atributo (4d6)');
   while (value < MIN_ATTRIBUTE_VALUE) {
-    value = rollDice(4, 6, 1);
+    value = rollDice(4, 6, 1, 'Valor de atributo (4d6)');
   }
   return value;
 }
@@ -617,7 +623,10 @@ function selectAttributeToChange(
     );
 
     return getRandomItemFromArray<Atributo>(
-      atributosPreferidos.length > 0 ? atributosPreferidos : atributosPermitidos
+      atributosPreferidos.length > 0
+        ? atributosPreferidos
+        : atributosPermitidos,
+      'Atributo racial livre'
     );
   }
 
@@ -786,7 +795,10 @@ export function rollAttributeVariant(race: Race): {
     return { race };
   }
 
-  const variant = getRandomItemFromArray(race.attributeVariants);
+  const variant = getRandomItemFromArray(
+    race.attributeVariants,
+    'Variante de atributos da raça'
+  );
   return { race: applyAttributeVariant(race, variant), variant };
 }
 
@@ -901,7 +913,10 @@ function generateFinalAttributes(
   const atributosNumericos = rollAttributeValues();
   let freeAttrs = Object.values(Atributo);
 
-  const priorityAttrs = _.shuffle(classe.attrPriority);
+  const priorityAttrs = shuffleArray(
+    classe.attrPriority,
+    'Prioridade de atributos'
+  );
   const priorityGeneratedAttrs = {} as CharacterAttributes;
 
   priorityAttrs.forEach((attr) => {
@@ -962,7 +977,7 @@ export function selectRace(selectedOptions: SelectedOptions): Race {
     if (race) return race;
   }
 
-  const randomRace = getRandomItemFromArray(races);
+  const randomRace = getRandomItemFromArray(races, 'Raça');
   // Use randomRace directly to support race variants with same name.
   // Clona (como getRaceByName faz) porque getRacesBySupplements devolve as
   // instâncias compartilhadas do catálogo — a ficha muta raca in-place.
@@ -1039,7 +1054,10 @@ function getClassByFilter(selectedOptions: SelectedOptions) {
   ) as RoleNames | undefined;
 
   if (foundRole) {
-    const choosenClassName = getRandomItemFromArray(roles[foundRole]);
+    const choosenClassName = getRandomItemFromArray(
+      roles[foundRole],
+      'Classe da função'
+    );
 
     return classes.find((classe) => classByName(classe, choosenClassName));
   }
@@ -1069,7 +1087,8 @@ export function selectClass(
     );
   }
 
-  if (!selectedClass) selectedClass = getRandomItemFromArray(allClasses);
+  if (!selectedClass)
+    selectedClass = getRandomItemFromArray(allClasses, 'Classe');
   selectedClass = _.cloneDeep(selectedClass);
   if (selectedClass.setup)
     return selectedClass.setup(selectedClass, supplements);
@@ -1084,7 +1103,12 @@ export function getAttributesSkills(
   usedSkills: Skill[]
 ): Skill[] {
   if (attributes.Inteligência.value > 0) {
-    return getNotRepeatedSkillsByQtd(usedSkills, attributes.Inteligência.value);
+    return getNotRepeatedSkillsByQtd(
+      usedSkills,
+      attributes.Inteligência.value,
+      undefined,
+      'Perícias por Inteligência'
+    );
   }
 
   return [];
@@ -1234,10 +1258,14 @@ export function getSkillsAndPowersByClassAndOrigin(
 function getWeapons(classe: ClassDescription) {
   const weapons = [];
 
-  weapons.push(getRandomItemFromArray(EQUIPAMENTOS.armasSimples));
+  weapons.push(
+    getRandomItemFromArray(EQUIPAMENTOS.armasSimples, 'Arma simples inicial')
+  );
 
   if (classe.proficiencias.includes(todasProficiencias.MARCIAIS)) {
-    weapons.push(getRandomItemFromArray(EQUIPAMENTOS.armasMarciais));
+    weapons.push(
+      getRandomItemFromArray(EQUIPAMENTOS.armasMarciais, 'Arma marcial inicial')
+    );
   }
 
   return weapons;
@@ -1277,7 +1305,7 @@ function getArmors(classe: ClassDescription, currentBag?: Bag) {
     armors.push(Armaduras.BRUNEA);
   } else if (!isClassOrVariantOf(classe, 'Arcanista')) {
     // Variante conta: o Necromante é Arcanista e também não recebe armadura.
-    armors.push(getRandomItemFromArray(ARMADURAS_INICIAIS));
+    armors.push(getRandomItemFromArray(ARMADURAS_INICIAIS, 'Armadura inicial'));
   }
 
   return armors;
@@ -1293,7 +1321,10 @@ export function getClassEquipments(
 
   const instruments: Equipment[] = [];
   if (isClassOrVariantOf(classe, 'Bardo')) {
-    const instrumentName = getRandomItemFromArray(bardInstruments);
+    const instrumentName = getRandomItemFromArray(
+      bardInstruments,
+      'Instrumento musical inicial'
+    );
     instruments.push({
       nome: instrumentName,
       group: 'Item Geral',
@@ -1345,7 +1376,9 @@ export function buildClassEquipmentsFromChoices(
   const instruments: Equipment[] = [];
   if (isClassOrVariantOf(classe, 'Bardo')) {
     instruments.push({
-      nome: choices.instrument || getRandomItemFromArray(bardInstruments),
+      nome:
+        choices.instrument ||
+        getRandomItemFromArray(bardInstruments, 'Instrumento musical inicial'),
       group: 'Item Geral',
     });
   }
@@ -1416,11 +1449,17 @@ function getPoderesConcedidos(
     // Limita à quantidade disponível (divindades homebrew podem ter < poderes
     // do que a classe pede) — evita entradas `undefined`.
     const n = Math.min(qtd, divindade.poderes.length);
-    const poderesConcedidos = pickFromArray(divindade.poderes, n);
+    const poderesConcedidos = pickFromArray(
+      divindade.poderes,
+      n,
+      'Poderes concedidos da divindade'
+    );
     return [...poderesConcedidos];
   }
 
-  return [getRandomItemFromArray(divindade.poderes)];
+  return [
+    getRandomItemFromArray(divindade.poderes, 'Poder concedido da divindade'),
+  ];
 }
 
 // Chance de uma ficha aleatória devota cultuar uma divindade de suplemento
@@ -1436,7 +1475,7 @@ function getReligiosidade(
 ): CharacterReligion | undefined {
   if (selectedOption === '--') return undefined;
 
-  let isDevoto = Math.random() <= classe.probDevoto;
+  let isDevoto = randomFloat('Ser devoto') <= classe.probDevoto;
   if (selectedOption) isDevoto = true;
 
   if (!isDevoto) {
@@ -1453,10 +1492,10 @@ function getReligiosidade(
     const supplementDeities = dataRegistry.getSupplementDeities(supplements);
     const pickSupplementDeity =
       supplementDeities.length > 0 &&
-      Math.random() < SUPPLEMENT_DEITY_RANDOM_CHANCE;
+      randomFloat('Divindade de suplemento') < SUPPLEMENT_DEITY_RANDOM_CHANCE;
 
     if (pickSupplementDeity) {
-      divindade = getRandomItemFromArray(supplementDeities);
+      divindade = getRandomItemFromArray(supplementDeities, 'Divindade');
     } else {
       const classFaithProbability =
         classe.faithProbability || standardFaithProbability;
@@ -1468,7 +1507,7 @@ function getReligiosidade(
         raceFaithProbability
       );
 
-      const divindadeName = pickFaith(faithProbability);
+      const divindadeName = pickFaith(faithProbability, 'Divindade');
       divindade =
         dataRegistry.getDeityByName(
           DivindadeEnum[divindadeName].name,
@@ -1970,7 +2009,10 @@ export const applyPower = (
             // Optional and no choice: skip (no bonus, no history entry).
             return;
           }
-          selectedWeapon = getRandomItemFromArray(allWeaponNames);
+          selectedWeapon = getRandomItemFromArray(
+            allWeaponNames,
+            `${powerOrAbility.name}: arma`
+          );
         }
 
         bonuses.forEach((bonus) => {
@@ -2118,7 +2160,8 @@ export const applyPower = (
           : pickFromAllowed(
               action.availableSkills,
               remainingPick,
-              sheet.skills
+              sheet.skills,
+              `${powerOrAbility.name}: perícias`
             );
 
         sheet.skills.push(...pickedSkills);
@@ -2371,7 +2414,8 @@ export const applyPower = (
           pickFromAllowed(
             availableProficiencies,
             sheetAction.action.pick,
-            sheet.classe.proficiencias
+            sheet.classe.proficiencias,
+            `${powerOrAbility.name}: proficiências`
           );
 
         sheet.classe.proficiencias.push(...pickedProficiencies);
@@ -2410,7 +2454,8 @@ export const applyPower = (
           : pickFromAllowed(
               sheetAction.action.availableSkills,
               sheetAction.action.pick,
-              sheet.skills
+              sheet.skills,
+              `${powerOrAbility.name}: perícias`
             );
 
         sheet.skills.push(...pickedSkills);
@@ -2479,7 +2524,8 @@ export const applyPower = (
           pickFromAllowed(
             availablePool,
             sheetAction.action.pick,
-            sheet.generalPowers
+            sheet.generalPowers,
+            `${powerOrAbility.name}: poderes`
           );
 
         sheet.generalPowers.push(...pickedPowers);
@@ -2697,7 +2743,10 @@ export const applyPower = (
           targetAttribute = firstPriorityAttribute;
         } else if (availableAttributes.length > 0) {
           // If no priority attributes available, pick any from available
-          targetAttribute = getRandomItemFromArray(availableAttributes);
+          targetAttribute = getRandomItemFromArray(
+            availableAttributes,
+            `${powerOrAbility.name}: atributo`
+          );
         }
 
         // Perícias escolhidas para os aumentos de Inteligência desta ação,
@@ -2745,7 +2794,9 @@ export const applyPower = (
             ...manual,
             ...pickFromAllowed(
               options.filter((skill) => !manual.includes(skill)),
-              skillCount - manual.length
+              skillCount - manual.length,
+              [],
+              `${powerOrAbility.name}: perícias do aumento de Inteligência`
             ),
           ];
           if (skills.length === 0) return changes;
@@ -2794,7 +2845,11 @@ export const applyPower = (
                 ? manual
                 : (sheet.classe.attrPriority ?? []).find((attr) =>
                     remaining.includes(attr)
-                  ) ?? getRandomItemFromArray(remaining);
+                  ) ??
+                  getRandomItemFromArray(
+                    remaining,
+                    `${powerOrAbility.name}: atributo`
+                  );
 
             chosenHere.push(next);
             actionChanges.push(...increaseAttributeValue(next));
@@ -2843,7 +2898,7 @@ export const applyPower = (
             }
           }
           selectedFamiliar =
-            extracted ?? getRandomItemFromArray(availableFamiliars);
+            extracted ?? getRandomItemFromArray(availableFamiliars, 'Familiar');
         }
 
         // Get familiar data
@@ -2910,7 +2965,9 @@ export const applyPower = (
               if (matchedEntry) [extracted] = matchedEntry;
             }
           }
-          selectedTotem = extracted ?? getRandomItemFromArray(availableTotems);
+          selectedTotem =
+            extracted ??
+            getRandomItemFromArray(availableTotems, 'Totem espiritual');
         }
 
         // Get totem data
@@ -3004,7 +3061,8 @@ export const applyPower = (
             ? manualSkills.slice(0, pick)
             : pickFromArray(
                 trainedSkills,
-                Math.min(pick, trainedSkills.length)
+                Math.min(pick, trainedSkills.length),
+                `${powerOrAbility.name}: perícias treinadas`
               );
 
         if (chosenSkills.length > 0) {
@@ -3055,7 +3113,10 @@ export const applyPower = (
         const selectedClass =
           manuallyPickedClass ??
           (randomPool.length > 0
-            ? getRandomItemFromArray(randomPool)
+            ? getRandomItemFromArray(
+                randomPool,
+                `${powerOrAbility.name}: classe da habilidade`
+              )
             : undefined);
 
         // Get abilities of the specified level
@@ -3068,8 +3129,15 @@ export const applyPower = (
           const selectedAbility = manuallyPickedClass
             ? levelAbilities.find(
                 (ability) => ability.name === manualSelection?.abilityName
-              ) ?? getRandomItemFromArray(levelAbilities)
-            : getRandomItemFromArray(levelAbilities);
+              ) ??
+              getRandomItemFromArray(
+                levelAbilities,
+                `${powerOrAbility.name}: habilidade de classe`
+              )
+            : getRandomItemFromArray(
+                levelAbilities,
+                `${powerOrAbility.name}: habilidade de classe`
+              );
 
           // Add the ability to classPowers array
           if (!sheet.classPowers) {
@@ -3339,9 +3407,15 @@ export const applyPower = (
             const manualPower = manualSelections.powers[0];
             selectedPower =
               availablePowers.find((p) => p.name === manualPower.name) ||
-              getRandomItemFromArray(availablePowers);
+              getRandomItemFromArray(
+                availablePowers,
+                `${powerOrAbility.name}: poder de classe`
+              );
           } else {
-            selectedPower = getRandomItemFromArray(availablePowers);
+            selectedPower = getRandomItemFromArray(
+              availablePowers,
+              `${powerOrAbility.name}: poder de classe`
+            );
           }
 
           // Add power to classPowers array
@@ -3542,7 +3616,10 @@ export const applyPower = (
             );
             if (withinBudget.length === 0) break;
 
-            const item = getRandomItemFromArray(withinBudget);
+            const item = getRandomItemFromArray(
+              withinBudget,
+              `${powerOrAbility.name}: item alquímico`
+            );
             selectedItems.push(item);
             remainingBudget -= item.preco || 0;
             itemsLeft -= 1;
@@ -3661,7 +3738,10 @@ export const applyPower = (
             return !school || !ownedSchools.includes(school);
           });
           while (chosenNames.length < pick && pool.length > 0) {
-            const opt = getRandomItemFromArray(pool);
+            const opt = getRandomItemFromArray(
+              pool,
+              `${powerOrAbility.name}: opção`
+            );
             chosenNames.push(opt.name);
             if (!opt.repeatable) {
               const idx = pool.indexOf(opt);
@@ -3905,7 +3985,7 @@ export const applyPower = (
         // Escolha do assistente, se houver; senão (ficha aleatória), sorteia.
         const selectedSkill =
           skills.find((skill) => manualSelections?.skills?.includes(skill)) ??
-          getRandomItemFromArray(skills);
+          getRandomItemFromArray(skills, `${powerOrAbility.name}: perícia`);
         const alreadyTrained = sheet.skills.includes(selectedSkill);
 
         if (alreadyTrained) {
@@ -4133,7 +4213,8 @@ function applyOptionGrantedPowers(
       : pickFromAllowed(
           action.availablePowers,
           action.pick,
-          sheet.generalPowers
+          sheet.generalPowers,
+          `${powerName}: poderes`
         );
 
   const added: GeneralPower[] = [];
@@ -4662,11 +4743,14 @@ function levelUp(
   // para o poder e o caminho combinarem.
   const grantByOption = levelGrant?.classesByOption;
   const grantOption = grantByOption
-    ? getRandomItemFromArray(Object.keys(grantByOption.classes))
+    ? getRandomItemFromArray(
+        Object.keys(grantByOption.classes),
+        'Opção que decide o poder do nível'
+      )
     : undefined;
 
   // Escolher novo poder aleatório (geral ou poder da classe)
-  const randomNumber = Math.random();
+  const randomNumber = randomFloat('Tipo de poder do nível (classe ou geral)');
   let allowedPowers: ClassPower[];
   if (levelGrant) {
     allowedPowers = getForeignClassPowers(
@@ -4690,7 +4774,7 @@ function levelUp(
     // Escolha poder da classe
     const newPower = resolveHerancaPower(
       updatedSheet,
-      getRandomItemFromArray(allowedPowers)
+      getRandomItemFromArray(allowedPowers, 'Poder de classe do nível')
     );
     if (updatedSheet.classPowers) {
       const nSubSteps: SubStep[] = [];
@@ -4731,7 +4815,10 @@ function levelUp(
   } else {
     // Escolha poder geral
     const nSubSteps: SubStep[] = [];
-    const newPower = getRandomItemFromArray(allowedGeneralPowers);
+    const newPower = getRandomItemFromArray(
+      allowedGeneralPowers,
+      'Poder geral do nível'
+    );
     updatedSheet.generalPowers.push(newPower);
 
     const [newSheet, newSubSteps] = applyPower(updatedSheet, newPower);
@@ -5877,13 +5964,18 @@ export const applyStatModifiers = (
         // que o personagem não usa (ex.: Ofício não treinado) é desperdiçado.
         const { skills: options, pick } = bonus.target;
         const trained = options.filter((skill) => sheet.skills.includes(skill));
-        pickedSkills = pickFromArray(trained, Math.min(pick, trained.length));
+        pickedSkills = pickFromArray(
+          trained,
+          Math.min(pick, trained.length),
+          'Perícias do bônus'
+        );
         if (pickedSkills.length < pick) {
           pickedSkills = [
             ...pickedSkills,
             ...pickFromArray(
               options.filter((skill) => !trained.includes(skill)),
-              pick - pickedSkills.length
+              pick - pickedSkills.length,
+              'Perícias do bônus'
             ),
           ];
         }
@@ -6132,7 +6224,7 @@ export default function generateRandomSheet(
 
   // Passo 1: Definir gênero
   const sexos = ['Homem', 'Mulher'] as ('Homem' | 'Mulher')[];
-  const sexo = getRandomItemFromArray<'Homem' | 'Mulher'>(sexos);
+  const sexo = getRandomItemFromArray<'Homem' | 'Mulher'>(sexos, 'Gênero');
 
   // Passo 2: Definir raça (pode sobrescrever o sexo para raças exclusivas)
   const {
@@ -6197,7 +6289,7 @@ export default function generateRandomSheet(
       const allOrigins = dataRegistry.getOriginsBySupplements(supplements);
       origin = allOrigins.find((o) => o.name === selectedOptions.origin);
     } else {
-      origin = getRandomItemFromArray(Object.values(ORIGINS));
+      origin = getRandomItemFromArray(Object.values(ORIGINS), 'Origem');
     }
   }
 
@@ -6497,7 +6589,10 @@ export default function generateRandomSheet(
     );
 
     if (eligiblePowers.length > 0) {
-      const purposePower = getRandomItemFromArray(eligiblePowers);
+      const purposePower = getRandomItemFromArray(
+        eligiblePowers,
+        'Propósito de Criação'
+      );
       charSheet.generalPowers.push(purposePower);
       charSheet.propositoCriacaoPower = purposePower.name;
 
@@ -7107,7 +7202,10 @@ export function generateEmptySheet(
         modifiedClasse.abilities.push(
           buildLinhagemDraconica(
             wizardSelections.draconicaDamageType ||
-              getRandomItemFromArray(DRACONICA_DAMAGE_TYPES)
+              getRandomItemFromArray(
+                DRACONICA_DAMAGE_TYPES,
+                'Linhagem Dracônica: tipo de dano'
+              )
           )
         );
       } else if (wizardSelections.feiticeiroLinhagem === 'Linhagem Feérica') {

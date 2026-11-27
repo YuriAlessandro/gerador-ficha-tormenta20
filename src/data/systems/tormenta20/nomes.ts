@@ -3198,7 +3198,10 @@ export const nameGenerators: Record<
 
     const allRaces = [...Object.keys(nomes), 'Lefou'];
     const validRaces = allRaces.filter((element) => element !== 'Golem');
-    const randomRaceName = getRandomItemFromArray(validRaces);
+    const randomRaceName = getRandomItemFromArray(
+      validRaces,
+      'Nome do personagem'
+    );
     const randomRace = RACAS.find((element) => element.name === randomRaceName);
 
     if (!randomRace) {
@@ -3206,7 +3209,7 @@ export const nameGenerators: Record<
       console.error(
         `Race "${randomRaceName}" not found in RACAS array for Osteon name generation`
       );
-      return getRandomItemFromArray(nomes.Humano[sex]);
+      return getRandomItemFromArray(nomes.Humano[sex], 'Nome do personagem');
     }
 
     if (nameGenerators[randomRaceName]) {
@@ -3228,7 +3231,10 @@ export const nameGenerators: Record<
     const validRaces = allRaces.filter(
       (element) => element !== 'Golem' && element !== 'Osteon'
     );
-    const randomRaceName = getRandomItemFromArray(validRaces);
+    const randomRaceName = getRandomItemFromArray(
+      validRaces,
+      'Nome do personagem'
+    );
     const randomRace = RACAS.find((element) => element.name === randomRaceName);
 
     if (!randomRace) {
@@ -3236,7 +3242,7 @@ export const nameGenerators: Record<
       console.error(
         `Race "${randomRaceName}" not found in RACAS array for Soterrado name generation`
       );
-      return getRandomItemFromArray(nomes.Humano[sex]);
+      return getRandomItemFromArray(nomes.Humano[sex], 'Nome do personagem');
     }
 
     if (nameGenerators[randomRaceName]) {
@@ -3245,8 +3251,10 @@ export const nameGenerators: Record<
 
     return nameGenerators.default(randomRace, sex);
   },
-  'Trog Anão': (race, sex) => getRandomItemFromArray(nomes.Trog[sex]),
-  Voracis: () => getRandomItemFromArray(nomes.Voracis.Mulher),
+  'Trog Anão': (race, sex) =>
+    getRandomItemFromArray(nomes.Trog[sex], 'Nome do personagem'),
+  Voracis: () =>
+    getRandomItemFromArray(nomes.Voracis.Mulher, 'Nome do personagem'),
   Yidishan: (race, sex) => {
     if (race.oldRace) {
       if (nameGenerators[race.oldRace.name]) {
@@ -3264,7 +3272,10 @@ export const nameGenerators: Record<
         element !== 'Soterrado' &&
         element !== 'Yidishan'
     );
-    const randomRaceName = getRandomItemFromArray(validRaces);
+    const randomRaceName = getRandomItemFromArray(
+      validRaces,
+      'Nome do personagem'
+    );
     const randomRace = RACAS.find((element) => element.name === randomRaceName);
 
     if (!randomRace) {
@@ -3272,7 +3283,7 @@ export const nameGenerators: Record<
       console.error(
         `Race "${randomRaceName}" not found in RACAS array for Yidishan name generation`
       );
-      return getRandomItemFromArray(nomes.Humano[sex]);
+      return getRandomItemFromArray(nomes.Humano[sex], 'Nome do personagem');
     }
 
     if (nameGenerators[randomRaceName]) {
@@ -3282,8 +3293,11 @@ export const nameGenerators: Record<
     return nameGenerators.default(randomRace, sex);
   },
   Lefou: (race: Race, sex: 'Homem' | 'Mulher') => {
-    const firstName = getRandomItemFromArray(lefouNames);
-    const lastName = getRandomItemFromArray(lefouSurnames[sex]);
+    const firstName = getRandomItemFromArray(lefouNames, 'Nome do personagem');
+    const lastName = getRandomItemFromArray(
+      lefouSurnames[sex],
+      'Nome do personagem'
+    );
 
     return `${firstName} ${lastName}`;
   },
@@ -3303,7 +3317,7 @@ export const nameGenerators: Record<
       );
       return 'Nome Desconhecido';
     }
-    return getRandomItemFromArray(nomes[race.name][sex]);
+    return getRandomItemFromArray(nomes[race.name][sex], 'Nome do personagem');
   },
 };
 

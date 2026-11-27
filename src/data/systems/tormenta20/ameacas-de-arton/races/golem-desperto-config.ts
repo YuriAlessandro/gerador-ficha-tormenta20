@@ -3,6 +3,7 @@ import {
   RaceAttributeAbility,
   RaceSize,
 } from '../../../../../interfaces/Race';
+import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
 import { Atributo } from '../../atributos';
 import { allDivineSpellsCircle1 } from '../../magias/divine';
 import { RACE_SIZES } from '../../races/raceSizes/raceSizes';
@@ -491,8 +492,10 @@ export function isEnergySourceCompatible(
  */
 export function getRandomCompatibleEnergySource(chassisId: string): string {
   const compatibleSources = getCompatibleEnergySources(chassisId);
-  const randomIndex = Math.floor(Math.random() * compatibleSources.length);
-  return compatibleSources[randomIndex];
+  return getRandomItemFromArray(
+    compatibleSources,
+    'Golem Desperto: fonte de energia'
+  );
 }
 
 /**
@@ -514,6 +517,5 @@ export function getCompatibleSizes(chassisId: string): string[] {
  */
 export function getRandomCompatibleSize(chassisId: string): string {
   const compatibleSizes = getCompatibleSizes(chassisId);
-  const randomIndex = Math.floor(Math.random() * compatibleSizes.length);
-  return compatibleSizes[randomIndex];
+  return getRandomItemFromArray(compatibleSizes, 'Golem Desperto: tamanho');
 }

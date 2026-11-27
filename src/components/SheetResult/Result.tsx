@@ -88,6 +88,7 @@ import {
 } from '@/premium/components/Conditions';
 import { DistinctionEditDrawer } from '@/premium/components/Distinctions';
 import { PartnerSheetPanel } from '@/premium/components/Partners';
+import { useBuildFromSheetAction } from '@/premium/components/BuildEditorV2/newBuild/useBuildFromSheetAction';
 import { ParodySpellPickerDialog } from '@/premium/components/ParodySpellPicker';
 import { getConditionLabelStyle } from '@/premium/functions/conditionHighlights';
 import type { ActiveCondition } from '@/premium/interfaces/ActiveCondition';
@@ -325,15 +326,31 @@ interface ResultProps {
    * que modo estão e cuja largura medida enganaria.
    */
   forceSurface?: 'desktop' | 'mobile';
+  /**
+   * Mostra "Criar build a partir desta ficha" (Builds v2, premium). Só a
+   * ficha do próprio usuário na tela inicial e na página da ficha: não na
+   * mesa, no Owlbear nem na ficha de teste de homebrew.
+   */
+  allowBuildFromSheet?: boolean;
 }
 
 /** Mesmo corte de sempre (768px), só que consultado ao vivo. */
 const MOBILE_MEDIA_QUERY = '(max-width:768px)';
 
 const Result: React.FC<ResultProps> = (props) => {
-  const { sheet, isDarkMode, onSheetUpdate, layoutOverride, forceSurface } =
-    props;
+  const {
+    sheet,
+    isDarkMode,
+    onSheetUpdate,
+    layoutOverride,
+    forceSurface,
+    allowBuildFromSheet,
+  } = props;
   const [currentSheet, setCurrentSheet] = useState(sheet);
+  const buildFromSheet = useBuildFromSheetAction(
+    currentSheet,
+    !!allowBuildFromSheet
+  );
   const [sheetInfoDrawerOpen, setSheetInfoDrawerOpen] = useState(false);
   const [attributeModifiersDrawerOpen, setAttributeModifiersDrawerOpen] =
     useState(false);
@@ -2495,6 +2512,7 @@ const Result: React.FC<ResultProps> = (props) => {
             ]
           : []),
         ...heroisArtonExtras,
+        ...(buildFromSheet.action ? [buildFromSheet.action] : []),
       ],
       body: (
         <>
@@ -3909,6 +3927,7 @@ const Result: React.FC<ResultProps> = (props) => {
             sheet={currentSheet}
             onConfirm={handleRest}
           />
+          {buildFromSheet.dialog}
           <NotesDialog
             open={notesOpen}
             onClose={() => setNotesOpen(false)}

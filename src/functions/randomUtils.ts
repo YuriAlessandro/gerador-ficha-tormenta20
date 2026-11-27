@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import {
   allDivindadeNames,
@@ -7,9 +8,155 @@ import {
 import { GeneralPower, GeneralPowerType } from '../interfaces/Poderes';
 import Skill from '../interfaces/Skills';
 
+// ---------------------------------------------------------------------------
+// Portão de aleatoriedade (Builds v2, bloco 1B)
+//
+// Todo sorteio do motor de ficha passa pelos helpers deste arquivo. Fora do
+// modo estrito eles sorteiam como sempre (mesma quantidade de chamadas a
+// `Math.random`). Dentro de `runWithoutRandomness` nenhum deles chama
+// `Math.random`: o sorteio vira uma lacuna registrada e o helper devolve um
+// valor provisório determinístico — a primeira opção, dado no mínimo, float 0,
+// ordem original. Quem roda o modo estrito decide o que fazer com as lacunas;
+// o valor provisório só existe para o motor seguir montando a ficha.
+// ---------------------------------------------------------------------------
+
+/** Que tipo de sorteio virou lacuna. */
+export type RandomGapKind = 'choice' | 'roll' | 'chance' | 'order';
+
+export interface RandomGap {
+  /** O que estava sendo sorteado (rótulo do ponto de sorteio). */
+  label: string;
+  kind: RandomGapKind;
+  /** Nomes das opções que existiam. */
+  options?: string[];
+  /** Valor provisório usado no lugar do sorteio. */
+  picked?: string[];
+  /** Quantos itens seriam sorteados, ou quantos dados rolados. */
+  count?: number;
+  /**
+   * O resultado não dependia de escolha: havia uma opção só (ou a quantidade
+   * pedida cobria todas). Registrada assim mesmo, para quem consome decidir se
+   * conta como lacuna.
+   */
+  forced?: boolean;
+}
+
+/** Rótulo de um ponto de sorteio que não declarou o que sorteia. */
+export const DEFAULT_RANDOM_LABEL = 'sorteio sem rótulo';
+
+/**
+ * Teto de sorteios por execução estrita. Um laço que depende do sorteio para
+ * terminar (rolar até passar de um valor, sortear até achar um item novo) não
+ * termina com valores fixos; o teto transforma o travamento em erro.
+ */
+export const STRICT_RANDOM_CALL_LIMIT = 2000;
+
+export class StrictRandomLimitError extends Error {
+  constructor() {
+    super(
+      `Modo estrito: mais de ${STRICT_RANDOM_CALL_LIMIT} sorteios na mesma execução`
+    );
+    this.name = 'StrictRandomLimitError';
+  }
+}
+
+interface StrictCollector {
+  onGap: (gap: RandomGap) => void;
+  calls: number;
+}
+
+let strictCollector: StrictCollector | null = null;
+
+/**
+ * Roda `fn` sem nenhum sorteio: cada ponto que sortearia chama `onGap` e usa
+ * o valor provisório. Pode ser aninhado; o modo anterior volta no fim, mesmo
+ * com exceção.
+ */
+export function runWithoutRandomness<T>(
+  fn: () => T,
+  onGap: (gap: RandomGap) => void
+): T {
+  const previous = strictCollector;
+  strictCollector = { onGap, calls: 0 };
+  try {
+    return fn();
+  } finally {
+    strictCollector = previous;
+  }
+}
+
+export function isStrictRandomMode(): boolean {
+  return strictCollector !== null;
+}
+
+const describeOption = (option: unknown): string => {
+  if (typeof option === 'string') return option;
+  if (typeof option === 'number' || typeof option === 'boolean') {
+    return String(option);
+  }
+  if (option && typeof option === 'object') {
+    const named = option as { name?: unknown; nome?: unknown; label?: unknown };
+    const name = named.name ?? named.nome ?? named.label;
+    if (typeof name === 'string') return name;
+  }
+  return '?';
+};
+
+/** Escolha (ou ordem) cujo resultado não dependia de nada? */
+const isForced = (gap: RandomGap): boolean => {
+  if (gap.kind !== 'choice' && gap.kind !== 'order') return false;
+  const distinct = new Set(gap.options ?? []).size;
+  return gap.kind === 'order' ? distinct <= 1 : distinct <= (gap.count ?? 1);
+};
+
+const recordGap = (rawGap: RandomGap): void => {
+  if (!strictCollector) return;
+  const gap = isForced(rawGap) ? { ...rawGap, forced: true } : rawGap;
+  strictCollector.calls += 1;
+  if (strictCollector.calls > STRICT_RANDOM_CALL_LIMIT) {
+    throw new StrictRandomLimitError();
+  }
+  strictCollector.onGap(gap);
+};
+
+/**
+ * Substituto de `Math.random()` para pontos que sorteiam um número (cara ou
+ * coroa, probabilidade). Em modo estrito devolve 0.
+ */
+export function randomFloat(label = DEFAULT_RANDOM_LABEL): number {
+  if (strictCollector) {
+    recordGap({ label, kind: 'chance' });
+    return 0;
+  }
+  return Math.random();
+}
+
+/** `_.shuffle` que respeita o modo estrito (lá devolve a ordem original). */
+export function shuffleArray<ElementType>(
+  array: ElementType[],
+  label = DEFAULT_RANDOM_LABEL
+): ElementType[] {
+  if (strictCollector) {
+    recordGap({ label, kind: 'order', options: array.map(describeOption) });
+    return [...array];
+  }
+  return _.shuffle(array);
+}
+
 export function getRandomItemFromArray<ElementType>(
-  array: ElementType[]
+  array: ElementType[],
+  label = DEFAULT_RANDOM_LABEL
 ): ElementType {
+  if (strictCollector) {
+    const [first] = array;
+    recordGap({
+      label,
+      kind: 'choice',
+      options: array.map(describeOption),
+      picked: array.length > 0 ? [describeOption(first)] : [],
+    });
+    return first;
+  }
   return array[Math.floor(Math.random() * array.length)];
 }
 
@@ -47,8 +194,18 @@ export function mergeFaithProbabilities(
   return normalizeFaithProbabability(summedFaithProbability);
 }
 
-export function pickFaith(faithP: FaithProbability): DivindadeNames {
+export function pickFaith(
+  faithP: FaithProbability,
+  label = DEFAULT_RANDOM_LABEL
+): DivindadeNames {
   const normalized = normalizeFaithProbabability(faithP);
+  if (strictCollector) {
+    const options = (Object.keys(normalized) as DivindadeNames[]).filter(
+      (key) => (normalized[key] ?? 0) > 0
+    );
+    recordGap({ label, kind: 'choice', options, picked: options.slice(0, 1) });
+    return options[0];
+  }
   const probabilitySumArray: { divindade: DivindadeNames; sum: number }[] = [];
 
   Object.entries(normalized).forEach(([key, value]) => {
@@ -82,8 +239,22 @@ export function pickFaith(faithP: FaithProbability): DivindadeNames {
  */
 export function pickFromArray<ElementType>(
   array: ElementType[],
-  qtd: number
+  qtd: number,
+  label = DEFAULT_RANDOM_LABEL
 ): ElementType[] {
+  if (strictCollector) {
+    const distinct = array
+      .filter((element, idx) => array.indexOf(element) === idx)
+      .slice(0, Math.max(0, qtd));
+    recordGap({
+      label,
+      kind: 'choice',
+      options: array.map(describeOption),
+      picked: distinct.map(describeOption),
+      count: qtd,
+    });
+    return distinct;
+  }
   const picked: ElementType[] = [];
   for (let index = 0; index < qtd; index += 1) {
     const filtered = array.filter((element) => !picked.includes(element));
@@ -98,15 +269,30 @@ export function removeDup<ElementType>(array: ElementType[]): ElementType[] {
   return array.filter((element, idx) => array.indexOf(element) === idx);
 }
 
-export function getRandomArbitrary(min: number, max: number): number {
+export function getRandomArbitrary(
+  min: number,
+  max: number,
+  label = DEFAULT_RANDOM_LABEL
+): number {
+  if (strictCollector) {
+    recordGap({ label, kind: 'roll', picked: [String(min)] });
+    return min;
+  }
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
 export function rollDice(
   qty: number,
   dice: number,
-  discardLowestDiceQty = 0
+  discardLowestDiceQty = 0,
+  label = DEFAULT_RANDOM_LABEL
 ): number {
+  if (strictCollector) {
+    // Todos os dados no mínimo (1): a soma é a dos dados mantidos.
+    const sum = Math.max(0, qty - discardLowestDiceQty);
+    recordGap({ label, kind: 'roll', count: qty, picked: [String(sum)] });
+    return sum;
+  }
   const results: number[] = [];
   for (let i = 0; i < qty; i += 1) {
     results.push(getRandomArbitrary(1, dice));
@@ -128,10 +314,11 @@ export function getNotUsedFromAllowed<T>(used: T[], allowed?: T[]): T[] {
 }
 export function getNotRepeatedRandom<T extends notRepeatedTypes>(
   used: T[],
-  allowed: T[]
+  allowed: T[],
+  label = DEFAULT_RANDOM_LABEL
 ): T {
   const notRepeated = getNotUsedFromAllowed(used, allowed);
-  return getRandomItemFromArray<T>(notRepeated);
+  return getRandomItemFromArray<T>(notRepeated, label);
 }
 
 /**
@@ -300,7 +487,12 @@ export function getVirtudePaladinescaPMBonus(
 
 export function pickFromAllowed<
   T extends string | { name: string } | { nome: string }
->(options: T[], pick: number, alreadyPicked: T[] = []) {
+>(
+  options: T[],
+  pick: number,
+  alreadyPicked: T[] = [],
+  label = DEFAULT_RANDOM_LABEL
+) {
   const getName = (option: T) => {
     if (typeof option === 'string') {
       return option;
@@ -318,5 +510,5 @@ export function pickFromAllowed<
     (option) =>
       !alreadyPicked.find((picked) => getName(picked) === getName(option))
   );
-  return pickFromArray(notPicked, pick);
+  return pickFromArray(notPicked, pick, label);
 }

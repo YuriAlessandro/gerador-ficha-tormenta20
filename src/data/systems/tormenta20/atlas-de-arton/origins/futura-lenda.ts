@@ -41,7 +41,10 @@ const FUTURA_LENDA: Origin = {
       'Lança do Crepúsculo',
     ];
 
-    const nomePomposo = getRandomItemFromArray(nomesPomposos);
+    const nomePomposo = getRandomItemFromArray(
+      nomesPomposos,
+      'Futura Lenda: nome da arma'
+    );
 
     return [
       itemChoice(

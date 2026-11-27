@@ -1,4 +1,4 @@
-import { shuffle, cloneDeep } from 'lodash';
+import { cloneDeep } from 'lodash';
 import { v4 as uuid } from 'uuid';
 import {
   GeneralPowerType,
@@ -11,6 +11,7 @@ import { Atributo } from '../../atributos';
 import { Spell } from '../../../../../interfaces/Spells';
 import combatPowers from '../../powers/combatPowers';
 import tormentaPowers from '../../powers/tormentaPowers';
+import { shuffleArray } from '../../../../../functions/randomUtils';
 
 export const ORIGIN_POWER_TYPE = 'ORIGEM';
 
@@ -40,7 +41,7 @@ function getDeOutroMundoSpells(): Spell[] {
   });
 
   // Embaralha a lista para que as escolhas aleatórias tenham variação
-  return shuffle(spellsWithVariations);
+  return shuffleArray(spellsWithVariations, 'Ordem das magias');
 }
 
 const atlasOriginPowers: Record<string, OriginPower> = {

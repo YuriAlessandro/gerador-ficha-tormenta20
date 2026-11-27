@@ -44,7 +44,10 @@ const NOBRE_ZAKHAROVIANO: Origin = {
     // O Atlas lista só "Traje da corte" em Itens; a arma vem do Benefício
     // ("recebe uma arma superior com uma melhoria, exceto material especial"),
     // que não restringe a categoria — daí o pool completo.
-    const melhoria = getRandomItemFromArray(ELIGIBLE_MELHORIAS);
+    const melhoria = getRandomItemFromArray(
+      ELIGIBLE_MELHORIAS,
+      'Nobre Zakharoviano: melhoria da arma'
+    );
 
     return [
       itemChoice(

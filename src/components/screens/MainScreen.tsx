@@ -42,6 +42,7 @@ import FolderIcon from '@mui/icons-material/Folder';
 import Button from '@mui/material/Button';
 import React from 'react';
 import { useHistory, useLocation, Prompt } from 'react-router-dom';
+import type { Location } from 'history';
 import Select, { StylesConfig } from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import { formatGroupLabel } from 'react-select/src/builtins';
@@ -53,6 +54,7 @@ import {
 } from '@/2foundry';
 import Bag from '@/interfaces/Bag';
 import preparePDF from '@/functions/downloadSheetPdf';
+import { takeImportedSheet } from '@/functions/importedSheetHandoff';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import {
   dataRegistry,
@@ -347,10 +349,14 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const [loadingSaveToCloud, setLoadingSaveToCloud] = React.useState(false);
   const [sheetSavedToCloud, setSheetSavedToCloud] = React.useState(false);
   const [cloudSheetId, setCloudSheetId] = React.useState<string | null>(null);
+  // Ficha que chegou da importação de uma build: a tela rola até ela.
+  const [scrollToSheet, setScrollToSheet] = React.useState(false);
+  const sheetAnchorRef = React.useRef<HTMLDivElement>(null);
   const [showUnsavedDialog, setShowUnsavedDialog] = React.useState(false);
-  const [pendingNavigation, setPendingNavigation] = React.useState<
-    string | null
-  >(null);
+  // Destino inteiro (caminho, busca, âncora e `state`): sem o `state`, telas
+  // que recebem dados pela navegação abriam vazias depois de "Sair Sem Salvar".
+  const [pendingNavigation, setPendingNavigation] =
+    React.useState<Location | null>(null);
   const [showGolemDespertoModal, setShowGolemDespertoModal] =
     React.useState(false);
   const [pendingGolemDespertoSheet, setPendingGolemDespertoSheet] =
@@ -734,6 +740,23 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
     trackSheetGeneration();
   };
+
+  // Ficha criada fora daqui (importação de uma build): segue o caminho do fim
+  // do assistente. Sem entrega, este efeito não faz nada.
+  React.useEffect(() => {
+    const imported = takeImportedSheet();
+    if (!imported) return;
+    finalizeSheet(imported);
+    // Quem acabou de responder o stepper vai direto para a ficha, sem passar
+    // pelo formulário (a ficha gerada aqui pelo formulário fica como sempre).
+    setScrollToSheet(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (!scrollToSheet || !randomSheet) return;
+    sheetAnchorRef.current?.scrollIntoView({ block: 'start' });
+    setScrollToSheet(false);
+  }, [scrollToSheet, randomSheet]);
 
   const handleWizardConfirm = (
     wizardSelections: import('@/interfaces/WizardSelections').WizardSelections
@@ -1206,6 +1229,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         sheet={randomSheet}
         isDarkMode={isDarkMode}
         onSheetUpdate={handleSheetUpdate}
+        allowBuildFromSheet
       />
     );
   };
@@ -1259,7 +1283,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   // Handle navigation blocking with custom dialog
   const handleNavigationAttempt = React.useCallback(
-    (location: any) => {
+    (location: Location) => {
       // Check ref first for immediate bypass
       if (allowNavigationRef.current) {
         return true;
@@ -1267,7 +1291,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
       if (randomSheet && !sheetSavedToCloud && !showHistoric) {
         setShowUnsavedDialog(true);
-        setPendingNavigation(location.pathname);
+        setPendingNavigation(location);
         return false; // Block navigation
       }
       return true; // Allow navigation
@@ -1744,7 +1768,11 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
           </Card>
 
           {randomSheet && (
-            <Card sx={{ p: 2, mb: 2 }}>
+            // Âncora da ficha importada: a barra de salvar fica à vista.
+            <Card
+              ref={sheetAnchorRef}
+              sx={{ p: 2, mb: 2, scrollMarginTop: 16 }}
+            >
               {targetFolder && !cloudSheetId && (
                 <Chip
                   icon={<FolderIcon />}

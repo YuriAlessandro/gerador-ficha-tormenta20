@@ -177,7 +177,9 @@ export function rollInitialAge(
 ): number {
   const group = getInitialAgeGroup(classDescription);
 
-  return rollDice(group.qtdDados, group.numFaces) + group.bonus;
+  return (
+    rollDice(group.qtdDados, group.numFaces, 0, 'Idade inicial') + group.bonus
+  );
 }
 
 /* -------------------------------------------------------------------------- */

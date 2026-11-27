@@ -37,7 +37,7 @@ const REBELDE_AGITADOR: Origin = {
   ],
   // T$ 6d12, impostos que você deixou de pagar (Atlas p. 477). Vai para o
   // dinheiro da ficha, não para a mochila.
-  getMoney: () => rollDice(6, 12),
+  getMoney: () => rollDice(6, 12, 0, 'Dinheiro da origem (6d12)'),
 };
 
 export default REBELDE_AGITADOR;
