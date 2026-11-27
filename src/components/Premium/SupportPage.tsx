@@ -231,7 +231,8 @@ const SupportPage: React.FC = () => {
               mb: 1,
             }}
           >
-            Os pagamentos são processados de forma segura através do{' '}
+            Aceitamos cartão de crédito e Pix. Os pagamentos são processados de
+            forma segura através do{' '}
             <a
               href='https://docs.stripe.com/security'
               target='_blank'
@@ -526,7 +527,8 @@ const SupportPage: React.FC = () => {
               mb: 1,
             }}
           >
-            Os pagamentos são processados de forma segura através do Stripe.
+            Aceitamos cartão de crédito e Pix. Os pagamentos são processados de
+            forma segura através do Stripe.
           </Typography>
           <Typography
             variant='body2'
