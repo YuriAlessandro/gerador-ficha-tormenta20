@@ -5,6 +5,9 @@ import {
 } from '../../../../interfaces/Poderes';
 import Skill from '../../../../interfaces/Skills';
 
+// "Todos os poderes deste grupo possuem como pré-requisito lançar magias"
+// (JdA): vale magia de raça ou origem (Tatuagem Mística do qareen…), não só
+// a habilidade de classe Magias.
 const magicPowers: Record<string, GeneralPower> = {
   CELEBRAR_RITUAL: {
     name: 'Celebrar Ritual',
@@ -24,12 +27,12 @@ const magicPowers: Record<string, GeneralPower> = {
     type: GeneralPowerType.MAGIA,
     requirements: [
       [
-        { type: RequirementType.HABILIDADE, name: 'Magias' },
+        { type: RequirementType.LANCAR_MAGIAS },
         { type: RequirementType.NIVEL, value: 8 },
         { type: RequirementType.PERICIA, name: 'Misticismo' },
       ],
       [
-        { type: RequirementType.HABILIDADE, name: 'Magias' },
+        { type: RequirementType.LANCAR_MAGIAS },
         { type: RequirementType.NIVEL, value: 8 },
         { type: RequirementType.PERICIA, name: 'Religião' },
       ],
@@ -42,7 +45,7 @@ const magicPowers: Record<string, GeneralPower> = {
     type: GeneralPowerType.MAGIA,
     requirements: [
       [
-        { type: RequirementType.HABILIDADE, name: 'Magias' },
+        { type: RequirementType.LANCAR_MAGIAS },
         { type: RequirementType.PERICIA, name: 'Ofício' },
       ],
     ],
@@ -61,7 +64,7 @@ const magicPowers: Record<string, GeneralPower> = {
         effect: { type: 'PmReduction', value: 1, cumulative: true },
       },
     ],
-    requirements: [[{ type: RequirementType.HABILIDADE, name: 'Magias' }]],
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS }]],
   },
   MAGIA_ACELERADA: {
     name: 'Magia Acelerada',
@@ -98,7 +101,7 @@ const magicPowers: Record<string, GeneralPower> = {
       },
     ],
     type: GeneralPowerType.MAGIA,
-    requirements: [[{ type: RequirementType.HABILIDADE, name: 'Magias' }]],
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS }]],
   },
   MAGIA: {
     name: 'Magia Discreta',
@@ -115,7 +118,7 @@ const magicPowers: Record<string, GeneralPower> = {
       },
     ],
     type: GeneralPowerType.MAGIA,
-    requirements: [[{ type: RequirementType.HABILIDADE, name: 'Magias' }]],
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS }]],
   },
   MAGIA_ILIMITADA: {
     name: 'Magia Ilimitada',
@@ -123,7 +126,7 @@ const magicPowers: Record<string, GeneralPower> = {
       'Você soma seu atributo-chave no limite de PM que pode gastar numa magia. Por exemplo, um arcanista de 5º nível com Int 4 e este poder pode gastar até 9 PM em cada magia.',
     spellModifiers: [{ effect: { type: 'PmLimit', attribute: 'key' } }],
     type: GeneralPowerType.MAGIA,
-    requirements: [[{ type: RequirementType.HABILIDADE, name: 'Magias' }]],
+    requirements: [[{ type: RequirementType.LANCAR_MAGIAS }]],
   },
   PREPARAR_POCAO: {
     name: 'Preparar Poção',
@@ -132,7 +135,7 @@ const magicPowers: Record<string, GeneralPower> = {
     type: GeneralPowerType.MAGIA,
     requirements: [
       [
-        { type: RequirementType.HABILIDADE, name: 'Magias' },
+        { type: RequirementType.LANCAR_MAGIAS },
         { type: RequirementType.PERICIA, name: Skill.OFICIO_ALQUIMIA },
       ],
     ],
