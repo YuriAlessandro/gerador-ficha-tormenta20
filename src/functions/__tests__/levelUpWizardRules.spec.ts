@@ -5,7 +5,9 @@ import { getPowerSelectionRequirements } from '../powers/manualPowerSelection';
 import {
   buildLevelUpWizardContext,
   getLevelUpGaps,
+  getLevelUpPowerOptions,
   getLevelUpPowerSpellChoiceInfo,
+  getLevelUpSheetWithAbilities,
   getLevelUpSheetWithProjectedClassLevel,
   getLevelUpSteps,
   isLevelUpStepComplete,
@@ -15,6 +17,12 @@ import CharacterSheet from '../../interfaces/CharacterSheet';
 import { LevelUpSelections } from '../../interfaces/WizardSelections';
 import { SupplementId } from '../../types/supplement.types';
 import GUERREIRO from '../../data/systems/tormenta20/classes/guerreiro';
+import { dataRegistry } from '../../data/registry';
+import { itWithPremium } from '../../__tests__/premiumGate';
+import {
+  CAMINHO_GOVERNANTE,
+  CAMINHO_SOLDADO,
+} from '../../data/systems/tormenta20/herois-de-arton/variantClasses/vassaloSheetBonuses';
 import spellPowers from '../../data/systems/tormenta20/powers/spellPowers';
 import { arcaneSpellsCircle1 } from '../../data/systems/tormenta20/magias/arcane';
 
@@ -123,6 +131,35 @@ describe('getLevelUpSteps', () => {
     ).toContain('Escolha de Classe');
     expect(gapSteps(selection, { multiclassEnabled: true })).not.toContain(
       'Escolha de Classe'
+    );
+  });
+});
+
+describe('getLevelUpPowerOptions', () => {
+  it('lista os poderes do passo "Escolha de Poder", com os reprovados à parte', () => {
+    const ctx = ctxFor({ level: 2, powerChoice: 'class' });
+    const options = getLevelUpPowerOptions(
+      ctx,
+      getLevelUpSheetWithAbilities(ctx)
+    );
+    const general = options.generalPowers.map((p) => p.name);
+    const classPowers = options.classPowers.map((p) => p.name);
+    // Trespassar exige Ataque Poderoso: aparece, mas indisponível.
+    expect(general).toContain('Trespassar');
+    expect(options.unavailableGeneralPowers).toContain('Trespassar');
+    const simple = simpleGuerreiroPower().name;
+    expect(classPowers).toContain(simple);
+    expect(options.unavailableClassPowers).not.toContain(simple);
+    expect(options.sheetForFiltering.classe.name).toBe('Guerreiro');
+  });
+
+  it('com "fora dos requisitos" o corte de nível sai da lista de classe', () => {
+    const ctx = ctxFor({ level: 2, powerChoice: 'class' });
+    const sheet = getLevelUpSheetWithAbilities(ctx);
+    const strict = getLevelUpPowerOptions(ctx, sheet);
+    const all = getLevelUpPowerOptions(ctx, sheet, { allowAll: true });
+    expect(all.classPowers.length).toBeGreaterThanOrEqual(
+      strict.classPowers.length
     );
   });
 });
@@ -248,5 +285,82 @@ describe('sincronização com a main', () => {
       classSubname: undefined,
     });
     expect(projected.classLevels?.[0]?.className).toBe('Guerreiro');
+  });
+
+  describe('lista de poderes (getLevelUpPowerOptions)', () => {
+    const HEROIS = [
+      SupplementId.TORMENTA20_CORE,
+      SupplementId.TORMENTA20_HEROIS_ARTON,
+    ];
+    const vassalo9 = (lorde?: string) => {
+      const base = generateEmptySheet(
+        { ...OPTIONS, raca: 'Humano', classe: 'Vassalo', supplements: HEROIS },
+        { characterName: 'Teste' }
+      );
+      const sheet: CharacterSheet = { ...base, nivel: 8 };
+      return buildLevelUpWizardContext({
+        sheet,
+        initialSheet: sheet,
+        level: 9,
+        selection: {
+          level: 9,
+          powerChoice: 'class',
+          ...(lorde
+            ? { abilityEffectSelections: { Lorde: { chosenOption: [lorde] } } }
+            : {}),
+        },
+        supplements: HEROIS,
+        multiclassEnabled: false,
+      });
+    };
+    const classesOf = (lorde: string) => {
+      const ctx = vassalo9(lorde);
+      return new Set(
+        getLevelUpPowerOptions(ctx, getLevelUpSheetWithAbilities(ctx))
+          .classPowers.map((p) => p.className)
+          .filter(Boolean)
+      );
+    };
+
+    it('Lorde: a opção escolhida decide de qual classe vem o poder', () => {
+      expect([...classesOf(CAMINHO_SOLDADO)]).toEqual(['Guerreiro']);
+      expect([...classesOf(CAMINHO_GOVERNANTE)]).toEqual(['Nobre']);
+    });
+
+    // As distinções e os poderes delas são do premium.
+    itWithPremium(
+      'poder de distinção só aparece com a distinção na ficha',
+      () => {
+        const all = [...Object.values(SupplementId)];
+        const distinctionPower = (dataRegistry.getPowersBySupplements(all)
+          .DISTINCAO ?? [])[0];
+        expect(distinctionPower?.distinctionId).toBeTruthy();
+        const names = (distinctions: CharacterSheet['distinctions']) => {
+          const sheet: CharacterSheet = { ...level1Sheet(), distinctions };
+          const ctx = buildLevelUpWizardContext({
+            sheet,
+            initialSheet: sheet,
+            level: 2,
+            selection: { level: 2, powerChoice: 'general' },
+            supplements: all,
+            multiclassEnabled: false,
+          });
+          return getLevelUpPowerOptions(
+            ctx,
+            getLevelUpSheetWithAbilities(ctx)
+          ).generalPowers.map((p) => p.name);
+        };
+        expect(names(undefined)).not.toContain(distinctionPower.name);
+        expect(
+          names([
+            {
+              id: distinctionPower.distinctionId ?? '',
+              name: 'Distinção',
+              acquiredAtLevel: 1,
+            },
+          ])
+        ).toContain(distinctionPower.name);
+      }
+    );
   });
 });
