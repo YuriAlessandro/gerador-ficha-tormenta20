@@ -35,7 +35,10 @@ import {
 } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { getEffectiveAttributes } from '@/functions/effectiveAttributes';
-import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
+import {
+  capDefenseAttribute,
+  defenseAttributeCap,
+} from '@/data/systems/tormenta20/equipamentos';
 import {
   recalculateSheet,
   calculateBonusValue,
@@ -2162,18 +2165,21 @@ const Result: React.FC<ResultProps> = (props) => {
       }
     });
 
-    // Heavy armor is determined by the worn armor only.
-    const hasHeavyArmor = activeArmor ? isHeavyArmor(activeArmor) : false;
+    // Armadura vestida: pesada zera o atributo, pesada de mitral limita a 2.
+    const attributeCap = defenseAttributeCap(activeArmor);
 
     // Attribute modifier
     const useAttr = currentSheet.useDefenseAttribute ?? true;
-    if (useAttr && !hasHeavyArmor) {
+    if (useAttr && attributeCap > 0) {
       const defaultAttr = usesCharismaForDefense(currentSheet)
         ? Atributo.CARISMA
         : Atributo.DESTREZA;
       const attrToUse = currentSheet.customDefenseAttribute || defaultAttr;
       // Efetivo, para o detalhamento casar com a Defesa que o motor calculou.
-      const attrValue = atributosEfetivos[attrToUse]?.value || 0;
+      const attrValue = capDefenseAttribute(
+        atributosEfetivos[attrToUse]?.value || 0,
+        attributeCap
+      );
       if (attrValue !== 0) {
         const attrName = attrToUse.substring(0, 3).toUpperCase();
         components.push(`${attrValue} (${attrName})`);

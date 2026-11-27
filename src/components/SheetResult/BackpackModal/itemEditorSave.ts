@@ -29,6 +29,7 @@ import {
   withMaterialSnapshot,
 } from '../../../functions/itemEnhancements/snapshot';
 import { isDefenseGroup } from './equipmentCatalog';
+import { heavyArmorFields } from '../../../data/systems/tormenta20/equipamentos';
 import { SheetBonus } from '../../../interfaces/CharacterSheet';
 import { sanitizeCustomItemBonuses } from '../../../functions/powers/customPowerBonuses';
 import { formatDamageTypes } from './damageTypeSelect';
@@ -433,7 +434,9 @@ export function buildSavedItem(
   if (isDefense) {
     const defenseNext: DefenseEquipment = {
       ...(next as DefenseEquipment),
-      isHeavyArmor: item.group === 'Armadura' ? form.isHeavyArmor : undefined,
+      ...(item.group === 'Armadura'
+        ? heavyArmorFields(next.nome, form.isHeavyArmor)
+        : { isHeavyArmor: undefined, lightArmorOverride: undefined }),
     };
     if (defenseStatTouched) {
       const defenseBonus = parseInt(form.defenseBonusText, 10);

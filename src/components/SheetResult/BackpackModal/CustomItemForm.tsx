@@ -37,6 +37,10 @@ import {
 } from '../../../functions/powers/customPowerBonuses';
 import { CATEGORY_ORDER } from './itemTypeStyles';
 import { isDefenseGroup } from './equipmentCatalog';
+import {
+  heavyArmorFields,
+  isHeavyArmor as isHeavyArmorHelper,
+} from '../../../data/systems/tormenta20/equipamentos';
 import { WEAPON_CATEGORY_LABELS } from '../../../functions/proficiencies';
 import { parseDamageTypes, formatDamageTypes } from './damageTypeSelect';
 import { WEAPON_TAG_SUGGESTIONS, weaponTagLabel } from './weaponTagOptions';
@@ -149,7 +153,7 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
       : '0'
   );
   const [isHeavyArmor, setIsHeavyArmor] = useState(
-    initialDefense?.isHeavyArmor ?? false
+    initialDefense ? isHeavyArmorHelper(initialDefense) : false
   );
   const [canBeWielded, setCanBeWielded] = useState(
     initial?.canBeWielded ?? false
@@ -260,7 +264,9 @@ const CustomItemForm: React.FC<CustomItemFormProps> = ({
         ...(baseItem as DefenseEquipment),
         defenseBonus: Number.isNaN(defenseBonus) ? 0 : defenseBonus,
         armorPenalty: Number.isNaN(armorPenalty) ? 0 : armorPenalty,
-        isHeavyArmor: group === 'Armadura' ? isHeavyArmor : false,
+        ...(group === 'Armadura'
+          ? heavyArmorFields(baseItem.nome, isHeavyArmor)
+          : { isHeavyArmor: false, lightArmorOverride: undefined }),
       };
       def.baseDefenseBonus = def.defenseBonus;
       def.baseArmorPenalty = def.armorPenalty;

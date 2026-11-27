@@ -39,6 +39,12 @@ export interface EnhancementEffect {
   defenseStats?: {
     defenseBonusDelta?: number;
     armorPenaltyDelta?: number;
+    /**
+     * Armadura PESADA deste material ainda deixa somar até N pontos do
+     * atributo de Defesa (Mitral: "permitem que você aplique até dois pontos
+     * de sua Destreza na Defesa"). Lido por `defenseAttributeCap`.
+     */
+    heavyArmorAttributeCap?: number;
   };
   spacesDelta?: number;
   skillBonuses?: { skill: Skill; value: number }[];

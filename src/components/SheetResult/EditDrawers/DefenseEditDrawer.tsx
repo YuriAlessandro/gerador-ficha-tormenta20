@@ -27,7 +27,10 @@ import {
   recalculateSheet,
   calculateBonusValue,
 } from '@/functions/recalculateSheet';
-import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
+import {
+  capDefenseAttribute,
+  defenseAttributeCap,
+} from '@/data/systems/tormenta20/equipamentos';
 import { DefenseEquipment } from '@/interfaces/Equipment';
 import {
   getWornArmor,
@@ -116,7 +119,9 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
 
   // Check if the character has heavy armor WORN (an unequipped heavy armor in
   // the bag must not suppress the defense attribute modifier).
-  const hasHeavyArmor = (): boolean => !!wornArmor && isHeavyArmor(wornArmor);
+  // 0 = pesada (atributo fora); N = pesada de mitral (até N pontos).
+  const attributeCap = defenseAttributeCap(wornArmor);
+  const hasHeavyArmor = (): boolean => attributeCap === 0;
 
   // Get default defense attribute based on class
   const getDefaultDefenseAttribute = (): Atributo => {
@@ -148,7 +153,10 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
     if (editedData.useDefenseAttribute && !heavyArmor) {
       const attrToUse =
         editedData.customDefenseAttribute || getDefaultDefenseAttribute();
-      total += sheet.atributos[attrToUse].value;
+      total += capDefenseAttribute(
+        sheet.atributos[attrToUse].value,
+        attributeCap
+      );
     }
 
     // Add power bonuses
@@ -189,7 +197,10 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
     if (editedData.useDefenseAttribute && !heavyArmor) {
       const attrToUse =
         editedData.customDefenseAttribute || getDefaultDefenseAttribute();
-      const attrValue = sheet.atributos[attrToUse].value;
+      const attrValue = capDefenseAttribute(
+        sheet.atributos[attrToUse].value,
+        attributeCap
+      );
       if (attrValue !== 0) {
         const attrName = attrToUse.substring(0, 3).toUpperCase();
         components.push(`${attrValue} (${attrName})`);
@@ -301,7 +312,10 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
   const heavyArmor = hasHeavyArmor();
   const defaultAttribute = getDefaultDefenseAttribute();
   const currentAttr = editedData.customDefenseAttribute || defaultAttribute;
-  const currentAttrValue = sheet.atributos[currentAttr].value;
+  const currentAttrValue = capDefenseAttribute(
+    sheet.atributos[currentAttr].value,
+    attributeCap
+  );
 
   return (
     <Drawer
@@ -380,9 +394,13 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
               mt: -2,
             }}
           >
-            {heavyArmor
-              ? 'Armaduras pesadas ignoram o modificador de atributo'
-              : 'Desmarque para ignorar modificador de atributo (ex: armaduras pesadas customizadas)'}
+            {heavyArmor &&
+              'Armaduras pesadas ignoram o modificador de atributo'}
+            {!heavyArmor &&
+              attributeCap !== Infinity &&
+              `Armadura pesada de material especial: soma até ${attributeCap} pontos do atributo`}
+            {attributeCap === Infinity &&
+              'Desmarque para ignorar modificador de atributo (ex: armaduras pesadas customizadas)'}
           </Typography>
 
           {/* Atributo de Defesa */}

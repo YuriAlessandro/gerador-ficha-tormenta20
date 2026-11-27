@@ -29,6 +29,8 @@ import { Spell } from '@/interfaces/Spells';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import {
   calcDefense,
+  capDefenseAttribute,
+  defenseAttributeCap,
   isHeavyArmor,
 } from '@/data/systems/tormenta20/equipamentos';
 import { getRaceDisplacement } from '@/data/systems/tormenta20/races/functions/functions';
@@ -2636,25 +2638,34 @@ export function recalculateSheet(
   // fala em usar a armadura, e é o que `calcDefense` já faz para o bônus de
   // Defesa. Fonte única em `wornArmor.ts`.
   const wornArmorItem = getSheetWornArmor(updatedSheet);
+  // 0 = armadura pesada (atributo fora); N = pesada de mitral. Os ajustes
+  // abaixo usam o mesmo limite que `calcDefense` aplicou.
+  const attributeCap = defenseAttributeCap(wornArmorItem);
+  // Pesada de mitral continua pesada (deslocamento, RD, poderes); só o
+  // atributo na Defesa segue `attributeCap`.
   const heavyArmor = !!wornArmorItem && isHeavyArmor(wornArmorItem);
+  const attributeBlocked = attributeCap === 0;
 
   // Apply custom attribute logic if defined
-  if (updatedSheet.useDefenseAttribute === false && !heavyArmor) {
+  if (updatedSheet.useDefenseAttribute === false && !attributeBlocked) {
     // User explicitly disabled attribute, remove it
     // Precisa casar com o que `calcDefense` acabou de somar — e ele soma o
     // atributo EFETIVO. Ler o base aqui deixaria o delta temporário preso na
     // Defesa depois de o jogador desligar o atributo.
-    const defaultAttr = getEffectiveAttributeModifier(
-      updatedSheet,
-      usesCharismaForDefense(updatedSheet)
-        ? Atributo.CARISMA
-        : Atributo.DESTREZA
+    const defaultAttr = capDefenseAttribute(
+      getEffectiveAttributeModifier(
+        updatedSheet,
+        usesCharismaForDefense(updatedSheet)
+          ? Atributo.CARISMA
+          : Atributo.DESTREZA
+      ),
+      attributeCap
     );
     updatedSheet.defesa -= defaultAttr;
   } else if (
     updatedSheet.customDefenseAttribute &&
     updatedSheet.useDefenseAttribute !== false &&
-    !heavyArmor
+    !attributeBlocked
   ) {
     // User specified a custom attribute (and didn't disable it)
     const defaultAttr = usesCharismaForDefense(updatedSheet)
@@ -2665,13 +2676,16 @@ export function recalculateSheet(
       // Remove default attribute value and add custom. Os dois EFETIVOS: o que
       // sai tem que casar com o que `calcDefense` somou, e o que entra também
       // recebe o delta temporário.
-      const defaultValue = getEffectiveAttributeModifier(
-        updatedSheet,
-        defaultAttr
+      const defaultValue = capDefenseAttribute(
+        getEffectiveAttributeModifier(updatedSheet, defaultAttr),
+        attributeCap
       );
-      const customValue = getEffectiveAttributeModifier(
-        updatedSheet,
-        updatedSheet.customDefenseAttribute
+      const customValue = capDefenseAttribute(
+        getEffectiveAttributeModifier(
+          updatedSheet,
+          updatedSheet.customDefenseAttribute
+        ),
+        attributeCap
       );
       updatedSheet.defesa = updatedSheet.defesa - defaultValue + customValue;
     }

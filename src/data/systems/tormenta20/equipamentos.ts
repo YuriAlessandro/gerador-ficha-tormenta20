@@ -6,6 +6,7 @@ import { HEROIS_ARTON_ARMORS } from './herois-de-arton/equipment/armors';
 import { AMEACAS_ARTON_ARMORS } from './ameacas-de-arton/equipment/armors';
 import { usesCharismaForDefense } from '../../../functions/learnedClassAbility';
 import { isItemWielded } from '../../../components/SheetResult/BackpackModal/wielding';
+import { getHeavyArmorAttributeCap } from '../../../functions/itemEnhancements/materialEffects';
 import Equipment, {
   DefenseEquipment,
   CombatItems,
@@ -907,16 +908,55 @@ const KNOWN_HEAVY_NAMES = new Set([
  * `isHeavyArmor: false` porque o editor de item gravava `false` por padrão. O
  * nome vence, o que auto-cura fichas já corrompidas sem precisar de migração.
  *
- * Efeito colateral intencional: o checkbox "Armadura pesada" do editor não
- * tem efeito nesses nomes conhecidos. Marcar como leve salva `false`, mas o
- * helper continua devolvendo `true`.
+ * A exceção é `lightArmorOverride`: o editor só grava esse campo quando o
+ * usuário desmarca "Pesada" de propósito numa armadura de catálogo (Cota
+ * élfica), então ele vence o nome. Ver `heavyArmorFields`.
  *
  * Para itens não listados (custom, homebrew), o valor vem da propriedade
  * `isHeavyArmor` definida no dado ou editada pelo usuário.
  */
 export function isHeavyArmor(armor: DefenseEquipment): boolean {
+  if (armor.lightArmorOverride) return false;
   if (KNOWN_HEAVY_NAMES.has(armor.nome)) return true;
   return armor.isHeavyArmor === true;
+}
+
+/**
+ * Campos que os editores de item gravam a partir do checkbox "Pesada". O
+ * override só existe quando o usuário contraria o catálogo; nos demais casos
+ * ele some, e o `false` antigo de ficha corrompida continua sendo ignorado.
+ */
+export function heavyArmorFields(
+  nome: string,
+  heavy: boolean
+): Pick<DefenseEquipment, 'isHeavyArmor' | 'lightArmorOverride'> {
+  return {
+    isHeavyArmor: heavy,
+    lightArmorOverride:
+      !heavy && KNOWN_HEAVY_NAMES.has(nome) ? true : undefined,
+  };
+}
+
+/**
+ * Quanto do atributo de Defesa (Destreza, ou o que a substitui) a armadura
+ * vestida deixa somar: sem limite sem armadura ou com armadura leve, 0 com
+ * armadura pesada, N com armadura pesada de material que libera parte dele
+ * (Mitral: 2). Fonte única para `calcDefense`, o recálculo e as fórmulas
+ * exibidas.
+ */
+export function defenseAttributeCap(armor?: DefenseEquipment): number {
+  if (!armor || !isHeavyArmor(armor)) return Infinity;
+  return getHeavyArmorAttributeCap(armor);
+}
+
+/**
+ * Aplica o limite de `defenseAttributeCap`. Com limite, só pontos positivos
+ * entram ("aplique até dois pontos"): Destreza negativa não piora a Defesa de
+ * quem já não a somaria com armadura pesada.
+ */
+export function capDefenseAttribute(value: number, cap: number): number {
+  if (cap === Infinity) return value;
+  return Math.max(0, Math.min(value, cap));
 }
 
 export const bardInstruments: string[] = [
@@ -997,18 +1037,21 @@ export function calcDefense(charSheet: CharacterSheet): CharacterSheet {
       return acc;
     }, cloneSheet.defesa);
 
-  const heavyArmor = equipped.some(
-    (equip) => isDefenseEquip(equip) && isHeavyArmor(equip)
+  // Armadura pesada zera o atributo; de mitral, limita a 2.
+  const attributeCap = defenseAttributeCap(
+    equipped.find(
+      (equip): equip is DefenseEquipment =>
+        isDefenseEquip(equip) && equip.group === 'Armadura'
+    )
   );
 
-  // Se não tem armadura pesada
-  if (!heavyArmor) {
+  if (attributeCap > 0) {
     // Autoconfiança (Nobre, ou aprendida pelo Duplo Feérico)
     if (usesCharismaForDefense(cloneSheet)) {
       // Atributo EFETIVO: um bônus temporário de Carisma sobe a Defesa do Nobre.
-      const carismaMod = getEffectiveAttributeModifier(
-        cloneSheet,
-        Atributo.CARISMA
+      const carismaMod = capDefenseAttribute(
+        getEffectiveAttributeModifier(cloneSheet, Atributo.CARISMA),
+        attributeCap
       );
       // Only add step if Carisma modifier is not 0
       if (carismaMod !== 0) {
@@ -1028,9 +1071,9 @@ export function calcDefense(charSheet: CharacterSheet): CharacterSheet {
     // Se não for Nobre
     else {
       // Atributo EFETIVO (ver `functions/effectiveAttributes.ts`).
-      const destreza = getEffectiveAttributeModifier(
-        cloneSheet,
-        Atributo.DESTREZA
+      const destreza = capDefenseAttribute(
+        getEffectiveAttributeModifier(cloneSheet, Atributo.DESTREZA),
+        attributeCap
       );
       // Only add step if Destreza modifier is not 0
       if (destreza !== 0) {
