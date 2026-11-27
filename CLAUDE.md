@@ -174,6 +174,7 @@ npx prettier --check <filename>  # Check if files are formatted
   - Test layouts for both mobile and desktop views
   - Use `isMobile` pattern: `const isMobile = window.innerWidth <= 768;`
 - Produção em https://fichasdenimb.com.br
+- **Builds v2 (selo das builds)**: correção de regra no motor da ficha que possa mudar o resultado de uma build (pré-requisito, contagem de poder ou de magia, bônus) exige subir `BUILD_RULES_VERSION` em `src/premium/functions/buildsV2/simulator/rulesVersion.ts`. Os selos salvos com a versão antiga passam a aparecer como "a reverificar".
 
 ### Infraestrutura
 
