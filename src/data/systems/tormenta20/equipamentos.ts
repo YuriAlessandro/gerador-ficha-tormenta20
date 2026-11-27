@@ -6,6 +6,7 @@ import { HEROIS_ARTON_ARMORS } from './herois-de-arton/equipment/armors';
 import { AMEACAS_ARTON_ARMORS } from './ameacas-de-arton/equipment/armors';
 import { usesCharismaForDefense } from '../../../functions/learnedClassAbility';
 import { isItemWielded } from '../../../components/SheetResult/BackpackModal/wielding';
+import { getHeavyArmorAttributeCap } from '../../../functions/itemEnhancements/materialEffects';
 import Equipment, {
   DefenseEquipment,
   CombatItems,
@@ -936,6 +937,28 @@ export function heavyArmorFields(
   };
 }
 
+/**
+ * Quanto do atributo de Defesa (Destreza, ou o que a substitui) a armadura
+ * vestida deixa somar: sem limite sem armadura ou com armadura leve, 0 com
+ * armadura pesada, N com armadura pesada de material que libera parte dele
+ * (Mitral: 2). Fonte única para `calcDefense`, o recálculo e as fórmulas
+ * exibidas.
+ */
+export function defenseAttributeCap(armor?: DefenseEquipment): number {
+  if (!armor || !isHeavyArmor(armor)) return Infinity;
+  return getHeavyArmorAttributeCap(armor);
+}
+
+/**
+ * Aplica o limite de `defenseAttributeCap`. Com limite, só pontos positivos
+ * entram ("aplique até dois pontos"): Destreza negativa não piora a Defesa de
+ * quem já não a somaria com armadura pesada.
+ */
+export function capDefenseAttribute(value: number, cap: number): number {
+  if (cap === Infinity) return value;
+  return Math.max(0, Math.min(value, cap));
+}
+
 export const bardInstruments: string[] = [
   'Violão',
   'Violino',
@@ -1014,18 +1037,21 @@ export function calcDefense(charSheet: CharacterSheet): CharacterSheet {
       return acc;
     }, cloneSheet.defesa);
 
-  const heavyArmor = equipped.some(
-    (equip) => isDefenseEquip(equip) && isHeavyArmor(equip)
+  // Armadura pesada zera o atributo; de mitral, limita a 2.
+  const attributeCap = defenseAttributeCap(
+    equipped.find(
+      (equip): equip is DefenseEquipment =>
+        isDefenseEquip(equip) && equip.group === 'Armadura'
+    )
   );
 
-  // Se não tem armadura pesada
-  if (!heavyArmor) {
+  if (attributeCap > 0) {
     // Autoconfiança (Nobre, ou aprendida pelo Duplo Feérico)
     if (usesCharismaForDefense(cloneSheet)) {
       // Atributo EFETIVO: um bônus temporário de Carisma sobe a Defesa do Nobre.
-      const carismaMod = getEffectiveAttributeModifier(
-        cloneSheet,
-        Atributo.CARISMA
+      const carismaMod = capDefenseAttribute(
+        getEffectiveAttributeModifier(cloneSheet, Atributo.CARISMA),
+        attributeCap
       );
       // Only add step if Carisma modifier is not 0
       if (carismaMod !== 0) {
@@ -1045,9 +1071,9 @@ export function calcDefense(charSheet: CharacterSheet): CharacterSheet {
     // Se não for Nobre
     else {
       // Atributo EFETIVO (ver `functions/effectiveAttributes.ts`).
-      const destreza = getEffectiveAttributeModifier(
-        cloneSheet,
-        Atributo.DESTREZA
+      const destreza = capDefenseAttribute(
+        getEffectiveAttributeModifier(cloneSheet, Atributo.DESTREZA),
+        attributeCap
       );
       // Only add step if Destreza modifier is not 0
       if (destreza !== 0) {

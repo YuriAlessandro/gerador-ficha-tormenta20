@@ -33,7 +33,9 @@ export interface MaterialEffect {
 export const materialEffects: Record<string, MaterialEffect> = {
   mitral: {
     weaponEffect: { weaponStats: { criticoThreatDelta: 1 } },
-    defenseEffect: { defenseStats: { armorPenaltyDelta: -2 } },
+    defenseEffect: {
+      defenseStats: { armorPenaltyDelta: -2, heavyArmorAttributeCap: 2 },
+    },
   },
   adamante: {
     weaponEffect: { weaponStats: { danoStepUp: 1 } },
@@ -150,4 +152,21 @@ export function getDefenseMaterialRd(
     isHeavyArmor: heavy,
   });
   return effect?.damageReduction ?? [];
+}
+
+/**
+ * Pontos do atributo de Defesa que o material libera numa armadura pesada
+ * (Mitral: 2). 0 quando o item não tem material ou o material não libera nada.
+ * Snapshot primeiro, registro estático depois — mesma ordem de
+ * `getDefenseMaterialRd`.
+ */
+export function getHeavyArmorAttributeCap(item: DefenseEquipment): number {
+  const materialMod = item.modifications?.find(
+    (m) => m.mod === 'Material especial' && m.specialMaterial
+  );
+  if (!materialMod?.specialMaterial) return 0;
+  const effect = materialMod.materialEffect
+    ? resolveScaledEffect(materialMod.materialEffect, item)
+    : resolveMaterialEffect(materialMod.specialMaterial, 'defense', item);
+  return effect?.defenseStats?.heavyArmorAttributeCap ?? 0;
 }
